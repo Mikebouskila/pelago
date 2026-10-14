@@ -654,6 +654,9 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
 
 
 DEMO_TECH = {
+    "Lumen Docs": {"react": 140, "tailwind": 120},
+    "Kestrel": {"llm": 160, "mcp": 50},
+    "Pixel Forge": {"gamedev": 90, "threejs": 40},
     "Atlas Studio": {"react": 420, "typescript": 380, "payments": 40},
     "Orbit Agent": {"llm": 300, "python": 260, "docker": 30},
     "Tiny Quest": {"gamedev": 210, "typescript": 50},
@@ -674,6 +677,12 @@ def demo_data() -> dict[str, Any]:
         ("Pocket Notes", "claude", "mobile", 12, 540, 1800, 120, 6_200_000, 19, {"build": 380, "shell": 200, "web": 60}),
         ("Paper Trail", "codex", "web", 8, 300, 900, 70, 2_400_000, 130, {"build": 160, "shell": 120, "read": 40}),
         ("Sunday Lab", "claude", "other", 5, 140, 420, 30, 700_000, 26, {"shell": 50, "web": 30, "crew": 10}),
+        ("Lumen Docs", "claude", "web", 16, 820, 2600, 170, 12_400_000, 3, {"build": 500, "read": 300, "web": 90}),
+        ("Tidepool", "codex", "data", 11, 560, 1700, 110, 5_100_000, 9, {"shell": 300, "read": 140}),
+        ("Kestrel", "claude", "ai", 13, 700, 2200, 140, 9_800_000, 1, {"shell": 400, "crew": 60, "build": 200}),
+        ("Pixel Forge", "claude", "game", 9, 430, 1300, 90, 3_900_000, 40, {"build": 260, "shell": 120}),
+        ("Harbor API", "codex", "web", 7, 260, 800, 55, 1_900_000, 70, {"shell": 160, "build": 80}),
+        ("Night Owl", "claude", "cli", 6, 190, 560, 40, 1_100_000, 2, {"shell": 120, "build": 40}),
     ]
     projects = []
     now = datetime.now(timezone.utc)
@@ -707,6 +716,9 @@ def demo_data() -> dict[str, Any]:
         {"a": by_name["Atlas Studio"], "b": by_name["Pocket Notes"], "kind": "name", "word": "atlas"},
         {"a": by_name["Orbit Agent"], "b": by_name["Signal CLI"], "kind": "name", "word": "orbit"},
         {"a": by_name["Northstar"], "b": by_name["Sunday Lab"], "kind": "nest", "word": ""},
+        {"a": by_name["Atlas Studio"], "b": by_name["Lumen Docs"], "kind": "nest", "word": ""},
+        {"a": by_name["Northstar"], "b": by_name["Tidepool"], "kind": "name", "word": "tide"},
+        {"a": by_name["Tiny Quest"], "b": by_name["Pixel Forge"], "kind": "nest", "word": ""},
     ]
     return enrich({"version": 2, "generatedAt": now.isoformat(), "projects": projects, "links": links, "rhythm": rhythm, "sources": [
         {"agent": "claude", "available": True, "files": 4, "sessions": 4},
