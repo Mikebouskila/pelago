@@ -179,12 +179,13 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
 
   // 1. The archipelago: the capital as the hero, the next biggest islands packed tight around it.
   const ranked = [...PROJECTS].sort((a, b) => b.activity - a.activity);
-  const shown = selected ? [selected] : ranked.slice(0, tall ? 9 : square ? 8 : 11);
+  const shown = selected ? [selected] : ranked;
   const hero = selected || ranked[0];
-  const factors = new Map(shown.map((project, index) => [project.id, project === hero ? (selected ? 1 : 1.75) : index < 4 ? 1.08 : .95]));
-  const box = tall ? { left: 4 * scale, right: 4 * scale, top: height * .19, bottom: height * .27 }
-    : square ? { left: 8 * scale, right: 8 * scale, top: height * .3, bottom: height * .29 }
-      : { left: width * .38, right: 12 * scale, top: 20 * scale, bottom: 50 * scale };
+  const factors = new Map(shown.map((project, index) => [project.id, project === hero ? (selected ? 1 : 1.6) : index < 6 ? 1.05 : .92]));
+  const bleed = selected ? 0 : width * (tall ? .3 : square ? .16 : .1);
+  const box = tall ? { left: -bleed, right: -bleed, top: height * .2, bottom: height * .25 }
+    : square ? { left: -bleed, right: -bleed, top: height * .31, bottom: height * .26 }
+      : { left: width * .4, right: -bleed, top: -height * .04, bottom: 20 * scale };
   const items = makeLayout(width, height, shown, { ...box, hang: selected ? .8 : .32, maxSize: 4000, factors });
   const flat = { transform: { x: 0, y: 0, scale: 1 }, detail: true, selected: false, hovered: false };
   const pixel = items[0]?.px || 1;
@@ -201,8 +202,16 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   if (!selected) drawConnections(context, items, flat.transform, time, pixel, 'bridges');
   drawCloudSea(context, width, height, time, true);
   if (showNames && !selected) {
-    const named = new Set(ranked.slice(0, tall ? 4 : 3).map((project) => project.id));
-    items.filter((item) => named.has(item.project.id)).forEach((item) => drawIslandLabel(context, item, { ...flat, labelScale: scale * (item === heroItem ? 1.35 : 1) * (tall ? 2.6 : wide ? 1.6 : 2.1) }));
+    // Label the biggest islands whose name fits fully inside the card.
+    const labelScale = (item) => scale * (item === heroItem ? 1.35 : 1) * (tall ? 2.6 : wide ? 1.6 : 2.1);
+    const fits = (item) => {
+      const size = clamp(item.size * .085, 10 * labelScale(item), 15 * labelScale(item));
+      context.font = `800 ${size}px ui-sans-serif, system-ui`;
+      const half = (context.measureText(item.project.name).width + size * 2) / 2;
+      return item.x - half > 12 * scale && item.x + half < width - 12 * scale;
+    };
+    items.filter((item) => item === heroItem || fits(item)).sort((a, b) => b.project.activity - a.project.activity).slice(0, tall ? 5 : 4)
+      .forEach((item) => drawIslandLabel(context, item, { ...flat, labelScale: labelScale(item) }));
   }
   const hidden = PROJECTS.length - shown.length;
   if (hidden > 0 && !selected && !wide) {
@@ -225,7 +234,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     side.addColorStop(0, 'rgba(4,9,26,.92)'); side.addColorStop(.62, 'rgba(4,9,26,.7)'); side.addColorStop(1, 'rgba(4,9,26,0)');
     context.fillStyle = side; context.fillRect(0, 0, width * .5, height);
   } else {
-    scrim(0, height * (tall ? .25 : .3), 'rgba(4,9,26,.94)', 'rgba(4,9,26,0)');
+    scrim(0, height * (tall ? .27 : .34), 'rgba(4,9,26,.96)', 'rgba(4,9,26,0)');
     scrim(height, height * (tall ? .7 : .66), 'rgba(4,9,26,.96)', 'rgba(4,9,26,0)');
   }
 
