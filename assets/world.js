@@ -177,21 +177,41 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   drawOcean(context, width, height, selected ? selected.seed : 73, time);
   drawCloudSea(context, width, height, time);
 
-  // 1. The archipelago.
-  const projects = selected ? [selected] : PROJECTS;
-  const box = tall ? { left: 6 * scale, right: 6 * scale, top: height * .19, bottom: height * .26 }
-    : square ? { left: 8 * scale, right: 8 * scale, top: height * .25, bottom: height * .3 }
-      : { left: width * .38, right: 16 * scale, top: 24 * scale, bottom: 56 * scale };
-  const items = makeLayout(width, height, projects, { ...box, hang: selected ? .8 : .42, maxSize: 4000 });
+  // 1. The archipelago: the capital as the hero, the next biggest islands packed tight around it.
+  const ranked = [...PROJECTS].sort((a, b) => b.activity - a.activity);
+  const shown = selected ? [selected] : ranked.slice(0, tall ? 9 : square ? 8 : 11);
+  const hero = selected || ranked[0];
+  const factors = new Map(shown.map((project, index) => [project.id, project === hero ? (selected ? 1 : 1.75) : index < 4 ? 1.08 : .95]));
+  const box = tall ? { left: 4 * scale, right: 4 * scale, top: height * .19, bottom: height * .27 }
+    : square ? { left: 8 * scale, right: 8 * scale, top: height * .3, bottom: height * .29 }
+      : { left: width * .38, right: 12 * scale, top: 20 * scale, bottom: 50 * scale };
+  const items = makeLayout(width, height, shown, { ...box, hang: selected ? .8 : .32, maxSize: 4000, factors });
   const flat = { transform: { x: 0, y: 0, scale: 1 }, detail: true, selected: false, hovered: false };
   const pixel = items[0]?.px || 1;
+  const heroItem = items.find((item) => item.project.id === hero.id);
+  if (heroItem) {
+    // A warm halo behind the capital gives the card a centre.
+    const radius = heroItem.size * 2.4;
+    const halo = context.createRadialGradient(heroItem.x, heroItem.y - heroItem.size * .3, 0, heroItem.x, heroItem.y - heroItem.size * .3, radius);
+    halo.addColorStop(0, 'rgba(255,214,111,.28)'); halo.addColorStop(.45, 'rgba(125,190,240,.1)'); halo.addColorStop(1, 'rgba(125,190,240,0)');
+    context.fillStyle = halo; context.fillRect(heroItem.x - radius, heroItem.y - radius * 1.2, radius * 2, radius * 2.2);
+  }
   if (!selected) drawConnections(context, items, flat.transform, time, pixel, 'route');
   [...items].sort((a, b) => a.y - b.y).forEach((item) => drawIsland(context, item, { ...flat, label: false, time }));
   if (!selected) drawConnections(context, items, flat.transform, time, pixel, 'bridges');
   drawCloudSea(context, width, height, time, true);
   if (showNames && !selected) {
-    const named = new Set([...projects].sort((a, b) => b.activity - a.activity).slice(0, tall ? 5 : 4).map((project) => project.id));
-    items.filter((item) => named.has(item.project.id)).forEach((item) => drawIslandLabel(context, item, { ...flat, labelScale: scale * (tall ? 2.7 : wide ? 1.6 : 2.1) }));
+    const named = new Set(ranked.slice(0, tall ? 4 : 3).map((project) => project.id));
+    items.filter((item) => named.has(item.project.id)).forEach((item) => drawIslandLabel(context, item, { ...flat, labelScale: scale * (item === heroItem ? 1.35 : 1) * (tall ? 2.6 : wide ? 1.6 : 2.1) }));
+  }
+  const hidden = PROJECTS.length - shown.length;
+  if (hidden > 0 && !selected && !wide) {
+    const bottom = Math.max(...items.map((item) => item.y + item.size * .9));
+    context.textAlign = 'center'; context.fillStyle = 'rgba(220,232,248,.75)'; context.font = `800 ${(tall ? 20 : 15) * scale}px ${SANS}`;
+    if ('letterSpacing' in context) context.letterSpacing = `${2 * scale}px`;
+    const centreX = wide ? (box.left + width - box.right) / 2 : width / 2;
+    context.fillText(`+ ${hidden} MORE ISLANDS`, centreX, Math.min(bottom + 26 * scale, height - (tall ? 410 : wide ? 70 : 250) * scale));
+    if ('letterSpacing' in context) context.letterSpacing = '0px';
   }
 
   // 2. Scrims so the words always read.
@@ -716,8 +736,8 @@ function makeLayout(width, height, projects = PROJECTS, options = {}) {
   const availableWidth = Math.max(120, width - box.left - box.right);
   const availableHeight = Math.max(120, height - box.top - box.bottom);
   const aspect = clamp(availableHeight / availableWidth, .45, 2);
-  const key = `${projects.map((project) => project.id).join()}|${aspect.toFixed(2)}|${options.depth ? 1 : 0}`;
-  let factors = null, hazes = null, tierOf = null;
+  const key = `${projects.map((project) => project.id).join()}|${aspect.toFixed(2)}|${options.depth ? 1 : 0}|${options.factors ? [...options.factors.values()].join() : ''}`;
+  let factors = options.factors || null, hazes = null, tierOf = null;
   if (options.depth) {
     factors = new Map(); hazes = new Map(); tierOf = new Map();
     sceneTiers(projects).forEach((tier, index) => tier.forEach((project) => {
