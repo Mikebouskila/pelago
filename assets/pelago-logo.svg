@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 240" shape-rendering="crispEdges">
+  <rect width="640" height="240" rx="24" fill="#FFFDF5"/>
+  <g transform="translate(44 42)">
+    <path fill="#6EC9CE" d="M0 96h144v44H0z"/>
+    <path fill="#F3EAD5" d="M20 78h104v38H20z"/>
+    <path fill="#8FC979" d="M32 60h80v38H32zM48 46h48v20H48z"/>
+    <path fill="#F26C5B" d="M66 6h14v58H66zM80 6h44v25H80z"/>
+    <path fill="#FFF4AD" d="M4 10h16v16H4z"/>
+  </g>
+  <text x="220" y="122" fill="#143247" font-family="Georgia,serif" font-size="72" font-weight="700">PELAGO</text>
+  <text x="224" y="158" fill="#617987" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="5">YOUR DEV WORLD</text>
+</svg>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#081126">
+  <meta name="description" content="A personal archipelago built from local Claude Code and Codex history.">
+  <title>My Pelago · The world I built with AI</title>
+  <style>__PELAGO_CSS__</style>
+</head>
+<body>
+  <a class="skip-link" href="#atlas">Skip to the atlas</a>
+  <div class="app">
+    <header class="masthead">
+      <div class="brand" aria-label="Pelago">
+        <span class="brand-glyph" aria-hidden="true"><i></i></span>
+        <span class="brand-word">PELAGO</span>
+        <span class="brand-edition">PERSONAL ATLAS</span>
+      </div>
+      <div class="world-summary" id="worldSummary" aria-live="polite"></div>
+      <nav class="mast-actions" aria-label="Atlas actions">
+        <button class="quiet-action" id="guideButton"><span class="action-icon">?</span><span>Field guide</span></button>
+        <button class="quiet-action story-action" data-play-story><span class="action-icon play" aria-hidden="true">▶</span><span>Your story</span></button>
+        <button class="share-action" id="shareButton"><span>Share atlas</span><span aria-hidden="true">↗</span></button>
+      </nav>
+    </header>
+
+    <main class="atlas" id="atlas">
+      <canvas id="worldCanvas" aria-label="Interactive pixel-art archipelago. Select an island from the island index for an accessible description."></canvas>
+      <div class="ocean-vignette" aria-hidden="true"></div>
+
+      <section class="welcome" id="welcome" aria-labelledby="welcomeTitle">
+        <p class="overline">YOUR AI CODING HISTORY, MAPPED</p>
+        <h1 id="welcomeTitle">Everything you built <br>became a <em>place.</em></h1>
+        <p class="welcome-copy">Every project is an island built from its own work: a building for each session, a tree for each request, waterfalls from the tokens. Made locally from your Claude Code and Codex history.</p>
+        <p class="persona-chip" id="personaChip"><span>You are</span> <strong id="personaTitle"></strong></p>
+        <div class="welcome-actions">
+          <button class="primary-action" data-play-story><span aria-hidden="true">▶</span> Play your story</button>
+          <button class="ghost-action" id="enterWorld">Explore the map <span aria-hidden="true">→</span></button>
+          <button class="text-action" id="openGuide">How it works</button>
+        </div>
+        <p class="privacy"><span aria-hidden="true">▣</span> Private by design. No prompt or file content is stored.</p>
+      </section>
+
+      <section class="map-key guide" id="mapKey" aria-labelledby="mapKeyTitle">
+        <div class="map-key-head">
+          <div><p class="overline">FIELD GUIDE</p><h2 id="mapKeyTitle">Reading your archipelago</h2></div>
+          <button class="icon-button" id="closeGuide" aria-label="Close field guide">×</button>
+        </div>
+        <div class="guide-tabs" role="tablist">
+          <button class="guide-tab active" role="tab" aria-selected="true" data-guide="read">How to read</button>
+          <button class="guide-tab" role="tab" aria-selected="false" data-guide="relics">Relics <span id="relicCount"></span></button>
+        </div>
+        <div class="guide-body" id="guideRead" role="tabpanel"></div>
+        <div class="guide-body" id="guideRelics" role="tabpanel" hidden></div>
+      </section>
+
+      <aside class="island-sheet" id="islandSheet" aria-live="polite" aria-labelledby="selectedName">
+        <button class="sheet-close" id="closeSheet" aria-label="Close island details">×</button>
+        <div class="sheet-preview"><canvas id="detailCanvas"></canvas><span class="agent-stamp" id="selectedAgent"></span></div>
+        <div class="sheet-content">
+          <p class="overline" id="selectedType">PROJECT ISLAND</p>
+          <h2 id="selectedName">Choose an island</h2>
+          <p class="island-story" id="selectedStory"></p>
+          <div class="island-facts" id="selectedFacts"></div>
+          <div class="why-title"><span>Why it looks this way</span><i></i></div>
+          <div class="why-list" id="whyList"></div>
+          <div class="sheet-relics" id="sheetRelics"></div>
+          <div class="sheet-links" id="sheetLinks"></div>
+          <button class="sheet-share" id="shareSelected">Create a card from this view <span>↗</span></button>
+        </div>
+      </aside>
+
+      <div class="hover-label" id="hoverLabel" role="tooltip"></div>
+
+      <div class="map-controls" aria-label="Map controls">
+        <button id="zoomIn" aria-label="Zoom in">+</button>
+        <button id="zoomOut" aria-label="Zoom out">−</button>
+        <button id="resetView" aria-label="Reset map view"><span aria-hidden="true">⌖</span></button>
+      </div>
+
+      <section class="island-index" id="islandIndex" aria-labelledby="indexTitle">
+        <div class="index-title">
+          <span class="index-count" id="indexCount">00</span>
+          <span><strong id="indexTitle">Island index</strong><small>Choose a place to explore</small></span>
+        </div>
+        <div class="agent-filters" role="group" aria-label="Filter islands by agent">
+          <button class="agent-filter active" data-filter="all">All</button>
+          <button class="agent-filter" data-filter="claude"><i class="agent-dot claude"></i>Claude</button>
+          <button class="agent-filter" data-filter="codex"><i class="agent-dot codex"></i>Codex</button>
+        </div>
+        <div class="index-track" id="indexTrack" role="list"></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="share-dialog" id="shareDialog">
+    <div class="dialog-head">
+      <div><p class="overline">EXPORT STUDIO</p><h2>Make your world travel.</h2><p>Rendered locally as a high-resolution PNG.</p></div>
+      <button class="icon-button" data-close-dialog aria-label="Close export studio">×</button>
+    </div>
+    <div class="export-layout">
+      <div class="export-options">
+        <p class="field-label">Format</p>
+        <div class="format-list" role="group" aria-label="Export format">
+          <button class="format-option active" data-format="story"><span class="ratio ratio-story"></span><span><strong>Story</strong><small>1080 × 1920</small></span><i>✓</i></button>
+          <button class="format-option" data-format="square"><span class="ratio ratio-square"></span><span><strong>Square</strong><small>1080 × 1080</small></span><i>✓</i></button>
+          <button class="format-option" data-format="social"><span class="ratio ratio-social"></span><span><strong>X / LinkedIn</strong><small>1600 × 900</small></span><i>✓</i></button>
+          <button class="format-option" data-format="github"><span class="ratio ratio-github"></span><span><strong>GitHub</strong><small>1280 × 640</small></span><i>✓</i></button>
+        </div>
+        <label class="field-label" for="cardTitle">Card headline</label>
+        <input id="cardTitle" maxlength="48" value="">
+        <label class="check-row"><input type="checkbox" id="includeNames" checked><span>Show project names</span></label>
+        <button class="download-action" id="downloadCard">Download PNG <span aria-hidden="true">↓</span></button>
+        <div class="share-row">
+          <button class="share-mini" id="copyCard">Copy image</button>
+          <button class="share-mini" id="postCard">Post on X</button>
+          <button class="share-mini" id="nativeShare">Share…</button>
+        </div>
+        <p class="local-note"><i></i>Nothing is uploaded</p>
+      </div>
+      <div class="export-stage"><canvas id="exportCanvas"></canvas></div>
+    </div>
+  </dialog>
+
+  <section class="story" id="story" hidden role="dialog" aria-modal="true" aria-label="Your Pelago story">
+    <div class="story-frame">
+      <div class="story-progress" id="storyProgress" aria-hidden="true"></div>
+      <div class="story-top">
+        <span class="story-brand"><span class="brand-glyph" aria-hidden="true"><i></i></span>PELAGO</span>
+        <span class="story-count" id="storyCount"></span>
+        <button class="story-icon" id="storyPause" aria-label="Pause story">❚❚</button>
+        <button class="story-icon" id="storyClose" aria-label="Close story">×</button>
+      </div>
+      <div class="story-stage" id="storyStage" aria-live="polite"></div>
+      <button class="story-nav prev" id="storyPrev" aria-label="Previous">‹</button>
+      <button class="story-nav next" id="storyNext" aria-label="Next">›</button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script id="pelago-data" type="application/json">__PELAGO_DATA__</script>
+  <script>__PELAGO_JS__</script>
+</body>
+</html>

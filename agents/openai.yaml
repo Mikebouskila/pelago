@@ -1,0 +1,9 @@
+interface:
+  display_name: "Pelago"
+  short_description: "Your AI coding history as an island world, a story, and a share card"
+  icon_small: "./assets/pelago-icon.svg"
+  icon_large: "./assets/pelago-logo.svg"
+  brand_color: "#F26C5B"
+  default_prompt: "Use $pelago to turn my Claude Code and Codex history into an island world and tell me my archetype."
+policy:
+  allow_implicit_invocation: true

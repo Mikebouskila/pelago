@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+pelago-world.html
+pelago-data.json
+pelago-*.png
+.DS_Store
+.claude/
+assets/source/

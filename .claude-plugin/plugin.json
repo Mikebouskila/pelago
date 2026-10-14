@@ -1,0 +1,10 @@
+{
+  "name": "pelago",
+  "description": "Turn your Claude Code and Codex history into a pixel-art archipelago, a Wrapped-style story, your AI-coding archetype, and shareable cards. Local-first.",
+  "version": "1.0.0",
+  "author": { "name": "Mikey Bouskila" },
+  "homepage": "https://github.com/Mikebouskila/pelago",
+  "repository": "https://github.com/Mikebouskila/pelago",
+  "license": "MIT",
+  "keywords": ["wrapped", "recap", "visualization", "pixel-art", "claude-code", "codex", "share"]
+}
