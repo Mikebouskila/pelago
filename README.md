@@ -136,7 +136,7 @@ One HTML file, about 250 KB, that works offline. Open it and press **▶ Play yo
 | | |
 |---|---|
 | **The map** | Your whole archipelago. Drag and zoom, then click any island to see exactly what it was built from. Coral flags mean Claude Code, sea-green flags mean Codex. |
-| **The story** | An eight-slide recap: sessions, your capital island, how many tokens flowed through, a 24-hour clock of when you build, your longest streak, how you split work between agents, and your archetype. |
+| **The story** | A nine-slide recap filmed over your own world: the camera flies from your whole archipelago to your capital and back while it shows your sessions, tokens, a 24-hour clock of when you build, a calendar of your longest streak, your crew, your relics and your archetype. |
 | **The archetype** | A title earned from your real rhythm and project mix, like *The Midnight Harbormaster*. |
 | **The cards** | Story (1080×1920), Square, X/LinkedIn, and GitHub formats. Download, copy to clipboard, share natively on mobile, or post to X in one click. |
 
@@ -158,6 +158,18 @@ The adjective comes from when and how you build: **Midnight** (a lot after 10 PM
 There are 28 combinations. Post yours with **#pelago**.
 
 Pelago describes a footprint, not a score. A small island is not a worse project. Nothing ranks you against anyone else.
+
+## Every number is real
+
+Pelago counts from your transcripts, not estimates:
+
+- **Sessions** are conversations. Subagent threads (Claude Code and Codex) fold into the session that launched them, and metadata files are never counted.
+- **Requests** are only what you typed. Subagent briefs, system notices, compaction summaries and interruptions are excluded.
+- **Messages** are real turns (yours, the agent's, and its tool calls), each reply counted once even when it is split across records.
+- **Tokens** are summed from usage records, each reply billed once. The story tells you how much of it was cached context being re-read.
+- Every line of every transcript is read, however large.
+
+The test suite pins each of these rules against records shaped like real transcripts.
 
 ## Useful flags
 

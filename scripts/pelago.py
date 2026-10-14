@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import math
 import json
 import re
 import sys
@@ -16,8 +17,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-MAX_FILES = 12_000
-MAX_FILE_BYTES = 24 * 1024 * 1024
+MAX_FILES = 200_000
+MAX_LINE_CHARS = 8 * 1024 * 1024
 MAX_PROJECTS = 32
 MAX_BUILDINGS = 64
 
@@ -253,27 +254,20 @@ def classify(text: str, minimum: float = 1) -> str:
 
 
 def _iter_records(path: Path) -> Iterable[dict[str, Any]]:
+    """Stream a transcript line by line. Every line is read: big sessions are the ones that matter most."""
     try:
-        if path.stat().st_size > MAX_FILE_BYTES:
-            return
-        if path.suffix == ".json":
-            parsed = json.loads(path.read_text(encoding="utf-8", errors="replace"))
-            values = parsed if isinstance(parsed, list) else [parsed]
-            for value in values:
-                if isinstance(value, dict):
-                    yield value
-            return
         with path.open("r", encoding="utf-8", errors="replace") as handle:
-            for index, line in enumerate(handle):
-                if index > 25_000:
-                    break
+            for line in handle:
+                # A single absurd line (a pasted binary, say) is skipped rather than parsed.
+                if len(line) > MAX_LINE_CHARS:
+                    continue
                 try:
                     value = json.loads(line)
                 except json.JSONDecodeError:
                     continue
                 if isinstance(value, dict):
                     yield value
-    except (OSError, json.JSONDecodeError):
+    except OSError:
         return
 
 
@@ -306,35 +300,64 @@ def _usage_tokens(usage: dict[str, Any]) -> tuple[int, int, int]:
     return top
 
 
-def read_work(record: dict[str, Any], agent: str, seen: set[str]) -> dict[str, Any]:
-    """Pull countable work signals out of one record: prompts, tools, models, tokens."""
-    work: dict[str, Any] = {"prompt": False, "tools": [], "model": None, "tokens": None, "cumulative": None}
+NOT_TYPED = ("<", "This session is being continued", "[Request interrupted", "Caveat:", "# AGENTS.md")
+
+
+def typed_text(content: Any) -> str | None:
+    """The text of a message a person typed, or None for tool results, injected context and notices."""
+    if isinstance(content, str):
+        text = content
+    elif isinstance(content, list):
+        blocks = [block for block in content if isinstance(block, dict)]
+        if not blocks or any(block.get("type") == "tool_result" for block in blocks):
+            return None
+        text = " ".join(str(block.get("text", "")) for block in blocks if block.get("type") in ("text", "input_text"))
+    else:
+        return None
+    text = text.strip()
+    return text if text and not text.startswith(NOT_TYPED) else None
+
+
+def read_work(record: dict[str, Any], agent: str, seen: set[str], subagent: bool = False) -> dict[str, Any]:
+    """Pull countable work out of one record.
+
+    message: a real conversation turn (person or agent, tool calls included), each agent reply counted once.
+    prompt:  something the person typed. Subagent briefs, notices and summaries are not prompts.
+    """
+    work: dict[str, Any] = {"message": False, "prompt": False, "tools": [], "model": None, "tokens": None, "cumulative": None}
     if agent == "claude":
         message = record.get("message") if isinstance(record.get("message"), dict) else {}
         content = message.get("content")
-        if record.get("type") == "user" and not record.get("isMeta"):
-            if isinstance(content, str):
-                work["prompt"] = not content.lstrip().startswith(("<command", "<local-command", "<system", "Caveat:"))
-            elif isinstance(content, list):
-                kinds = {block.get("type") for block in content if isinstance(block, dict)}
-                work["prompt"] = "text" in kinds and "tool_result" not in kinds
-        if record.get("type") == "assistant":
+        kind = record.get("type")
+        if kind == "user":
+            work["message"] = True
+            work["prompt"] = (not subagent and not record.get("isSidechain") and not record.get("isMeta")
+                              and not record.get("isCompactSummary") and typed_text(content) is not None)
+        elif kind == "assistant":
+            message_id = message.get("id")
+            if not message_id or message_id not in seen:
+                work["message"] = True
+                if message_id:
+                    seen.add(message_id)
+                if isinstance(message.get("usage"), dict):
+                    work["tokens"] = _usage_tokens(message["usage"])
             if isinstance(content, list):
                 work["tools"] = [block.get("name", "") for block in content if isinstance(block, dict) and block.get("type") == "tool_use"]
             if isinstance(message.get("model"), str):
                 work["model"] = message["model"]
-            message_id = message.get("id")
-            if isinstance(message.get("usage"), dict) and message_id not in seen:
-                if message_id:
-                    seen.add(message_id)
-                work["tokens"] = _usage_tokens(message["usage"])
     else:
         payload = record.get("payload") if isinstance(record.get("payload"), dict) else {}
         kind = payload.get("type")
-        if kind in ("function_call", "custom_tool_call", "local_shell_call"):
-            work["tools"] = [payload.get("name") or "shell"]
-        elif kind == "task_started" or kind == "user_message":
-            work["prompt"] = True
+        if record.get("type") == "response_item":
+            if kind in ("function_call", "custom_tool_call", "local_shell_call"):
+                work["message"] = True
+                work["tools"] = [payload.get("name") or "shell"]
+            elif kind == "agent_message" or (kind == "message" and payload.get("role") == "assistant"):
+                work["message"] = True
+            elif kind == "message" and payload.get("role") == "user":
+                typed = typed_text(payload.get("content"))
+                work["message"] = typed is not None or subagent
+                work["prompt"] = not subagent and typed is not None
         elif kind == "token_count" and isinstance(payload.get("info"), dict):
             total = payload["info"].get("total_token_usage") or {}
             cached = int(total.get("cached_input_tokens") or 0)
@@ -342,6 +365,23 @@ def read_work(record: dict[str, Any], agent: str, seen: set[str]) -> dict[str, A
         if record.get("type") == "turn_context" and isinstance(payload.get("model"), str):
             work["model"] = payload["model"]
     return work
+
+
+def record_cwd(record: dict[str, Any]) -> Any:
+    """The working directory of the record itself, never one mentioned inside a tool call."""
+    for holder in (record, record.get("payload") if isinstance(record.get("payload"), dict) else {}):
+        for name in ("cwd", "project_path", "projectPath", "working_directory"):
+            if isinstance(holder.get(name), str) and holder[name].strip():
+                return holder[name]
+    return None
+
+
+def record_time(record: dict[str, Any]) -> Any:
+    for holder in (record, record.get("payload") if isinstance(record.get("payload"), dict) else {}):
+        for name in ("timestamp", "created_at", "createdAt", "time"):
+            if holder.get(name) not in (None, ""):
+                return holder[name]
+    return None
 
 
 def _session_for(path: Path) -> str:
@@ -393,6 +433,7 @@ class Rhythm:
             "activeDays": len(days),
             "longestStreak": longest,
             "busiestDay": busiest,
+            "daily": dict(sorted(self.days.items())),
             "firstDay": days[0] if days else None,
             "lastDay": days[-1] if days else None,
         }
@@ -440,10 +481,10 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
         prefix, line = "Weekend", "Saturdays are when your islands rise."
     elif both:
         prefix, line = "Two-Tide", "You sail with two crews and know when to call each."
-    elif len(projects) >= 12:
-        prefix, line = "Wandering", "You leave a new island in your wake every few weeks."
     elif top_share > 0.5:
         prefix, line = "Devoted", "One island holds most of your heart."
+    elif len(projects) >= 12:
+        prefix, line = "Wandering", "You leave a new island in your wake every few weeks."
     else:
         prefix, line = "Steady", "You keep returning, and the islands keep growing."
     return {
@@ -524,47 +565,56 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                 seen_messages: set[str] = set()
                 cumulative: tuple[int, int, int] | None = None
                 project = None
+                subagent = path.parent.name == "subagents"
                 for record in _iter_records(path):
                     # Codex writes each subagent thread to its own file; fold it into the thread that spawned it.
                     if agent == "codex" and record.get("type") == "session_meta" and isinstance(record.get("payload"), dict):
-                        thread = record["payload"].get("parent_thread_id") or record["payload"].get("id")
+                        parent = record["payload"].get("parent_thread_id")
+                        subagent = bool(parent)
+                        thread = parent or record["payload"].get("id")
                         if isinstance(thread, str) and thread:
                             session = thread
-                    timestamp = parse_date(deep_find(record, ("timestamp", "created_at", "createdAt", "time")))
-                    found_path = deep_find(record, ("cwd", "project_path", "projectPath", "working_directory"))
-                    if isinstance(found_path, str) and found_path.strip():
+                    timestamp = parse_date(record_time(record))
+                    found_path = record_cwd(record)
+                    if isinstance(found_path, str):
                         file_project = project_root(found_path)
                     if threshold and timestamp and timestamp < threshold:
                         continue
+                    work = read_work(record, agent, seen_messages, subagent)
+                    if work["cumulative"]:
+                        cumulative = work["cumulative"]
+                    if not work["message"] and not work["tools"]:
+                        continue
                     key = file_project or f"{agent}:{fallback}"
                     project = projects.setdefault(key, Project(key=key, name=clean_name(file_project, fallback, home), agent=agent))
+                    if not work["message"]:
+                        # A later block of a reply already counted: only its tool calls are new.
+                        project.tools.update(tool_group(name) for name in work["tools"] if name)
+                        continue
                     text = extract_text(record)
                     project.messages += 1
                     weight = max(1, min(24, (len(text) + 359) // 360))
                     project.activity += weight
                     project.crews[agent] += weight
                     project.sessions.add(session)
+                    project.session_sizes[session] += 1
                     # Big projects are sampled: every message until 3,000, then one in twenty.
                     if project.analysed < 3000 or project.messages % 20 == 0:
                         project.analysed += 1
                         project.signals.update(category_signals(text[:1500]))
                         project.tech.update(detect_tech(text))
-                    project.session_sizes[session] += 1
-                    work = read_work(record, agent, seen_messages)
                     project.prompts += int(work["prompt"])
                     project.tools.update(tool_group(name) for name in work["tools"] if name)
                     if work["model"] and (family := model_family(work["model"])):
                         project.models[family] += 1
                     if work["tokens"]:
                         project.tokens.update(dict(zip(("input", "output", "cached"), work["tokens"])))
-                    if work["cumulative"]:
-                        cumulative = work["cumulative"]
                     if timestamp:
                         rhythm.add(timestamp)
-                    if timestamp and timestamp.isoformat() > project.last_active:
-                        project.last_active = timestamp.isoformat()
-                    if timestamp and timestamp.isoformat() < project.first_active:
-                        project.first_active = timestamp.isoformat()
+                        if timestamp.isoformat() > project.last_active:
+                            project.last_active = timestamp.isoformat()
+                        if timestamp.isoformat() < project.first_active:
+                            project.first_active = timestamp.isoformat()
                     file_had_record = True
                 if cumulative and project is not None:
                     project.tokens.update(dict(zip(("input", "output", "cached"), cumulative)))
@@ -634,11 +684,14 @@ def demo_data() -> dict[str, Any]:
             "crews": {"claude": 0.62, "codex": 0.38} if name == "Atlas Studio" else {"codex": 0.7, "claude": 0.3} if name == "Orbit Agent" else {agent: 1.0},
         })
     hours = [26, 17, 9, 4, 1, 0, 1, 2, 5, 9, 12, 11, 8, 10, 13, 15, 14, 12, 13, 18, 24, 31, 38, 34]
-    rhythm = {
-        "hours": hours, "weekdays": [41, 46, 44, 39, 35, 52, 48], "activeDays": 127, "longestStreak": 19,
-        "busiestDay": (now - timedelta(days=12)).date().isoformat(),
-        "firstDay": (now - timedelta(days=209)).date().isoformat(), "lastDay": now.date().isoformat(),
-    }
+    # A plausible calendar: busy weekdays, quiet stretches, and a long streak leading up to today.
+    demo_rhythm = Rhythm()
+    for back in range(209, -1, -1):
+        day = now - timedelta(days=back)
+        busy = back < 23 or (back % 9 not in (0, 4) and back % 31 > 3)
+        for _ in range(int(abs(math.sin(back * 1.7) * 24 + math.sin(back / 9) * 18) + 3) if busy else 0):
+            demo_rhythm.days[day.astimezone().date().isoformat()] += 1
+    rhythm = {**demo_rhythm.public(), "hours": hours, "weekdays": [41, 46, 44, 39, 35, 52, 48]}
     by_name = {project["name"]: project["id"] for project in projects}
     links = [
         {"a": by_name["Atlas Studio"], "b": by_name["Paper Trail"], "kind": "nest", "word": ""},

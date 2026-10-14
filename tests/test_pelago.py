@@ -13,24 +13,60 @@ sys.modules[SPEC.name] = pelago
 SPEC.loader.exec_module(pelago)
 
 
+# Records shaped like the real Claude Code and Codex transcripts.
+def claude_user(cwd, text, ts="2026-03-01T10:00:00Z", **extra):
+    return {"type": "user", "cwd": cwd, "timestamp": ts, "message": {"role": "user", "content": text}, **extra}
+
+
+def claude_tool_result(cwd, ts="2026-03-01T10:00:02Z"):
+    return {"type": "user", "cwd": cwd, "timestamp": ts, "message": {"role": "user", "content": [{"type": "tool_result", "content": "ok"}]}}
+
+
+def claude_reply(cwd, message_id, ts="2026-03-01T10:00:01Z", tool=None, usage=None, text="done", model="claude-opus-5-5"):
+    block = {"type": "tool_use", "name": tool, "input": {"cwd": "/somewhere/else"}} if tool else {"type": "text", "text": text}
+    message = {"id": message_id, "role": "assistant", "model": model, "content": [block]}
+    if usage:
+        message["usage"] = usage
+    return {"type": "assistant", "cwd": cwd, "timestamp": ts, "message": message}
+
+
+def codex_meta(cwd, thread, parent=None, ts="2026-03-01T10:00:00Z"):
+    payload = {"id": thread, "cwd": cwd}
+    if parent:
+        payload["parent_thread_id"] = parent
+    return {"type": "session_meta", "timestamp": ts, "payload": payload}
+
+
+def codex_user(text, ts="2026-03-01T10:00:00Z"):
+    return {"type": "response_item", "timestamp": ts, "payload": {"type": "message", "role": "user", "content": [{"type": "input_text", "text": text}]}}
+
+
+def codex_reply(text, ts="2026-03-01T10:00:01Z"):
+    return {"type": "response_item", "timestamp": ts, "payload": {"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": text}]}}
+
+
+def write(path, rows):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+
+
 class PelagoTests(unittest.TestCase):
     def test_scan_aggregates_both_agents_without_persisting_content(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
-            claude = home / ".claude" / "projects" / "sample"
-            codex = home / ".codex" / "sessions" / "2026" / "01"
-            claude.mkdir(parents=True)
-            codex.mkdir(parents=True)
-            rows = [
-                {"cwd": "/work/secret-web", "session_id": "a", "timestamp": "2026-01-02T00:00:00Z", "message": {"content": "React private prompt"}},
-                {"cwd": "/work/secret-web", "session_id": "a", "timestamp": "2026-01-03T00:00:00Z", "message": {"content": "CSS implementation"}},
-            ]
-            (claude / "one.jsonl").write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
-            (codex / "two.jsonl").write_text(json.dumps({"payload": {"cwd": "/work/agent-lab", "timestamp": "2026-02-01T00:00:00Z", "content": "LLM agent private"}, "session_id": "b"}), encoding="utf-8")
+            write(home / ".claude" / "projects" / "-work-secret-web" / "one.jsonl", [
+                claude_user("/work/secret-web", "React private prompt with tailwind css"),
+                claude_reply("/work/secret-web", "m1", text="React component and CSS done"),
+            ])
+            write(home / ".codex" / "sessions" / "2026" / "two.jsonl", [
+                codex_meta("/work/agent-lab", "t1"),
+                codex_user("LLM agent private embeddings work"),
+                codex_reply("Wired the OpenAI embedding pipeline"),
+            ])
 
             result = pelago.scan(home)
 
-            self.assertEqual(len(result["projects"]), 2)
+            self.assertEqual({project["name"] for project in result["projects"]}, {"secret web", "agent lab"})
             self.assertEqual({project["agent"] for project in result["projects"]}, {"claude", "codex"})
             serialized = json.dumps(result)
             self.assertNotIn("private prompt", serialized)
@@ -40,9 +76,10 @@ class PelagoTests(unittest.TestCase):
     def test_invalid_lines_are_ignored(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
-            root = home / ".codex" / "sessions"
-            root.mkdir(parents=True)
-            (root / "session.jsonl").write_text('{bad}\n{"cwd":"/work/tool","content":"terminal cli"}\n', encoding="utf-8")
+            path = home / ".codex" / "sessions" / "session.jsonl"
+            path.parent.mkdir(parents=True)
+            rows = [codex_meta("/work/tool", "t1"), codex_user("a terminal cli with argparse subcommand"), codex_reply("cli done")]
+            path.write_text("{bad}\n" + "\n".join(json.dumps(row) for row in rows), encoding="utf-8")
             result = pelago.scan(home)
             self.assertEqual(len(result["projects"]), 1)
             self.assertEqual(result["projects"][0]["category"], "cli")
@@ -54,10 +91,6 @@ class PelagoTests(unittest.TestCase):
             html = output.read_text(encoding="utf-8")
             self.assertIn("Atlas Studio", html)
             self.assertIn("Download PNG", html)
-            self.assertNotIn("__PELAGO_DATA__", html)
-            self.assertNotIn("__PELAGO_CSS__", html)
-            self.assertNotIn("__PELAGO_JS__", html)
-            self.assertNotIn("__PELAGO_ART__", html)
             self.assertNotIn("__PELAGO", html)
             self.assertIn("Reading your archipelago", html)
             # Hidden overlays (the story) must never swallow clicks.
@@ -71,15 +104,9 @@ class PelagoTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             root = home / ".claude" / "projects"
-            main = root / "-work-atlas"
-            tree = root / "-work-atlas--claude-worktrees-happy-otter-1a2b3c"
-            sub = main / "s1" / "subagents"
-            for folder in (main, tree, sub):
-                folder.mkdir(parents=True)
-            row = lambda cwd, uuid: json.dumps({"cwd": cwd, "uuid": uuid, "id": uuid, "timestamp": "2026-03-01T10:00:00Z", "content": "react"})
-            (main / "s1.jsonl").write_text("\n".join(row("/work/atlas", f"m{i}") for i in range(5)), encoding="utf-8")
-            (sub / "agent-x.jsonl").write_text(row("/work/atlas", "m9"), encoding="utf-8")
-            (tree / "s2.jsonl").write_text(row("/work/atlas/.claude/worktrees/happy-otter-1a2b3c", "m10"), encoding="utf-8")
+            write(root / "-work-atlas" / "s1.jsonl", [claude_user("/work/atlas", "fix the header")] + [claude_reply("/work/atlas", f"m{i}") for i in range(4)])
+            write(root / "-work-atlas" / "s1" / "subagents" / "agent-x.jsonl", [claude_user("/work/atlas", "You are a helper. Review the diff.", isSidechain=True), claude_reply("/work/atlas", "m9")])
+            write(root / "-work-atlas--claude-worktrees-happy-otter-1a2b3c" / "s2.jsonl", [claude_user("/work/atlas/.claude/worktrees/happy-otter-1a2b3c", "ship it")])
 
             result = pelago.scan(home)
 
@@ -87,18 +114,55 @@ class PelagoTests(unittest.TestCase):
             atlas = result["projects"][0]
             self.assertEqual(atlas["name"], "atlas")
             self.assertEqual(atlas["sessions"], 2)
-            self.assertEqual(atlas["messages"], 7)
+            self.assertEqual(atlas["prompts"], 2, "a subagent brief is not a request the person typed")
+            self.assertEqual(atlas["messages"], 1 + 4 + 2 + 1)
+
+    def test_only_typed_requests_count_as_prompts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            cwd = "/work/app"
+            write(home / ".claude" / "projects" / "-work-app" / "s.jsonl", [
+                claude_user(cwd, "build the login page"),
+                claude_user(cwd, "<task-notification>\n<task-id>x</task-id>"),
+                claude_user(cwd, "This session is being continued from a previous conversation", isCompactSummary=True),
+                claude_user(cwd, "[Request interrupted by user]"),
+                claude_user(cwd, "<command-name>/compact</command-name>"),
+                claude_user(cwd, "Caveat: the messages below were generated", isMeta=True),
+                claude_tool_result(cwd),
+                {"type": "attachment", "cwd": cwd, "timestamp": "2026-03-01T10:00:03Z"},
+                {"type": "custom-title", "customTitle": "my title", "cwd": cwd},
+            ])
+            write(home / ".codex" / "sessions" / "r.jsonl", [
+                codex_meta("/work/other", "t1"),
+                codex_user("<environment_context>cwd</environment_context>"),
+                codex_user("add dark mode"),
+                codex_reply("added"),
+            ])
+
+            projects = {project["name"]: project for project in pelago.scan(home)["projects"]}
+
+            self.assertEqual(projects["app"]["prompts"], 1)
+            self.assertEqual(projects["app"]["messages"], 7, "attachments and titles are not messages")
+            self.assertEqual(projects["other"]["prompts"], 1)
+            self.assertEqual(projects["other"]["messages"], 2)
+
+    def test_a_tool_call_mentioning_another_folder_does_not_move_the_work(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            write(home / ".claude" / "projects" / "-work-app" / "s.jsonl", [
+                claude_user("/work/app", "run the tests"),
+                claude_reply("/work/app", "m1", tool="Bash"),
+            ])
+            names = [project["name"] for project in pelago.scan(home)["projects"]]
+            self.assertEqual(names, ["app"])
 
     def test_codex_file_uris_and_temp_checkouts(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             root = home / ".codex" / "sessions" / "2026"
-            root.mkdir(parents=True)
-            meta = {"type": "session_meta", "timestamp": "2026-03-01T10:00:00Z", "payload": {"cwd": "file:///Users/me/%D7%97%D7%A7%D7%99%D7%A8%D7%94"}}
-            (root / "rollout-a.jsonl").write_text(json.dumps(meta) + "\n" + json.dumps({"timestamp": "2026-03-01T10:05:00Z", "content": "hello"}), encoding="utf-8")
+            write(root / "rollout-a.jsonl", [codex_meta("file:///Users/me/%D7%97%D7%A7%D7%99%D7%A8%D7%94", "a"), codex_user("hello"), codex_reply("hi")])
             for name in ("b", "c"):
-                tmp = {"timestamp": "2026-03-02T10:00:00Z", "payload": {"cwd": f"/private/tmp/run-{name}/repo"}}
-                (root / f"rollout-{name}.jsonl").write_text(json.dumps(tmp), encoding="utf-8")
+                write(root / f"rollout-{name}.jsonl", [codex_meta(f"/private/tmp/run-{name}/repo", name), codex_user("try this")])
 
             names = {project["name"]: project for project in pelago.scan(home)["projects"]}
 
@@ -109,10 +173,10 @@ class PelagoTests(unittest.TestCase):
     def test_rhythm_and_persona_are_aggregate_only(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
-            root = home / ".codex" / "sessions"
-            root.mkdir(parents=True)
-            rows = [{"cwd": "/work/quest", "timestamp": f"2026-04-0{day}T12:00:00Z", "content": "phaser game sprite"} for day in (1, 2, 3, 5)]
-            (root / "s.jsonl").write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+            rows = [codex_meta("/work/quest", "t1")]
+            for day in (1, 2, 3, 5):
+                rows.append(codex_user("phaser game sprite tilemap level design", ts=f"2026-04-0{day}T12:00:00Z"))
+            write(home / ".codex" / "sessions" / "s.jsonl", rows)
 
             result = pelago.scan(home)
 
@@ -142,39 +206,35 @@ class PelagoTests(unittest.TestCase):
     def test_tokens_tools_and_requests_are_counted(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
-            claude = home / ".claude" / "projects" / "-work-forge"
-            codex = home / ".codex" / "sessions" / "2026"
-            claude.mkdir(parents=True)
-            codex.mkdir(parents=True)
             usage = {"input_tokens": 0, "output_tokens": 0, "iterations": [{"input_tokens": 10, "output_tokens": 5, "cache_read_input_tokens": 100}]}
-            rows = [
-                {"type": "user", "cwd": "/work/forge", "message": {"content": "please fix it"}},
-                {"type": "user", "cwd": "/work/forge", "message": {"content": [{"type": "tool_result", "content": "ok"}]}},
-                {"type": "assistant", "cwd": "/work/forge", "message": {"id": "m1", "model": "claude-opus-5-5", "usage": usage, "content": [{"type": "tool_use", "name": "Bash"}]}},
-                {"type": "assistant", "cwd": "/work/forge", "message": {"id": "m1", "model": "claude-opus-5-5", "usage": usage, "content": [{"type": "tool_use", "name": "Edit"}]}},
-            ]
-            (claude / "s.jsonl").write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
-            codex_rows = [
-                {"type": "session_meta", "payload": {"cwd": "/work/relay"}},
-                {"type": "event_msg", "payload": {"type": "task_started"}},
+            cwd = "/work/forge"
+            write(home / ".claude" / "projects" / "-work-forge" / "s.jsonl", [
+                claude_user(cwd, "please fix it"),
+                claude_tool_result(cwd),
+                claude_reply(cwd, "m1", tool="Bash", usage=usage),
+                claude_reply(cwd, "m1", tool="Edit", usage=usage),
+            ])
+            write(home / ".codex" / "sessions" / "2026" / "rollout.jsonl", [
+                codex_meta("/work/relay", "t1"),
+                codex_user("ship the relay"),
                 {"type": "response_item", "payload": {"type": "function_call", "name": "exec"}},
                 {"type": "event_msg", "payload": {"type": "token_count", "info": {"total_token_usage": {"input_tokens": 50, "cached_input_tokens": 30, "output_tokens": 7}}}},
                 {"type": "event_msg", "payload": {"type": "token_count", "info": {"total_token_usage": {"input_tokens": 90, "cached_input_tokens": 40, "output_tokens": 9}}}},
-            ]
-            (codex / "rollout.jsonl").write_text("\n".join(json.dumps(row) for row in codex_rows), encoding="utf-8")
+            ])
 
             projects = {project["name"]: project for project in pelago.scan(home)["projects"]}
 
             forge = projects["forge"]
             self.assertEqual(forge["prompts"], 1)
-            self.assertEqual(forge["tokens"], {"input": 10, "output": 5, "cached": 100, "total": 115})
+            self.assertEqual(forge["tokens"], {"input": 10, "output": 5, "cached": 100, "total": 115}, "one reply split over two records is billed once")
             self.assertEqual(forge["tools"], {"shell": 1, "build": 1})
             self.assertEqual(forge["models"], ["Opus"])
+            self.assertEqual(forge["messages"], 3)
             relay = projects["relay"]
             self.assertEqual(relay["prompts"], 1)
             self.assertEqual(relay["tokens"]["total"], 50 + 9 + 40)
             self.assertEqual(relay["tools"], {"shell": 1})
-            self.assertEqual(relay["sessionSizes"], [5])
+            self.assertEqual(relay["sessionSizes"], [2])
 
     def test_links_connect_nested_folders_and_shared_names(self):
         projects = [
@@ -193,10 +253,9 @@ class PelagoTests(unittest.TestCase):
     def test_tech_relic_signals_are_whitelisted_counts(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
-            root = home / ".codex" / "sessions"
-            root.mkdir(parents=True)
-            rows = [{"cwd": "/work/shop", "content": f"secret plan {i}: React page with Stripe checkout session, deploy via docker"} for i in range(8)]
-            (root / "s.jsonl").write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+            rows = [codex_meta("/work/shop", "t1")]
+            rows += [codex_user(f"secret plan {i}: React page with Stripe checkout session, deploy via docker") for i in range(8)]
+            write(home / ".codex" / "sessions" / "s.jsonl", rows)
             project = pelago.scan(home)["projects"][0]
             self.assertEqual(project["tech"], {"react": 8, "payments": 8, "docker": 8})
             self.assertNotIn("secret plan", json.dumps(project))
@@ -205,21 +264,21 @@ class PelagoTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             root = home / ".codex" / "sessions"
-            root.mkdir(parents=True)
-            main = {"type": "session_meta", "payload": {"id": "main-1", "cwd": "/work/app"}}
-            guardian = {"type": "session_meta", "payload": {"id": "sub-1", "parent_thread_id": "main-1", "cwd": "/work/app"}}
-            (root / "rollout-a.jsonl").write_text(json.dumps(main), encoding="utf-8")
-            (root / "rollout-b.jsonl").write_text(json.dumps(guardian), encoding="utf-8")
-            (root / "rollout-c.jsonl").write_text(json.dumps(guardian), encoding="utf-8")
-            self.assertEqual(pelago.scan(home)["projects"][0]["sessions"], 1)
+            write(root / "rollout-a.jsonl", [codex_meta("/work/app", "main-1"), codex_user("plan the release"), codex_reply("ok")])
+            for name in ("b", "c"):
+                write(root / f"rollout-{name}.jsonl", [codex_meta("/work/app", f"sub-{name}", parent="main-1"), codex_user("Guardian: review this step"), codex_reply("approved")])
+            project = pelago.scan(home)["projects"][0]
+            self.assertEqual(project["sessions"], 1)
+            self.assertEqual(project["prompts"], 1, "subagent briefs are not requests the person typed")
 
     def test_session_metadata_files_are_not_sessions(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             root = home / ".claude" / "projects" / "-work-app"
-            (root / "s1").mkdir(parents=True)
-            (root / "s1.jsonl").write_text(json.dumps({"cwd": "/work/app", "type": "user", "message": {"content": "hi"}}), encoding="utf-8")
+            write(root / "s1.jsonl", [claude_user("/work/app", "hi")])
+            (root / "s1").mkdir(parents=True, exist_ok=True)
             (root / "s1" / "custom-title.json").write_text(json.dumps({"type": "custom-title", "customTitle": "secret title", "cwd": "/work/app"}), encoding="utf-8")
+            (root / "s1" / "agent-1.meta.json").write_text(json.dumps({"cwd": "/work/app"}), encoding="utf-8")
             result = pelago.scan(home)
             self.assertEqual(result["projects"][0]["sessions"], 1)
             self.assertNotIn("secret title", json.dumps(result))

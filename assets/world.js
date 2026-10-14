@@ -1392,7 +1392,7 @@ $('#downloadCard').addEventListener('click', downloadCard);
 $('#copyCard').addEventListener('click', copyCard);
 $('#postCard').addEventListener('click', postToX);
 $('#nativeShare').addEventListener('click', nativeShare);
-window.addEventListener('resize', resizeWorld);
+window.addEventListener('resize', () => { resizeWorld(); if (!$('#story').hidden) { sizeStoryScene(); const build = story.slides[story.index]; if (build?.camera) setStoryCamera(build.camera); } });
 
 /* ---------- Story: a Wrapped-style recap that ends on the share card ---------- */
 const STORY_SECONDS = 5.6;
@@ -1408,38 +1408,6 @@ function element(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
-}
-function islandCanvas(project, width, height, size) {
-  const canvas = element('canvas', 'story-island');
-  canvas.width = width; canvas.height = height;
-  canvas.setAttribute('aria-hidden', 'true');
-  const draw = () => {
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, width, height);
-    drawIslandFit(context, project, 0, 0, width, height, { crop: .62 });
-  };
-  draw();
-  canvas.redraw = draw;
-  return canvas;
-}
-function archipelagoCanvas(width, height, count = 7) {
-  const canvas = element('canvas', 'story-island');
-  canvas.width = width; canvas.height = height;
-  canvas.setAttribute('aria-hidden', 'true');
-  const projects = [...PROJECTS].sort((a, b) => b.activity - a.activity).slice(0, count);
-  const context = canvas.getContext('2d');
-  const items = makeLayout(width, height, projects, { left: 8, right: 8, top: 8, bottom: 8, maxSize: 4000, hang: .45 }).sort((a, b) => a.y - b.y);
-  const flat = { x: 0, y: 0, scale: 1 };
-  const draw = () => {
-    context.clearRect(0, 0, width, height);
-    const now = performance.now();
-    drawConnections(context, items, flat, now, items[0]?.px || 1, 'route');
-    items.forEach((item) => drawIsland(context, item, { transform: flat, selected: false, hovered: false }));
-    drawConnections(context, items, flat, now, items[0]?.px || 1, 'bridges');
-  };
-  draw();
-  canvas.redraw = draw;
-  return canvas;
 }
 function clockSvg() {
   const hours = RHYTHM.hours || [];
@@ -1487,39 +1455,41 @@ function countUp(node, target, format = (value) => value.toLocaleString('en-US')
 
 function buildSlides() {
   const top = capital();
+  const at = (camera, build) => Object.assign(build, { camera });
   const shares = agentShares();
   const days = RHYTHM.activeDays || 0;
   const slides = [];
 
-  slides.push(() => {
+  slides.push(at({ mode: 'wide', zoom: 1.08, shade: .2 }, () => {
     const slide = element('div', 'slide slide-intro');
     slide.append(element('p', 'story-over', 'YOUR AI CODING HISTORY'));
     const big = element('p', 'story-mega'); slide.append(big); countUp(big, TOTAL_SESSIONS);
     slide.append(element('h2', 'story-title', 'sessions with your agents.'));
     slide.append(element('p', 'story-copy', days ? `Across ${plural(days, 'day')} at sea, they quietly raised ${plural(PROJECTS.length, 'island')}.` : `Together they raised ${plural(PROJECTS.length, 'island')}.`));
     return slide;
-  });
+  }));
 
-  if (top) slides.push(() => {
+  if (top) slides.push(at({ mode: 'island', project: top, shade: .15 }, () => {
     const slide = element('div', 'slide slide-capital');
     slide.append(element('p', 'story-over', 'YOUR CAPITAL'));
-    slide.append(islandCanvas(top, 600, 560));
     slide.append(element('h2', 'story-title', top.name));
     slide.append(element('p', 'story-copy', `${capitalShare()}% of everything you built lives here: ${islandLine(top).charAt(0).toLowerCase()}${islandLine(top).slice(1)}`));
     return slide;
-  });
+  }));
 
-  if (TOTAL_TOKENS) slides.push(() => {
+  if (TOTAL_TOKENS) slides.push(at({ mode: 'island', project: [...PROJECTS].sort((a, b) => totalTokens(b) - totalTokens(a))[0], low: true, shade: .25 }, () => {
     const slide = element('div', 'slide slide-tokens');
     slide.append(element('p', 'story-over', 'WHAT FLOWED THROUGH'));
     const big = element('p', 'story-mega'); big.textContent = compact(TOTAL_TOKENS); slide.append(big);
     slide.append(element('h2', 'story-title', 'tokens.'));
-    slide.append(element('p', 'story-copy', `That's ${tokenComparison(TOTAL_TOKENS)}. On your map they became land and ${plural(PROJECTS.reduce((sum, project) => sum + waterfallCount(project), 0), 'waterfall')}.`));
+    const cached = PROJECTS.reduce((sum, project) => sum + (project.tokens?.cached || 0), 0);
+    const fresh = TOTAL_TOKENS - cached;
+    slide.append(element('p', 'story-copy', `That's ${tokenComparison(TOTAL_TOKENS)}. ${cached > TOTAL_TOKENS * .5 ? `${Math.round(cached / TOTAL_TOKENS * 100)}% were your agents re-reading context they already had; ${compact(fresh)} were brand new.` : ''}`));
     if (TOTAL_PROMPTS) slide.append(element('p', 'story-copy', `You typed ${TOTAL_PROMPTS.toLocaleString('en-US')} requests. Each one planted part of a forest.`));
     return slide;
-  });
+  }));
 
-  if ((RHYTHM.hours || []).some(Boolean)) slides.push(() => {
+  if ((RHYTHM.hours || []).some(Boolean)) slides.push(at({ mode: 'wide', zoom: .92, shade: .62 }, () => {
     const slide = element('div', 'slide slide-clock');
     slide.append(element('p', 'story-over', 'WHEN YOUR LAMPS ARE LIT'));
     slide.append(clockSvg());
@@ -1532,19 +1502,21 @@ function buildSlides() {
           : 'You build in daylight and let the islands rest at night.';
     slide.append(element('p', 'story-copy', copy));
     return slide;
-  });
+  }));
 
-  if (RHYTHM.longestStreak) slides.push(() => {
+  if (RHYTHM.longestStreak) slides.push(at({ mode: 'wide', zoom: 1.25, shade: .55 }, () => {
     const slide = element('div', 'slide slide-streak');
     slide.append(element('p', 'story-over', 'LONGEST VOYAGE'));
     const big = element('p', 'story-mega'); slide.append(big); countUp(big, RHYTHM.longestStreak);
     slide.append(element('h2', 'story-title', 'days in a row.'));
     const busy = RHYTHM.busiestDay ? new Date(`${RHYTHM.busiestDay}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : null;
-    slide.append(element('p', 'story-copy', busy ? `Your biggest day at sea was ${busy}.` : 'You kept coming back.'));
+    const calendar = streakCalendar();
+    if (calendar) slide.append(calendar);
+    slide.append(element('p', 'story-copy', `${plural(RHYTHM.activeDays || 0, 'day')} at sea in all.${busy ? ` Your biggest was ${busy}.` : ''}`));
     return slide;
-  });
+  }));
 
-  if (PROJECTS.some((project) => hasCrew(project, 'codex')) && PROJECTS.some((project) => hasCrew(project, 'claude'))) slides.push(() => {
+  if (PROJECTS.some((project) => hasCrew(project, 'codex')) && PROJECTS.some((project) => hasCrew(project, 'claude'))) slides.push(at({ mode: 'wide', zoom: 1, shade: .5 }, () => {
     const slide = element('div', 'slide slide-crew');
     slide.append(element('p', 'story-over', 'YOUR CREW'));
     slide.append(element('h2', 'story-title', 'Two agents. One archipelago.'));
@@ -1556,10 +1528,10 @@ function buildSlides() {
     bar.append(claude, codex); slide.append(bar);
     slide.append(element('p', 'story-copy', 'Coral flags fly over Claude Code islands, sea-green over Codex.'));
     return slide;
-  });
+  }));
 
   const relicsFound = earnedRelics();
-  if (relicsFound.size) slides.push(() => {
+  if (relicsFound.size) slides.push(at({ mode: 'island', project: relicsFound.get(RELICS.filter((relic) => relicsFound.has(relic.id)).sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity])[0].id)[0], shade: .55 }, () => {
     const slide = element('div', 'slide slide-relics');
     slide.append(element('p', 'story-over', 'RELICS FOUND'));
     const big = element('p', 'story-mega'); big.textContent = `${relicsFound.size}`; slide.append(big);
@@ -1573,12 +1545,11 @@ function buildSlides() {
     const rarest = RELICS.filter((relic) => relicsFound.has(relic.id)).sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity])[0];
     slide.append(element('p', 'story-copy', `Rarest: ${rarest.name}, ${rarest.rarity === 'epic' ? 'an' : 'a'} ${RARITY[rarest.rarity].label.toLowerCase()} relic on ${relicsFound.get(rarest.id)[0].name}.`));
     return slide;
-  });
+  }));
 
-  slides.push(() => {
+  slides.push(at({ mode: 'wide', zoom: .95, shade: .25, reveal: true }, () => {
     const slide = element('div', 'slide slide-persona');
     slide.append(element('p', 'story-over', 'WHICH MAKES YOU'));
-    slide.append(archipelagoCanvas(600, 560));
     const title = element('h2', 'story-persona');
     const { lead, accent } = personaParts();
     title.append(document.createTextNode(`${lead} `));
@@ -1586,9 +1557,9 @@ function buildSlides() {
     slide.append(title);
     slide.append(element('p', 'story-copy', `${PERSONA.line} ${PERSONA.realmLine || ''}`.trim()));
     return slide;
-  });
+  }));
 
-  slides.push(() => {
+  slides.push(at({ mode: 'wide', zoom: .9, shade: .85 }, () => {
     const slide = element('div', 'slide slide-share');
     slide.append(element('p', 'story-over', 'YOUR CARD IS READY'));
     const preview = element('canvas', 'story-card');
@@ -1608,15 +1579,131 @@ function buildSlides() {
     actions.append(share, x, more, explore);
     slide.append(actions);
     return slide;
-  });
+  }));
   return slides;
+}
+
+
+// ---------- Story scene: the world behind every slide, with a camera that travels between them ----------
+const storyScene = { camera: null, target: null, shade: 0, targetShade: 0, frame: 0, items: null, size: '' };
+function storyLayout(width, height) {
+  const key = `${width}x${height}`;
+  if (storyScene.size !== key) {
+    storyScene.items = makeLayout(width, height, PROJECTS, { top: height * .1, bottom: height * .44, left: width * .03, right: width * .03, maxSize: 4000, hang: .4 });
+    storyScene.size = key;
+  }
+  return storyScene.items;
+}
+function storyCameraFor(spec, width, height) {
+  const items = storyLayout(width, height);
+  if (spec.mode === 'island' && spec.project) {
+    const item = items.find((candidate) => candidate.project.id === spec.project.id);
+    if (item) {
+      const scale = clamp(width * .82 / (item.size * 2.5), 1, 9);
+      return { x: width / 2 - item.x * scale, y: height * (spec.low ? .4 : .34) - item.y * scale, scale };
+    }
+  }
+  const zoom = spec.zoom || 1;
+  return { x: width / 2 * (1 - zoom), y: height * .3 * (1 - zoom), scale: zoom };
+}
+function setStoryCamera(spec) {
+  const canvas = $('#storyScene');
+  const width = canvas.width, height = canvas.height;
+  if (!width) return;
+  storyScene.target = storyCameraFor(spec, width, height);
+  storyScene.targetShade = spec.shade ?? .3;
+  storyScene.focus = spec.mode === 'island' ? spec.project?.id : null;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!storyScene.camera || still) storyScene.camera = { ...storyScene.target };
+  if (still) storyScene.shade = storyScene.targetShade;
+  if (spec.reveal && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // The archetype reveal starts deep in the capital and pulls back over the whole archipelago.
+    const capitalItem = storyLayout(width, height).find((item) => item.project.id === capital()?.id);
+    if (capitalItem) storyScene.camera = { x: width / 2 - capitalItem.x * 4, y: height * .34 - capitalItem.y * 4, scale: 4 };
+  }
+}
+function sizeStoryScene() {
+  const canvas = $('#storyScene');
+  const bounds = canvas.getBoundingClientRect();
+  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const width = Math.max(1, Math.round(bounds.width * ratio)), height = Math.max(1, Math.round(bounds.height * ratio));
+  if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; storyScene.camera = null; }
+}
+function drawStoryScene(now) {
+  const canvas = $('#storyScene');
+  const context = canvas.getContext('2d');
+  const width = canvas.width, height = canvas.height;
+  if (!storyScene.target) return;
+  const camera = storyScene.camera;
+  const ease = .055;
+  camera.x += (storyScene.target.x - camera.x) * ease;
+  camera.y += (storyScene.target.y - camera.y) * ease;
+  camera.scale += (storyScene.target.scale - camera.scale) * ease;
+  storyScene.shade += (storyScene.targetShade - storyScene.shade) * .08;
+  // A slow drift keeps the shot alive while text is on screen.
+  const drift = { x: camera.x + Math.sin(now / 4200) * width * .012, y: camera.y + Math.cos(now / 5100) * height * .008, scale: camera.scale };
+  drawOcean(context, width, height, 73, now);
+  drawCloudSea(context, width, height, now);
+  const items = storyLayout(width, height);
+  const pixel = (items[0]?.px || 1) * drift.scale;
+  drawConnections(context, items, drift, now, pixel, 'route');
+  [...items].sort((a, b) => a.y - b.y).forEach((item) => drawIsland(context, item, { transform: drift, label: false, selected: false, hovered: false, time: now }));
+  drawConnections(context, items, drift, now, pixel, 'bridges');
+  drawCloudSea(context, width, height, now, true);
+  const focus = items.find((item) => item.project.id === storyScene.focus);
+  if (focus && storyScene.shade < .4) drawIslandLabel(context, focus, { transform: drift, labelScale: Math.min(2, window.devicePixelRatio || 1) * 1.2 });
+  $('#storyShade').style.opacity = storyScene.shade.toFixed(3);
+}
+function storyLoop(now) {
+  if ($('#story').hidden) return;
+  requestAnimationFrame(storyLoop);
+  if (document.hidden || now - storyScene.frame < 33) return;
+  storyScene.frame = now;
+  drawStoryScene(now);
+}
+
+function streakCalendar() {
+  const daily = RHYTHM.daily || {};
+  const dates = Object.keys(daily).sort();
+  if (!dates.length) return null;
+  const end = new Date(`${dates[dates.length - 1]}T12:00:00`);
+  const weeks = 17;
+  const start = new Date(end);
+  start.setDate(end.getDate() - end.getDay() - (weeks - 1) * 7);
+  // The longest run of consecutive active days, found from the same daily counts.
+  let best = [0, -1], run = 0, runStart = 0;
+  const all = [];
+  for (let day = new Date(`${dates[0]}T12:00:00`); day <= end; day.setDate(day.getDate() + 1)) all.push(day.toISOString().slice(0, 10));
+  all.forEach((iso, index) => {
+    if (daily[iso]) { if (!run) runStart = index; run += 1; if (run > best[1] - best[0] + 1) best = [runStart, index]; } else run = 0;
+  });
+  const streakDays = new Set(all.slice(best[0], best[1] + 1));
+  const max = Math.max(...Object.values(daily));
+  const grid = element('div', 'streak-grid');
+  grid.style.setProperty('--weeks', weeks);
+  for (let week = 0; week < weeks; week += 1) {
+    for (let weekday = 0; weekday < 7; weekday += 1) {
+      const day = new Date(start); day.setDate(start.getDate() + week * 7 + weekday);
+      const iso = day.toISOString().slice(0, 10);
+      const count = daily[iso] || 0;
+      const cell = element('i', count ? `on${streakDays.has(iso) ? ' streak' : ''}` : '');
+      if (day > end) cell.className = 'future';
+      cell.style.setProperty('--level', count ? (.25 + .75 * Math.log1p(count) / Math.log1p(max)).toFixed(2) : 0);
+      cell.style.setProperty('--delay', `${(week * 7 + weekday) * 6}ms`);
+      cell.title = count ? `${day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${count} messages` : '';
+      grid.append(cell);
+    }
+  }
+  return grid;
 }
 
 function renderStorySlide() {
   const stage = $('#storyStage');
   stage.innerHTML = '';
-  const slide = story.slides[story.index]();
+  const build = story.slides[story.index];
+  const slide = build();
   stage.appendChild(slide);
+  if (build.camera) setStoryCamera(build.camera);
   $$('#storyProgress i').forEach((bar, index) => {
     bar.classList.toggle('done', index < story.index);
     bar.classList.toggle('active', index === story.index);
@@ -1647,7 +1734,10 @@ function openStory() {
   story.slides.forEach(() => progress.appendChild(document.createElement('i')));
   $('#story').hidden = false;
   requestAnimationFrame(() => $('#story').classList.add('open'));
+  sizeStoryScene();
+  storyScene.camera = null;
   renderStorySlide();
+  requestAnimationFrame(storyLoop);
   $('#storyClose').focus();
 }
 function closeStory() {

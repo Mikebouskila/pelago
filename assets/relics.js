@@ -442,7 +442,13 @@ const RELICS = [
   ...TECH_RELICS.map(([tech, sprite, name, rarity, what]) => ({
     id: `tech-${tech}`, sprite, name, rarity, group: 'Craft',
     hint: `Build with ${what}.`,
-    test: (project) => ((project.tech || {})[tech] >= Math.max(6, (project.techSample ?? project.messages ?? 0) * .004) ? `Built with ${what}: it came up in ${compact(project.tech[tech])} messages.` : null),
+    test: (project) => {
+      const count = (project.tech || {})[tech] || 0;
+      const sample = project.techSample ?? project.messages ?? 0;
+      if (count < Math.max(6, sample * .004)) return null;
+      const share = sample ? count / sample : 0;
+      return `Built with ${what}: it came up in ${share >= .01 ? `${Math.round(share * 100)}%` : 'about 1 in ' + Math.round(1 / Math.max(share, 1e-6))} of messages.`;
+    },
   })),
   { id: 'titan', sprite: 'crown', name: "Titan's Crown", rarity: 'legendary', group: 'Scale', hint: 'Pour a billion tokens into one project.',
     test: (p) => (totalTokens(p) >= 1e9 ? `${compact(totalTokens(p))} tokens flowed through this island.` : null) },
