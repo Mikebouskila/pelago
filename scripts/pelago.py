@@ -513,7 +513,8 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
             for path in paths:
                 if files >= MAX_FILES:
                     break
-                if not path.is_file() or path.suffix not in {".json", ".jsonl"}:
+                # Transcripts are .jsonl; side files such as custom-title.json are metadata, not sessions.
+                if not path.is_file() or path.suffix != ".jsonl":
                     continue
                 files += 1
                 fallback = _fallback_from_path(path, root, agent)
@@ -524,6 +525,11 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                 cumulative: tuple[int, int, int] | None = None
                 project = None
                 for record in _iter_records(path):
+                    # Codex writes each subagent thread to its own file; fold it into the thread that spawned it.
+                    if agent == "codex" and record.get("type") == "session_meta" and isinstance(record.get("payload"), dict):
+                        thread = record["payload"].get("parent_thread_id") or record["payload"].get("id")
+                        if isinstance(thread, str) and thread:
+                            session = thread
                     timestamp = parse_date(deep_find(record, ("timestamp", "created_at", "createdAt", "time")))
                     found_path = deep_find(record, ("cwd", "project_path", "projectPath", "working_directory"))
                     if isinstance(found_path, str) and found_path.strip():

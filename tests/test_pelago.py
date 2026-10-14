@@ -201,6 +201,29 @@ class PelagoTests(unittest.TestCase):
             self.assertEqual(project["tech"], {"react": 8, "payments": 8, "docker": 8})
             self.assertNotIn("secret plan", json.dumps(project))
 
+    def test_codex_subagent_threads_fold_into_their_parent_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            root = home / ".codex" / "sessions"
+            root.mkdir(parents=True)
+            main = {"type": "session_meta", "payload": {"id": "main-1", "cwd": "/work/app"}}
+            guardian = {"type": "session_meta", "payload": {"id": "sub-1", "parent_thread_id": "main-1", "cwd": "/work/app"}}
+            (root / "rollout-a.jsonl").write_text(json.dumps(main), encoding="utf-8")
+            (root / "rollout-b.jsonl").write_text(json.dumps(guardian), encoding="utf-8")
+            (root / "rollout-c.jsonl").write_text(json.dumps(guardian), encoding="utf-8")
+            self.assertEqual(pelago.scan(home)["projects"][0]["sessions"], 1)
+
+    def test_session_metadata_files_are_not_sessions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            root = home / ".claude" / "projects" / "-work-app"
+            (root / "s1").mkdir(parents=True)
+            (root / "s1.jsonl").write_text(json.dumps({"cwd": "/work/app", "type": "user", "message": {"content": "hi"}}), encoding="utf-8")
+            (root / "s1" / "custom-title.json").write_text(json.dumps({"type": "custom-title", "customTitle": "secret title", "cwd": "/work/app"}), encoding="utf-8")
+            result = pelago.scan(home)
+            self.assertEqual(result["projects"][0]["sessions"], 1)
+            self.assertNotIn("secret title", json.dumps(result))
+
 
 if __name__ == "__main__":
     unittest.main()
