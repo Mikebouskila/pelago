@@ -36,6 +36,9 @@ const RHYTHM = DATA.rhythm || { hours: Array(24).fill(0), weekdays: Array(7).fil
 const TOTAL_SESSIONS = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
 const TOTAL_TOKENS = PROJECTS.reduce((sum, project) => sum + (project.tokens?.total || 0), 0);
 const TOTAL_PROMPTS = PROJECTS.reduce((sum, project) => sum + (project.prompts || 0), 0);
+function sinceLabel() {
+  return RHYTHM.firstDay ? new Date(`${RHYTHM.firstDay}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
+}
 function tokenComparison(tokens) {
   if (tokens >= 3e9) return `about ${(tokens / 6e9).toFixed(tokens >= 6e10 ? 0 : 1)}× the whole of English Wikipedia`;
   if (tokens >= 2e6) return `about ${Math.round(tokens / 780000).toLocaleString('en-US')} copies of War and Peace`;
@@ -176,8 +179,8 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
 
   // 1. The archipelago.
   const projects = selected ? [selected] : PROJECTS;
-  const box = tall ? { left: 8 * scale, right: 8 * scale, top: height * .2, bottom: height * .2 }
-    : square ? { left: 10 * scale, right: 10 * scale, top: height * .27, bottom: height * .16 }
+  const box = tall ? { left: 6 * scale, right: 6 * scale, top: height * .19, bottom: height * .26 }
+    : square ? { left: 8 * scale, right: 8 * scale, top: height * .25, bottom: height * .3 }
       : { left: width * .38, right: 16 * scale, top: 24 * scale, bottom: 56 * scale };
   const items = makeLayout(width, height, projects, { ...box, hang: selected ? .8 : .42, maxSize: 4000 });
   const flat = { transform: { x: 0, y: 0, scale: 1 }, detail: true, selected: false, hovered: false };
@@ -187,7 +190,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   if (!selected) drawConnections(context, items, flat.transform, time, pixel, 'bridges');
   drawCloudSea(context, width, height, time, true);
   if (showNames && !selected) {
-    const named = new Set([...projects].sort((a, b) => b.activity - a.activity).slice(0, tall ? 7 : 6).map((project) => project.id));
+    const named = new Set([...projects].sort((a, b) => b.activity - a.activity).slice(0, tall ? 5 : 4).map((project) => project.id));
     items.filter((item) => named.has(item.project.id)).forEach((item) => drawIslandLabel(context, item, { ...flat, labelScale: scale * (tall ? 2.7 : wide ? 1.6 : 2.1) }));
   }
 
@@ -203,7 +206,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     context.fillStyle = side; context.fillRect(0, 0, width * .5, height);
   } else {
     scrim(0, height * (tall ? .25 : .3), 'rgba(4,9,26,.94)', 'rgba(4,9,26,0)');
-    scrim(height, height * (tall ? .74 : .76), 'rgba(4,9,26,.96)', 'rgba(4,9,26,0)');
+    scrim(height, height * (tall ? .7 : .66), 'rgba(4,9,26,.96)', 'rgba(4,9,26,0)');
   }
 
   // 3. Header: brand, overline, title, line.
@@ -219,29 +222,75 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   context.fillStyle = '#d2e1f0'; context.font = `600 ${(tall ? 28 : 22) * scale}px ${SANS}`;
   wrapLines(context, copy.line, textWidth).slice(0, 2).forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
 
-  // 4. Footer: stats, rhythm, call to action.
-  const relicCount = earnedRelics().size;
-  const stats = selected ? copy.stats : [...copy.stats, [`${relicCount}/${RELICS.length}`, 'relics']];
-  const statScale = scale * (tall ? 1.05 : wide ? .78 : .9);
+  // 4. Footer: a glass panel of stat tiles, the rarest relic, rhythm and the call to action.
+  const relicsFound = earnedRelics();
+  const rarest = RELICS.filter((relic) => relicsFound.has(relic.id)).sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity])[0];
+  const stats = selected ? copy.stats : [...copy.stats, [`${relicsFound.size}/${RELICS.length}`, 'relics']];
+  const glass = (x, y, w, h, radius) => {
+    context.save();
+    context.beginPath(); context.roundRect(x, y, w, h, radius);
+    context.fillStyle = 'rgba(8,15,34,.72)'; context.fill();
+    context.strokeStyle = 'rgba(167,198,236,.22)'; context.lineWidth = 1.5 * scale; context.stroke();
+    context.restore();
+  };
+  const tiles = (x, y, w, h, columns) => {
+    const gap = 12 * scale;
+    const rows = Math.ceil(stats.length / columns);
+    const tw = (w - gap * (columns - 1)) / columns, th = (h - gap * (rows - 1)) / rows;
+    stats.forEach(([value, label], index) => {
+      const tx = x + (index % columns) * (tw + gap), ty = y + Math.floor(index / columns) * (th + gap);
+      glass(tx, ty, tw, th, 18 * scale);
+      const size = Math.min(th * .44, tw * .3);
+      context.textAlign = 'left'; context.fillStyle = index === 3 ? '#ffd36b' : COLORS.paper; context.font = `700 ${size}px ${SERIF}`;
+      context.fillText(value, tx + 18 * scale, ty + th * .56);
+      context.fillStyle = '#9fbad4'; context.font = `900 ${Math.max(11 * scale, size * .26)}px ${SANS}`;
+      if ('letterSpacing' in context) context.letterSpacing = `${2 * scale}px`;
+      context.fillText(label.toUpperCase(), tx + 18 * scale, ty + th * .82);
+      if ('letterSpacing' in context) context.letterSpacing = '0px';
+    });
+  };
+  const badge = (x, y, h) => {
+    if (!rarest || selected) return 0;
+    const iconSize = h - 12 * scale;
+    context.font = `800 ${(tall ? 20 : 15) * scale}px ${SANS}`;
+    const text = `Rarest relic · ${rarest.name}`;
+    const w = iconSize + context.measureText(text).width + 44 * scale;
+    context.save();
+    context.beginPath(); context.roundRect(x, y, w, h, 999);
+    context.fillStyle = 'rgba(8,15,34,.8)'; context.fill();
+    context.strokeStyle = RARITY[rarest.rarity].color; context.lineWidth = 2 * scale; context.stroke();
+    context.restore();
+    const sprite = RELIC_SPRITES[rarest.sprite];
+    const cell = Math.floor(iconSize / Math.max(sprite.rows.length, sprite.rows[0].length));
+    paintSprite(rarest.sprite, (px, py, colour) => { context.fillStyle = `rgb(${colour.join(',')})`; context.fillRect(x + 12 * scale + px * cell, y + 6 * scale + py * cell, cell, cell); });
+    context.textAlign = 'left'; context.fillStyle = '#fff6dc';
+    context.fillText(text, x + iconSize + 26 * scale, y + h * .64);
+    return w;
+  };
   const footerY = height - (tall ? 64 : 40) * scale;
-  const statsY = wide ? height * .56 : height - (tall ? 250 : 150) * scale;
-  const statsWidth = wide ? width * .36 - pad : width - pad * 2;
   if (wide) {
-    stats.forEach(([value, label], index) => drawStat(context, pad + (index % 2) * statsWidth / 2, statsY + Math.floor(index / 2) * 92 * scale, value, label, scale * .9));
+    const panelY = height * .5, panelW = width * .36 - pad, panelH = height * .3;
+    tiles(pad, panelY, panelW, panelH, 2);
+    badge(pad, panelY + panelH + 18 * scale, 48 * scale);
   } else {
-    stats.forEach(([value, label], index) => drawStat(context, pad + index * statsWidth / stats.length, statsY, value, label, statScale));
-  }
-  if (tall && !selected) {
-    drawRhythmBars(context, pad, height - 182 * scale, width - pad * 2, 44 * scale);
-    context.textAlign = 'left'; context.fillStyle = '#9fbad4'; context.font = `800 ${15 * scale}px ${SANS}`;
-    context.fillText(`BUSIEST HOUR · ${hourLabel(peakHour())}${RHYTHM.longestStreak ? `   ·   ${RHYTHM.longestStreak}-DAY STREAK` : ''}`, pad, height - 112 * scale);
+    const panelH = (tall ? 150 : 104) * scale;
+    const panelY = height - (tall ? 380 : 238) * scale;
+    tiles(pad, panelY, width - pad * 2, panelH, 4);
+    if (tall && !selected) {
+      badge(pad, panelY - 82 * scale, 62 * scale);
+      drawRhythmBars(context, pad, height - 196 * scale, width - pad * 2, 44 * scale);
+      context.textAlign = 'left'; context.fillStyle = '#9fbad4'; context.font = `800 ${15 * scale}px ${SANS}`;
+      context.fillText(`BUSIEST HOUR · ${hourLabel(peakHour())}${RHYTHM.longestStreak ? `   ·   ${RHYTHM.longestStreak}-DAY STREAK` : ''}`, pad, height - 124 * scale);
+    } else if (!selected) {
+      badge(width - pad - 0, -1000, 0);
+    }
   }
   context.font = `800 ${(tall ? 22 : 16) * scale}px ${SANS}`;
   const cta = `Map yours  →  ${REPO_URL}`;
   const ctaWidth = context.measureText(cta).width + 40 * scale;
-  context.fillStyle = 'rgba(255,120,88,.2)'; context.strokeStyle = 'rgba(255,120,88,.75)'; context.lineWidth = 1.5 * scale;
-  context.beginPath(); context.roundRect(pad, footerY - (tall ? 36 : 27) * scale, ctaWidth, (tall ? 52 : 38) * scale, 999); context.fill(); context.stroke();
-  context.fillStyle = COLORS.paper; context.textAlign = 'left'; context.fillText(cta, pad + 20 * scale, footerY - 2 * scale);
+  context.fillStyle = 'rgba(255,120,88,.9)';
+  context.beginPath(); context.roundRect(pad, footerY - (tall ? 36 : 27) * scale, ctaWidth, (tall ? 52 : 38) * scale, 999); context.fill();
+  context.fillStyle = '#fff'; context.textAlign = 'left'; context.fillText(cta, pad + 20 * scale, footerY - 2 * scale);
   if (!wide) {
     context.textAlign = 'right'; context.fillStyle = '#9fbad4'; context.font = `700 ${(tall ? 19 : 14) * scale}px ${SANS}`;
     context.fillText('made locally · nothing uploaded', width - pad, footerY - 2 * scale);
@@ -732,27 +781,23 @@ function resizeWorld() {
 }
 
 let SCENE_MODE = 'packed';
+function visibleProjects() {
+  return PROJECTS.filter((project) => state.filter === 'all' || hasCrew(project, state.filter));
+}
+
+// The map is laid out from the islands currently shown, so filtering by agent re-forms a tight archipelago.
 function worldLayout() {
   const ratio = Math.min(2, window.devicePixelRatio || 1);
-  if (SCENE_MODE !== 'diorama' && world.height > world.width) {
+  const projects = visibleProjects();
+  if (world.height > world.width) {
     // Phones: lay the archipelago out as a panorama wider than the screen and start on the capital.
-    const wide = Math.round(world.height * 1.05);
-    const items = makeLayout(wide, world.height, PROJECTS, { top: 80 * ratio, bottom: 110 * ratio, left: 12 * ratio, right: 12 * ratio, maxSize: 4000, hang: .42 });
+    const wide = Math.round(world.height * (projects.length > 8 ? 1.05 : .8));
+    const items = makeLayout(wide, world.height, projects, { top: 80 * ratio, bottom: 110 * ratio, left: 12 * ratio, right: 12 * ratio, maxSize: 4000, hang: .42 });
     const capital = [...items].sort((a, b) => b.project.activity - a.project.activity)[0];
     const offset = capital ? capital.x - world.width / 2 : (wide - world.width) / 2;
     return items.map((item) => ({ ...item, x: item.x - offset }));
   }
-  if (SCENE_MODE !== 'diorama') {
-    return makeLayout(world.width, world.height, PROJECTS, { top: 78 * ratio, bottom: 104 * ratio, left: 24 * ratio, right: 74 * ratio, maxSize: 4000, hang: .42, depth: SCENE_MODE === 'packed-depth' });
-  }
-  if (world.height > world.width) {
-    // Phones get a panorama wider than the screen, centred on the middle; swipe to explore the edges.
-    const wide = Math.round(world.height * 1.15);
-    const offset = (wide - world.width) / 2;
-    return composeScene(wide, world.height, PROJECTS, { top: 70 * ratio, bottom: 130 * ratio, left: 16 * ratio, right: 16 * ratio }, { hang: .38 })
-      .map((item) => ({ ...item, x: item.x - offset }));
-  }
-  return composeScene(world.width, world.height, PROJECTS, { top: 26 * ratio, bottom: 120 * ratio, left: 30 * ratio, right: 80 * ratio }, { hang: .38 });
+  return makeLayout(world.width, world.height, projects, { top: 78 * ratio, bottom: 104 * ratio, left: 24 * ratio, right: 74 * ratio, maxSize: 4000, hang: .42 });
 }
 
 
@@ -1012,9 +1057,8 @@ function drawCloudBank(context, y, width, seed, alpha, transform, thickness) {
 function drawWorld() {
   drawOcean(worldContext, world.width, world.height);
   drawCloudSea(worldContext, world.width, world.height, performance.now());
-  const visible = PROJECTS.filter((project) => state.filter === 'all' || hasCrew(project, state.filter));
   const ratio = Math.min(2, window.devicePixelRatio || 1);
-  state.items = worldLayout().filter((item) => visible.includes(item.project));
+  state.items = worldLayout();
   const view = { x: state.panX, y: state.panY, scale: state.scale };
   const now = performance.now();
   const capital = [...PROJECTS].sort((a, b) => b.activity - a.activity)[0];
@@ -1056,6 +1100,46 @@ function hitIsland(point) {
     return dx * dx + dy * dy < 1;
   });
 }
+
+// A relic standing on an island, under the pointer. Boxes are in art pixels; islands are tested front to back.
+function hitRelic(point) {
+  const x = (point.x - state.panX) / state.scale;
+  const y = (point.y - state.panY) / state.scale;
+  const ordered = [...state.items].sort((a, b) => b.y - a.y);
+  for (const item of ordered) {
+    const art = islandArt(item.project);
+    const px = item.px ?? item.size / islandMetrics(item.project).half;
+    const ax = (x - item.x) / px + art.anchorX, ay = (y - item.y) / px + art.anchorY;
+    const pad = 4;
+    const box = (art.relicBoxes || []).find((candidate) => ax >= candidate.x - pad && ax <= candidate.x + candidate.w + pad && ay >= candidate.y - pad && ay <= candidate.y + candidate.h + pad);
+    if (box) {
+      const entry = relicsOf(item.project).find((candidate) => candidate.relic.id === box.id);
+      if (entry) return { item, ...entry };
+    }
+  }
+  return null;
+}
+
+function showRelicCard(hit, clientX, clientY) {
+  const card = $('#relicPop');
+  const { relic, reason, item } = hit;
+  card.style.setProperty('--rarity', RARITY[relic.rarity].color);
+  const icon = $('#relicPopIcon'); icon.innerHTML = ''; icon.append(relicIcon(relic.sprite, 5));
+  $('#relicPopName').textContent = relic.name;
+  $('#relicPopRarity').textContent = `${RARITY[relic.rarity].label} · ${relic.group}`;
+  $('#relicPopReason').textContent = reason;
+  $('#relicPopHow').textContent = relic.hint;
+  const owners = earnedRelics().get(relic.id) || [];
+  $('#relicPopWhere').textContent = owners.length > 1 ? `On ${item.project.name} and ${plural(owners.length - 1, 'other island')}.` : `Only on ${item.project.name}.`;
+  card.hidden = false;
+  const bounds = $('#atlas').getBoundingClientRect();
+  if (innerWidth <= 680) { card.style.left = ''; card.style.top = ''; card.classList.add('docked'); return; }
+  card.classList.remove('docked');
+  const width = card.offsetWidth, height = card.offsetHeight;
+  card.style.left = `${clamp(clientX - bounds.left + 16, 12, bounds.width - width - 12)}px`;
+  card.style.top = `${clamp(clientY - bounds.top - height / 2, 80, bounds.height - height - 110)}px`;
+}
+function hideRelicCard() { $('#relicPop').hidden = true; }
 
 function animateView(targetX, targetY, targetScale) {
   const start = { x: state.panX, y: state.panY, scale: state.scale };
@@ -1142,6 +1226,7 @@ function buildGuide() {
   });
   landmarks.append(chips);
   read.append(landmarks);
+  read.append(element('p', 'key-note', `Everything here is counted from the transcripts Claude Code and Codex keep on this computer${sinceLabel() ? `, which go back to ${sinceLabel()}` : ''}. Sessions on other machines, or ones the tools have already cleaned up, are not included.`));
   read.append(element('p', 'key-note', 'Small does not mean worse. Pelago maps the shape of your attention, never the quality of your work.'));
 
   const found = earnedRelics();
@@ -1150,7 +1235,7 @@ function buildGuide() {
   relics.innerHTML = '';
   const intro = element('div', 'relic-summary');
   const big = element('strong', '', `${found.size} of ${RELICS.length}`);
-  intro.append(big, element('span', '', 'relics found. Each one is earned by what you built, how big it grew, or the tools you used. Find them standing on your islands.'));
+  intro.append(big, element('span', '', 'relics found. Each one is earned by what you built, how big it grew, or the tools you used. Find them standing on your islands and click one to see why it is there.'));
   relics.append(intro);
   ['Craft', 'Scale', 'Tools', 'Crew', 'Time'].forEach((group) => {
     const section = element('section', 'guide-section');
@@ -1164,8 +1249,10 @@ function buildGuide() {
         card.style.setProperty('--rarity', RARITY[relic.rarity].color);
         const icon = element('span', 'relic-frame'); icon.append(relicIcon(relic.sprite, 3, !owners));
         const text = element('div', '');
-        text.append(element('strong', '', owners ? relic.name : '???'), element('small', 'relic-rarity', RARITY[relic.rarity].label));
-        text.append(element('p', '', owners ? `On ${owners.slice(0, 2).map((project) => project.name).join(', ')}${owners.length > 2 ? ` +${owners.length - 2}` : ''}` : relic.hint));
+        text.append(element('strong', '', owners ? relic.name : 'Locked relic'), element('small', 'relic-rarity', RARITY[relic.rarity].label));
+        const how = element('p', 'relic-how'); how.append(element('b', '', 'Earned by: '), document.createTextNode(relic.hint.replace(/\.$/, '')));
+        text.append(how);
+        if (owners) text.append(element('p', 'relic-where', `Found on ${owners.slice(0, 2).map((project) => project.name).join(', ')}${owners.length > 2 ? ` and ${owners.length - 2} more` : ''}`));
         card.append(icon, text);
         if (owners) card.addEventListener('click', () => focusProject(owners[0]));
         grid.append(card);
@@ -1300,11 +1387,19 @@ function renderThumbnail(canvas, project) {
   drawIslandFit(context, project, 4, 4, canvas.width - 8, canvas.height - 6, { crop: .45, glow: false, animate: false });
 }
 
+function updateSummary() {
+  const shown = visibleProjects();
+  const sessions = shown.reduce((sum, project) => sum + project.sessions, 0);
+  const tokens = shown.reduce((sum, project) => sum + totalTokens(project), 0);
+  const who = state.filter === 'all' ? '' : `<span>${state.filter === 'claude' ? 'Claude Code' : 'Codex'}</span><i></i>`;
+  $('#worldSummary').innerHTML = `${who}<span>${plural(shown.length, 'island')}</span><i></i><span>${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i></i><span>since ${sinceLabel()}</span>` : ''}`;
+}
+
 function buildInterface() {
   $('#personaTitle').textContent = PERSONA.title;
   document.title = `${PERSONA.title} · My Pelago`;
   const sessions = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
-  $('#worldSummary').innerHTML = `<span>${plural(PROJECTS.length, 'island')}</span><i></i><span>${plural(sessions, 'journey')}</span><i></i><span>Generated ${new Date(DATA.generatedAt).getFullYear()}</span>`;
+  updateSummary();
   $('#indexCount').textContent = String(PROJECTS.length).padStart(2, '0');
   buildGuide();
   const track = $('#indexTrack');
@@ -1332,6 +1427,16 @@ world.addEventListener('pointermove', (event) => {
     if (Math.abs(point.x - state.startX) + Math.abs(point.y - state.startY) > 5) state.moved = true;
     state.panX += dx; state.panY += dy; state.pointerX = point.x; state.pointerY = point.y; drawWorld(); return;
   }
+  const relicHit = hitRelic(point);
+  world.style.cursor = relicHit ? 'pointer' : '';
+  if (relicHit) {
+    const label = $('#hoverLabel');
+    label.innerHTML = '';
+    const small = document.createElement('small'); small.textContent = `${RARITY[relicHit.relic.rarity].label} relic · click to see why`;
+    label.append(document.createTextNode(relicHit.relic.name), small); label.classList.add('visible');
+    const bounds = world.getBoundingClientRect(); label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
+    return;
+  }
   const found = hitIsland(point);
   const next = found?.project.id || null;
   if (next !== state.hovered) { state.hovered = next; drawWorld(); }
@@ -1348,7 +1453,11 @@ world.addEventListener('pointermove', (event) => {
 world.addEventListener('pointerleave', () => { if (!state.dragging) { state.hovered = null; $('#hoverLabel').classList.remove('visible'); drawWorld(); } });
 world.addEventListener('pointerup', (event) => {
   const point = worldPoint(event); state.dragging = false;
-  if (!state.moved) { const found = hitIsland(point); if (found) focusProject(found.project); }
+  if (state.moved) return;
+  const relicHit = hitRelic(point);
+  if (relicHit) { showRelicCard(relicHit, event.clientX, event.clientY); return; }
+  hideRelicCard();
+  const found = hitIsland(point); if (found) focusProject(found.project);
 });
 world.addEventListener('wheel', (event) => {
   event.preventDefault();
@@ -1379,13 +1488,20 @@ $('#shareSelected').addEventListener('click', () => openShare(PROJECTS.find((pro
 $$('.agent-filter').forEach((button) => button.addEventListener('click', () => {
   $$('.agent-filter').forEach((item) => item.classList.remove('active')); button.classList.add('active'); state.filter = button.dataset.filter;
   $$('.island-card').forEach((card) => { card.hidden = state.filter !== 'all' && !card.dataset.agents.split(' ').includes(state.filter); });
-  if (state.selected && !PROJECTS.some((project) => project.id === state.selected && (state.filter === 'all' || hasCrew(project, state.filter)))) resetView();
+  $('#indexCount').textContent = String(visibleProjects().length).padStart(2, '0');
+  updateSummary();
+  hideRelicCard();
+  // Re-form the archipelago around what is shown, then ease back to the full view.
+  state.selected = null; state.hovered = null; $('#islandSheet').classList.remove('open'); updateCardSelection();
+  state.panX = 0; state.panY = 0; state.scale = 1;
   drawWorld();
 }));
 $$('.format-option').forEach((button) => button.addEventListener('click', () => {
   $$('.format-option').forEach((item) => item.classList.remove('active')); button.classList.add('active'); state.format = button.dataset.format; renderExport();
 }));
 $('[data-close-dialog]').addEventListener('click', () => $('#shareDialog').close());
+$('#relicPopClose').addEventListener('click', hideRelicCard);
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideRelicCard(); });
 $('#cardTitle').addEventListener('input', renderExport);
 $('#includeNames').addEventListener('change', (event) => { state.showNames = event.target.checked; renderExport(); });
 $('#downloadCard').addEventListener('click', downloadCard);
@@ -1465,7 +1581,7 @@ function buildSlides() {
     slide.append(element('p', 'story-over', 'YOUR AI CODING HISTORY'));
     const big = element('p', 'story-mega'); slide.append(big); countUp(big, TOTAL_SESSIONS);
     slide.append(element('h2', 'story-title', 'sessions with your agents.'));
-    slide.append(element('p', 'story-copy', days ? `Across ${plural(days, 'day')} at sea, they quietly raised ${plural(PROJECTS.length, 'island')}.` : `Together they raised ${plural(PROJECTS.length, 'island')}.`));
+    slide.append(element('p', 'story-copy', days ? `Across ${plural(days, 'day')} at sea${sinceLabel() ? ` since ${sinceLabel()}` : ''}, they quietly raised ${plural(PROJECTS.length, 'island')}.` : `Together they raised ${plural(PROJECTS.length, 'island')}.`));
     return slide;
   }));
 
@@ -1482,6 +1598,7 @@ function buildSlides() {
     slide.append(element('p', 'story-over', 'WHAT FLOWED THROUGH'));
     const big = element('p', 'story-mega'); big.textContent = compact(TOTAL_TOKENS); slide.append(big);
     slide.append(element('h2', 'story-title', 'tokens.'));
+    if (sinceLabel()) slide.append(element('p', 'story-note', `Counted from the transcripts on this computer since ${sinceLabel()}.`));
     const cached = PROJECTS.reduce((sum, project) => sum + (project.tokens?.cached || 0), 0);
     const fresh = TOTAL_TOKENS - cached;
     slide.append(element('p', 'story-copy', `That's ${tokenComparison(TOTAL_TOKENS)}. ${cached > TOTAL_TOKENS * .5 ? `${Math.round(cached / TOTAL_TOKENS * 100)}% were your agents re-reading context they already had; ${compact(fresh)} were brand new.` : ''}`));

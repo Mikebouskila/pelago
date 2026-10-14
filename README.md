@@ -96,7 +96,7 @@ When the same project was worked on by both Claude Code and Codex, it's still on
 
 ### Relics: 31 things to find
 
-What you built leaves treasures on your islands. Each relic stands on the island that earned it, glowing in its rarity colour, and the Field Guide keeps your collection.
+What you built leaves treasures on your islands. Each relic stands on the island that earned it, glowing in its rarity colour. Click one to see exactly why you earned it, and open the Field Guide to see every relic and what it takes to unlock it.
 
 | | Examples |
 |---|---|
@@ -168,6 +168,7 @@ Pelago counts from your transcripts, not estimates:
 - **Messages** are real turns (yours, the agent's, and its tool calls), each reply counted once even when it is split across records.
 - **Tokens** are summed from usage records, each reply billed once. The story tells you how much of it was cached context being re-read.
 - Every line of every transcript is read, however large.
+- Only what is on this computer counts. Claude Code and Codex clean up old transcripts over time, and sessions from other machines or the cloud are not here, so totals can be lower than a billing dashboard. The page shows the date your history starts from.
 
 The test suite pins each of these rules against records shaped like real transcripts.
 

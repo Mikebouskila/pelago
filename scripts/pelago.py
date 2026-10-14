@@ -294,9 +294,12 @@ def _usage_tokens(usage: dict[str, Any]) -> tuple[int, int, int]:
         number = lambda key: int(source.get(key) or 0) if isinstance(source.get(key), (int, float)) else 0
         return (number("input_tokens") + number("cache_creation_input_tokens"), number("output_tokens"), number("cache_read_input_tokens"))
     top = read(usage)
-    if sum(top) == 0 and isinstance(usage.get("iterations"), list):
+    if isinstance(usage.get("iterations"), list):
+        # Multi-step replies report each step; the top level sometimes holds only the last one.
         parts = [read(item) for item in usage["iterations"] if isinstance(item, dict)]
-        top = tuple(sum(part[index] for part in parts) for index in range(3))
+        steps = tuple(sum(part[index] for part in parts) for index in range(3))
+        if sum(steps) > sum(top):
+            top = steps
     return top
 
 
@@ -318,7 +321,7 @@ def typed_text(content: Any) -> str | None:
     return text if text and not text.startswith(NOT_TYPED) else None
 
 
-def read_work(record: dict[str, Any], agent: str, seen: set[str], subagent: bool = False) -> dict[str, Any]:
+def read_work(record: dict[str, Any], agent: str, seen: dict[str, tuple[int, int, int]], subagent: bool = False) -> dict[str, Any]:
     """Pull countable work out of one record.
 
     message: a real conversation turn (person or agent, tool calls included), each agent reply counted once.
@@ -335,12 +338,16 @@ def read_work(record: dict[str, Any], agent: str, seen: set[str], subagent: bool
                               and not record.get("isCompactSummary") and typed_text(content) is not None)
         elif kind == "assistant":
             message_id = message.get("id")
+            usage = _usage_tokens(message["usage"]) if isinstance(message.get("usage"), dict) else None
             if not message_id or message_id not in seen:
                 work["message"] = True
+                work["tokens"] = usage
                 if message_id:
-                    seen.add(message_id)
-                if isinstance(message.get("usage"), dict):
-                    work["tokens"] = _usage_tokens(message["usage"])
+                    seen[message_id] = usage or (0, 0, 0)
+            elif usage and sum(usage) > sum(seen[message_id]):
+                # A later record of the same reply carries fuller usage: add only the difference.
+                work["tokens"] = tuple(max(0, new - old) for new, old in zip(usage, seen[message_id]))
+                seen[message_id] = usage
             if isinstance(content, list):
                 work["tools"] = [block.get("name", "") for block in content if isinstance(block, dict) and block.get("type") == "tool_use"]
             if isinstance(message.get("model"), str):
@@ -562,7 +569,7 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                 session = _session_for(path)
                 file_project: str | None = None
                 file_had_record = False
-                seen_messages: set[str] = set()
+                seen_messages: dict[str, tuple[int, int, int]] = {}
                 cumulative: tuple[int, int, int] | None = None
                 project = None
                 subagent = path.parent.name == "subagents"
@@ -583,13 +590,15 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                     work = read_work(record, agent, seen_messages, subagent)
                     if work["cumulative"]:
                         cumulative = work["cumulative"]
-                    if not work["message"] and not work["tools"]:
+                    if not work["message"] and not work["tools"] and not work["tokens"]:
                         continue
                     key = file_project or f"{agent}:{fallback}"
                     project = projects.setdefault(key, Project(key=key, name=clean_name(file_project, fallback, home), agent=agent))
                     if not work["message"]:
                         # A later block of a reply already counted: only its tool calls are new.
                         project.tools.update(tool_group(name) for name in work["tools"] if name)
+                        if work["tokens"]:
+                            project.tokens.update(dict(zip(("input", "output", "cached"), work["tokens"])))
                         continue
                     text = extract_text(record)
                     project.messages += 1

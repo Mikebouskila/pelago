@@ -253,7 +253,7 @@ function renderIslandArt(project) {
     const spot = frontier.find(([i, j]) => relicSpots.every(([a, b]) => Math.hypot(a - i, b - j) >= 2.5));
     if (!spot) return;
     relicSpots.push(spot);
-    objects[spot[0]][spot[1]].push({ kind: 'relic', sprite: entry.relic.sprite, rarity: entry.relic.rarity });
+    objects[spot[0]][spot[1]].push({ kind: 'relic', sprite: entry.relic.sprite, rarity: entry.relic.rarity, id: entry.relic.id });
   });
   const relicKeys = new Set(relicSpots.map(([i, j]) => key(i, j)));
   for (let index = open.length - 1; index >= 0; index -= 1) if (relicKeys.has(key(open[index][0], open[index][1]))) open.splice(index, 1);
@@ -286,6 +286,7 @@ function renderIslandArt(project) {
   const lights = [];
   const light = (x, y, color, radius, strength = .34) => lights.push({ x, y, color, radius, strength });
   const anims = [];
+  const relicBoxes = [];
   const anim = (entry) => anims.push(entry);
   const crewColors = Object.entries(project.crews || { [project.agent]: 1 })
     .filter(([, share]) => share >= .15)
@@ -812,10 +813,11 @@ function renderIslandArt(project) {
     }
   }
 
-  function drawRelic(name, x, y, rarity, scale = 3) {
+  function drawRelic(name, x, y, rarity, scale = 3, id = null) {
     const sprite = RELIC_SPRITES[name];
     const w = sprite.rows[0].length * scale, h = sprite.rows.length * scale;
     const left = Math.round(x - w / 2), top = Math.round(y - h + scale);
+    if (id) relicBoxes.push({ id, x: left, y: top, w, h });
     for (let dy = -2; dy <= 3; dy += 1) for (let dx = -w / 2 - 2; dx <= w / 2 + 2; dx += 1) if (Math.abs(dx) / (w / 2 + 2) + Math.abs(dy) / 3.5 < 1) shadow(x + dx + 2, y + dy, .3);
     paintSprite(name, (px, py, colour) => { for (let a = 0; a < scale; a += 1) for (let b = 0; b < scale; b += 1) put(left + px * scale + a, top + py * scale + b, colour); });
     light(x, y - h / 2, RARITY[rarity].color, 18, rarity === 'legendary' ? .5 : rarity === 'epic' ? .4 : .28);
@@ -824,7 +826,7 @@ function renderIslandArt(project) {
 
   function decor(object, cx, baseY) {
     const x = cx + (object.dx || 0), y = baseY + (object.dy || 0);
-    if (object.kind === 'relic') { drawRelic(object.sprite, x, y + 2, object.rarity); return; }
+    if (object.kind === 'relic') { drawRelic(object.sprite, x, y + 2, object.rarity, 3, object.id); return; }
     if (object.kind === 'fountain') {
       for (let dy = -3; dy <= 3; dy += 1) for (let dx = -8; dx <= 8; dx += 1) {
         const d = Math.abs(dx) / 8.5 + Math.abs(dy) / 3.6;
@@ -911,6 +913,7 @@ function renderIslandArt(project) {
   function floatingRelics() { floating.forEach((entry) => {
     const wx = originX + landLeft - 46, wy = originY + size * TILE_H * .2;
     paintSprite('whale', (px, py, colour) => { for (let a = 0; a < 3; a += 1) for (let b = 0; b < 3; b += 1) put(wx + px * 3 + a, wy + py * 3 + b, colour); });
+    relicBoxes.push({ id: entry.relic.id, x: wx, y: wy, w: 14 * 3, h: 9 * 3 });
     light(wx + 14, wy + 8, RARITY[entry.relic.rarity].color, 18, .3);
   }); }
 
@@ -975,9 +978,10 @@ function renderIslandArt(project) {
     glowContext.fillRect(gx - r, gy - r, r * 2, r * 2);
   });
   const centreY = originY + (size - 1) * TILE_H + TILE_H - minY;
+  relicBoxes.forEach((box) => { box.x -= minX; box.y -= minY; });
   anims.forEach((entry) => { entry.x -= minX; if (entry.y !== undefined) entry.y -= minY; if (entry.y0 !== undefined) { entry.y0 -= minY; entry.y1 -= minY; } });
   const half = pixelDownsample(art);
-  return { art, glow, anims, depth: depthMap, mips: [art, half, pixelDownsample(half)], anchorX: originX - minX, anchorY: centreY, recipe, gridWidth: size * TILE_W * 2, falls: falls.length, buildings: placed.length };
+  return { art, glow, anims, relicBoxes, depth: depthMap, mips: [art, half, pixelDownsample(half)], anchorX: originX - minX, anchorY: centreY, recipe, gridWidth: size * TILE_W * 2, falls: falls.length, buildings: placed.length };
 }
 
 // Halve a pixel-art canvas without inventing colours: each 2x2 block keeps its most common opaque

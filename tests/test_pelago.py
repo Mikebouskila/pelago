@@ -283,6 +283,22 @@ class PelagoTests(unittest.TestCase):
             self.assertEqual(result["projects"][0]["sessions"], 1)
             self.assertNotIn("secret title", json.dumps(result))
 
+    def test_split_replies_use_their_fullest_usage(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            cwd = "/work/app"
+            early = {"input_tokens": 10, "output_tokens": 1, "cache_read_input_tokens": 100}
+            final = {"input_tokens": 10, "output_tokens": 40, "cache_read_input_tokens": 100}
+            steps = {"input_tokens": 5, "output_tokens": 5, "iterations": [{"input_tokens": 5, "output_tokens": 5}, {"input_tokens": 50, "output_tokens": 20, "cache_read_input_tokens": 300}]}
+            write(home / ".claude" / "projects" / "-work-app" / "s.jsonl", [
+                claude_user(cwd, "go"),
+                claude_reply(cwd, "m1", usage=early),
+                claude_reply(cwd, "m1", tool="Bash", usage=final),
+                claude_reply(cwd, "m2", usage=steps),
+            ])
+            tokens = pelago.scan(home)["projects"][0]["tokens"]
+            self.assertEqual(tokens["total"], (10 + 40 + 100) + (55 + 25 + 300))
+
 
 if __name__ == "__main__":
     unittest.main()

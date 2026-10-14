@@ -443,3 +443,22 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .crew.claude { flex: 1 1 auto; min-width: 0; }
 .crew.codex { flex: 0 0 max(var(--share), 96px); min-width: 96px; }
 .crew { overflow: hidden; }
+
+/* ---------- Relic cards and popover ---------- */
+.relic-how { margin-top: 4px !important; color: rgba(232,240,252,.85) !important; }
+.relic-how b { color: #fff6dc; font-weight: 800; }
+.relic-where { margin-top: 3px !important; color: color-mix(in srgb, var(--rarity) 70%, #ffffff) !important; font-weight: 700; }
+.relic-card { opacity: .78; }
+.relic-card:not(.earned) strong { color: rgba(220,232,248,.6); }
+.story-note { margin: 0; color: rgba(220,232,248,.6); font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+.relic-pop { position: absolute; z-index: 12; width: 320px; padding: 18px; border: 1px solid color-mix(in srgb, var(--rarity) 55%, transparent); border-radius: 20px; background: rgba(8,15,34,.92); backdrop-filter: blur(16px); box-shadow: 0 24px 60px rgba(0,2,14,.6), 0 0 40px color-mix(in srgb, var(--rarity) 22%, transparent); animation: rise .25s cubic-bezier(.22,1,.36,1) both; }
+.relic-pop.docked { left: 10px !important; right: 10px; bottom: 90px; top: auto !important; width: auto; }
+.relic-pop-close { position: absolute; top: 10px; right: 10px; }
+.relic-pop-head { display: flex; gap: 14px; align-items: center; padding-right: 30px; }
+.relic-frame.big { width: 76px; height: 76px; border-radius: 16px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--rarity) 55%, transparent), 0 0 24px color-mix(in srgb, var(--rarity) 35%, transparent); }
+.relic-frame.big .relic-icon { max-width: 64px; max-height: 64px; }
+.relic-pop h3 { margin: 2px 0 0; font-family: Georgia, serif; font-size: 22px; color: #fff6dc; }
+.relic-pop .relic-rarity { margin: 0; }
+.relic-pop-why { margin: 14px 0 10px; color: #fff6dc; font-size: 14px; line-height: 1.45; }
+.relic-pop-meta { margin: 6px 0 0; color: rgba(220,232,248,.72); font-size: 12.5px; line-height: 1.4; }
+.relic-pop-meta strong { display: block; margin-bottom: 2px; color: rgba(220,232,248,.5); font-size: 10.5px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
