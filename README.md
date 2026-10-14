@@ -9,7 +9,7 @@ Every project is an island, built from the work itself. Then it tells you who yo
 
 <br>
 
-<img src="docs/world.jpg" alt="A Pelago world: an archipelago of floating pixel-art islands under a night sky, each one a project" width="100%">
+<img src="docs/hero.jpg" alt="A Pelago world: an archipelago of floating pixel-art islands under a night sky, each one a project" width="100%">
 
 <br>
 
@@ -133,13 +133,13 @@ Press **▶ Play your story** for a nine-slide recap filmed over your own world.
 
 It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post.
 
-<img src="docs/card-story.jpg" alt="A Pelago story card: The Midnight Harbormaster over a full archipelago, with islands, sessions, tokens and relics" width="48%">&nbsp;<img src="docs/card-square.jpg" alt="A square Pelago card" width="48%">
+<img src="docs/card-story-v2.jpg" alt="A Pelago story card: The Midnight Harbormaster over a full archipelago, with islands, sessions, tokens and relics" width="48%">&nbsp;<img src="docs/card-square-v2.jpg" alt="A square Pelago card" width="48%">
 
 </td>
 </tr>
 </table>
 
-<img src="docs/card-social.jpg" alt="A wide Pelago card for X and LinkedIn" width="100%">
+<img src="docs/card-social-v2.jpg" alt="A wide Pelago card for X and LinkedIn" width="100%">
 
 <br>
 
