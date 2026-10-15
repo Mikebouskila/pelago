@@ -446,14 +446,27 @@ class Rhythm:
         }
 
 
-REALM_OF = {"web": "harbor", "mobile": "harbor", "other": "harbor", "ai": "observatory", "cli": "observatory", "data": "archive", "game": "citadel"}
-TITLES = {"harbor": "Harbormaster", "observatory": "Stargazer", "archive": "Archivist", "citadel": "Castle Builder"}
+REALM_OF = {"web": "harbor", "mobile": "garden", "other": "wilds", "ai": "observatory", "cli": "forge", "data": "archive", "game": "citadel"}
+TITLES = {
+    "harbor": "Harbormaster", "garden": "Gardener", "wilds": "Wayfinder", "observatory": "Stargazer",
+    "forge": "Toolsmith", "archive": "Archivist", "citadel": "Castle Builder", "atlas": "Cartographer",
+}
 REALM_LINES = {
     "harbor": "You build places people arrive at: interfaces, apps, front doors.",
-    "observatory": "You build things that listen and think: agents, tools, signals.",
+    "garden": "You grow things that live in a pocket: small screens, gentle taps.",
+    "wilds": "You build off the map, where no category quite fits.",
+    "observatory": "You build things that listen and think: agents, models, signals.",
+    "forge": "You build the tools other builders reach for: commands, scripts, pipes.",
     "archive": "You build order out of noise: data, measures, careful terraces.",
     "citadel": "You build worlds to play in: rules, quests, secret paths.",
+    "atlas": "No single realm holds you: your islands span the whole map.",
 }
+# Strong rhythms and rare habits name you first; everyone else is named for the part of the day they build in.
+PERIODS = (
+    ("Morning", range(9, 12), "You do your best building in the bright first hours."),
+    ("Sunlit", range(12, 17), "Your islands rise in broad daylight."),
+    ("Twilight", range(17, 22), "Your best work arrives as the lamps come on."),
+)
 
 
 def persona(data: dict[str, Any]) -> dict[str, Any]:
@@ -462,12 +475,18 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
     rhythm = data.get("rhythm") or {}
     realm_weight: Counter[str] = Counter()
     agent_weight: Counter[str] = Counter()
+    tool_weight: Counter[str] = Counter()
     for project in projects:
         weight = max(1, int(project.get("activity") or 0))
-        realm_weight[REALM_OF.get(project.get("category"), "harbor")] += weight
+        realm_weight[REALM_OF.get(project.get("category"), "wilds")] += weight
+        tool_weight.update(project.get("tools") or {})
         for agent, share in (project.get("crews") or {project.get("agent", "claude"): 1.0}).items():
             agent_weight[agent] += weight * share
-    realm = realm_weight.most_common(1)[0][0] if realm_weight else "harbor"
+    realm = "harbor"
+    if realm_weight:
+        realm, top = realm_weight.most_common(1)[0]
+        if len(realm_weight) >= 3 and top / sum(realm_weight.values()) < 0.35:
+            realm = "atlas"
 
     hours = rhythm.get("hours") or [0] * 24
     weekdays = rhythm.get("weekdays") or [0] * 7
@@ -476,9 +495,11 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
     night = sum(hours[hour] for hour in (22, 23, 0, 1, 2, 3, 4)) / total if total else 0
     dawn = sum(hours[hour] for hour in range(5, 9)) / total if total else 0
     weekend = (weekdays[5] + weekdays[6]) / sum(weekdays) if sum(weekdays) else 0
-    top_share = max((p.get("activity", 0) for p in projects), default=0) / max(1, sum(p.get("activity", 0) for p in projects))
+    activity = sum(p.get("activity", 0) for p in projects)
+    top_share = max((p.get("activity", 0) for p in projects), default=0) / max(1, activity)
     total_agents = sum(agent_weight.values())
-    both = len(agent_weight) > 1 and min(agent_weight.values()) / total_agents > 0.2
+    both = len(agent_weight) > 1 and min(agent_weight.values()) / total_agents > 0.25
+    crew = tool_weight["crew"] / max(1, sum(tool_weight.values()))
 
     if night > 0.3:
         prefix, line = "Midnight", "Your lamps stay lit long after the harbor sleeps."
@@ -488,12 +509,18 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
         prefix, line = "Weekend", "Saturdays are when your islands rise."
     elif both:
         prefix, line = "Two-Tide", "You sail with two crews and know when to call each."
-    elif top_share > 0.5:
-        prefix, line = "Devoted", "One island holds most of your heart."
-    elif len(projects) >= 12:
+    elif (rhythm.get("longestStreak") or 0) >= 30:
+        prefix, line = "Unbroken", "Day after day, you came back to the shore."
+    elif crew > 0.12:
+        prefix, line = "Hive", "You rarely sail alone: subagents fan out from every harbor."
+    elif len(projects) >= 20 and top_share < 0.4:
         prefix, line = "Wandering", "You leave a new island in your wake every few weeks."
+    elif total:
+        prefix, _, line = max(PERIODS, key=lambda period: sum(hours[hour] for hour in period[1]))
     else:
         prefix, line = "Steady", "You keep returning, and the islands keep growing."
+    if top_share > 0.6 and len(projects) > 1:
+        line += " One island holds most of your heart."
     return {
         "title": f"The {prefix} {TITLES[realm]}",
         "realm": realm,

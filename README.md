@@ -147,16 +147,20 @@ It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap 
 
 Your archetype is earned from your real rhythm and project mix. The title comes from what you build most:
 
-| Realm | You build… | Title |
-|---|---|---|
-| 🏝️ Harbor | web, mobile, and everything people arrive at | **Harbormaster** |
-| 🔭 Observatory | agents, AI tools, CLIs | **Stargazer** |
-| 📚 Living archive | data, analysis, notebooks | **Archivist** |
-| 🏰 Citadel | games | **Castle Builder** |
+| You build… | Title |
+|---|---|
+| 🏝️ web, everything people arrive at | **Harbormaster** |
+| 🌸 mobile apps | **Gardener** |
+| 🔭 agents and AI tools | **Stargazer** |
+| ⚒️ CLIs and dev tools | **Toolsmith** |
+| 📚 data, analysis, notebooks | **Archivist** |
+| 🏰 games | **Castle Builder** |
+| 🧭 something no category fits | **Wayfinder** |
+| 🗺️ a bit of everything | **Cartographer** |
 
-The first word comes from how you build: **Midnight** (a lot after 10 PM), **Dawn**, **Weekend**, **Devoted** (one project holds most of it), **Two-Tide** (real work with both agents), **Wandering** (many projects) or **Steady**.
+The first word comes from how you build: **Midnight** (a lot after 10 PM), **Dawn**, **Weekend**, **Two-Tide** (real work with both agents), **Unbroken** (a 30-day streak), **Hive** (heavy subagent use), **Wandering** (many projects, no favourite), or otherwise the part of the day you build in: **Morning**, **Sunlit** or **Twilight**.
 
-28 combinations. Post yours with **#pelago**.
+80 combinations. Post yours with **#pelago**.
 
 <br>
 

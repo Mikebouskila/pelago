@@ -193,6 +193,21 @@ class PelagoTests(unittest.TestCase):
         data["rhythm"]["hours"] = [0] * 5 + [50] * 4 + [1] * 15
         self.assertEqual(pelago.persona(data)["title"], "The Dawn Harbormaster")
 
+    def test_persona_spreads_across_builders(self):
+        def builder(category, peak, crew=0, codex=0.0):
+            hours = [0] * 24
+            hours[peak] = 100
+            crews = {"claude": 1 - codex, "codex": codex} if codex else {"claude": 1.0}
+            project = {"name": "Main", "agent": "claude", "category": category, "activity": 900, "crews": crews,
+                       "tools": {"shell": 100, "crew": crew}}
+            return {"projects": [project], "rhythm": {"hours": hours, "weekdays": [1] * 7, "longestStreak": 5}}
+
+        self.assertEqual(pelago.persona(builder("web", 10))["title"], "The Morning Harbormaster")
+        self.assertEqual(pelago.persona(builder("web", 14))["title"], "The Sunlit Harbormaster")
+        self.assertEqual(pelago.persona(builder("mobile", 19))["title"], "The Twilight Gardener")
+        self.assertEqual(pelago.persona(builder("cli", 14, crew=40))["title"], "The Hive Toolsmith")
+        self.assertEqual(pelago.persona(builder("other", 14, codex=0.4))["title"], "The Two-Tide Wayfinder")
+
     def test_old_exports_are_enriched(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "old.json"

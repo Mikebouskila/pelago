@@ -41,7 +41,7 @@ Relics are defined in `assets/relics.js` (`RELICS`). Each has a sprite, a rarity
 
 The archetype is `The <Adjective> <Title>`, computed in `scripts/pelago.py` (`persona()`).
 
-**Title** comes from the realm holding the most activity: Harbor → Harbormaster, Observatory → Stargazer, Living archive → Archivist, Citadel → Castle Builder.
+**Title** comes from the realm holding the most activity: web → Harbormaster, mobile → Gardener, AI → Stargazer, CLI → Toolsmith, data → Archivist, games → Castle Builder, anything else → Wayfinder. When no realm holds 35% of activity (and at least three realms appear), the title is Cartographer.
 
 **Adjective**: the first rule that matches wins.
 
@@ -50,10 +50,14 @@ The archetype is `The <Adjective> <Title>`, computed in `scripts/pelago.py` (`pe
 | More than 30% of timestamped activity is between 22:00 and 04:59 local time | Midnight |
 | More than 25% is between 05:00 and 08:59 | Dawn |
 | More than 40% falls on Saturday or Sunday | Weekend |
-| Both agents hold more than 20% of activity | Two-Tide |
-| 12 or more projects | Wandering |
-| One project holds more than half of all activity | Devoted |
-| Otherwise | Steady |
+| Both agents hold more than 25% of activity | Two-Tide |
+| A streak of 30 or more days | Unbroken |
+| Subagent launches are more than 12% of tool calls | Hive |
+| 20 or more projects and none holds 40% of activity | Wandering |
+| Otherwise, whichever of 09–11, 12–16 or 17–21 holds the most activity | Morning, Sunlit or Twilight |
+| No timestamps at all | Steady |
+
+When one island holds more than 60% of activity, the line adds "One island holds most of your heart."
 
 ## Story
 
