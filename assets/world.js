@@ -27,14 +27,16 @@ const state = {
   exportSelected: null, showNames: true, entered: false, items: [], viewWidth: 0, viewHeight: 0,
   hideNames: false,
 };
-// Hide names: for screenshots and screen shares, every project is shown as "Island 1", "Island 2"…
-// numbered by size, everywhere on the page and on cards.
+// Hide names: for screenshots and screen shares, no project name appears anywhere on the page or on
+// cards. Where words are needed, an island is called by its kind ("Meadow harbor") instead.
 try { state.hideNames = localStorage.getItem('pelago-hide-names') === '1'; } catch { /* storage blocked */ }
 state.showNames = !state.hideNames;
 function nameOf(project) {
-  if (!project || !state.hideNames) return project?.name || '';
-  return `Island ${[...PROJECTS].sort((a, b) => b.activity - a.activity).indexOf(project) + 1}`;
+  return project && !state.hideNames ? project.name : '';
 }
+function kindOf(project) { return (CATEGORIES[project?.category] || CATEGORIES.other).label; }
+// What to call an island in a sentence: its name, or its kind when names are hidden.
+function calledOf(project) { return nameOf(project) || `a ${kindOf(project).toLowerCase()}`; }
 
 const world = $('#worldCanvas');
 const worldContext = world.getContext('2d');
@@ -146,7 +148,7 @@ function cardCopy(selected) {
   if (selected) {
     return {
       overline: TEAM ? 'AN ISLAND WE BUILT WITH AI' : 'AN ISLAND I BUILT WITH AI',
-      title: nameOf(selected),
+      title: nameOf(selected) || kindOf(selected),
       line: islandLine(selected),
       stats: [[compact(selected.sessions), 'sessions'], [compact(selected.prompts ?? selected.messages), selected.prompts !== undefined ? 'requests' : 'messages'], totalTokens(selected) ? [compact(totalTokens(selected)), 'tokens'] : [`${activeSpan(selected)}d`, 'lifespan']],
     };
@@ -377,7 +379,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
 }
 
 function shareText(selected = state.exportSelected) {
-  if (selected) return `${nameOf(selected)} is one of ${PROJECTS.length} islands I built with AI. Map your own Claude Code + Codex history 🏝️ ${REPO_URL}`;
+  if (selected) return `${nameOf(selected) || 'This island'} is one of ${PROJECTS.length} islands I built with AI. Map your own Claude Code + Codex history 🏝️ ${REPO_URL}`;
   if (TEAM) return `We're ${PERSONA.title} 🏝️ ${TEAM.members.length} builders, ${PROJECTS.length} islands and ${compact(TOTAL_SESSIONS)} sessions built with Claude Code + Codex. Map yours: https://${REPO_URL} #pelago`;
   return `I'm ${PERSONA.title} 🏝️ ${PROJECTS.length} islands and ${compact(TOTAL_SESSIONS)} sessions built with Claude Code + Codex. Map yours: https://${REPO_URL} #pelago`;
 }
@@ -385,7 +387,7 @@ function cardBlob() {
   return new Promise((resolve) => renderCard(document.createElement('canvas')).toBlob(resolve, 'image/png'));
 }
 function cardFileName() {
-  return `pelago-${state.exportSelected ? nameOf(state.exportSelected).toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'world'}-${state.format}.png`;
+  return `pelago-${state.exportSelected ? (nameOf(state.exportSelected) || 'island').toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'world'}-${state.format}.png`;
 }
 async function downloadCard() {
   const blob = await cardBlob();
@@ -785,6 +787,7 @@ function drawIslandFit(context, project, x, y, width, height, options = {}) {
 
 function drawIslandLabel(context, item, options = {}) {
   const { project, x, y, size } = item;
+  if (!nameOf(project)) return;
   const transform = options.transform || { x: state.panX, y: state.panY, scale: state.scale };
   const diameter = size * 2.42;
   context.save();
@@ -1286,7 +1289,7 @@ function showRelicCard(hit, clientX, clientY) {
   $('#relicPopReason').textContent = reason;
   $('#relicPopHow').textContent = relic.hint;
   const owners = earnedRelics().get(relic.id) || [];
-  $('#relicPopWhere').textContent = owners.length > 1 ? `On ${nameOf(item.project)} and ${plural(owners.length - 1, 'other island')}.` : `Only on ${nameOf(item.project)}.`;
+  $('#relicPopWhere').textContent = owners.length > 1 ? `On ${calledOf(item.project)} and ${plural(owners.length - 1, 'other island')}.` : `Only on ${calledOf(item.project)}.`;
   card.hidden = false;
   const bounds = $('#atlas').getBoundingClientRect();
   if (innerWidth <= 680) { card.style.left = ''; card.style.top = ''; card.classList.add('docked'); return; }
@@ -1373,7 +1376,7 @@ function nextRelics(limit = 3, only = null) {
   }).filter(Boolean).sort((a, b) => b.ratio - a.ratio).slice(0, limit);
 }
 function progressText({ have, need, unit, project }, withIsland = true) {
-  return `${compact(have)} of ${compact(need)} ${unit}${withIsland ? ` on ${nameOf(project)}` : ''}`;
+  return `${compact(have)} of ${compact(need)} ${unit}${withIsland ? ` on ${calledOf(project)}` : ''}`;
 }
 function nextRelicRow(next, withIsland = true) {
   const row = element('div', 'next-relic');
@@ -1461,7 +1464,7 @@ function buildGuide() {
         text.append(element('strong', '', owners ? relic.name : 'Locked relic'), element('small', 'relic-rarity', RARITY[relic.rarity].label));
         const how = element('p', 'relic-how'); how.append(element('b', '', 'Earned by: '), document.createTextNode(relic.hint.replace(/\.$/, '')));
         text.append(how);
-        if (owners) text.append(element('p', 'relic-where', `Found on ${owners.slice(0, 2).map((project) => nameOf(project)).join(', ')}${owners.length > 2 ? ` and ${owners.length - 2} more` : ''}`));
+        if (owners) text.append(element('p', 'relic-where', state.hideNames ? `Found on ${plural(owners.length, 'island')}` : `Found on ${owners.slice(0, 2).map((project) => nameOf(project)).join(', ')}${owners.length > 2 ? ` and ${owners.length - 2} more` : ''}`));
         card.append(icon, text);
         if (owners) card.addEventListener('click', () => focusProject(owners[0]));
         grid.append(card);
@@ -1557,7 +1560,7 @@ function fillSheet(project) {
   $('#selectedAgent').textContent = crewLabel(project);
   $('#selectedAgent').style.setProperty('--agent-color', project.agent === 'claude' ? COLORS.claude : COLORS.codex);
   $('#selectedType').textContent = `${category.label} · ${recencyText(project)}`;
-  $('#selectedName').textContent = nameOf(project);
+  $('#selectedName').textContent = nameOf(project) || kindOf(project);
   $('#selectedStory').textContent = `${category.story} This ${activityBand(project)} island holds ${settlementBand(project)} shaped across ${plural(project.sessions, 'session')}.`;
   $('#selectedFacts').innerHTML = '';
   const tokens = totalTokens(project);
@@ -1600,7 +1603,7 @@ function fillSheet(project) {
     const list = document.createElement('div'); list.className = 'link-list';
     links.forEach((link) => {
       const button = document.createElement('button'); button.className = 'link-chip';
-      const name = document.createElement('strong'); name.textContent = nameOf(link.other);
+      const name = document.createElement('strong'); name.textContent = nameOf(link.other) || kindOf(link.other);
       const why = document.createElement('small'); why.textContent = link.kind === 'nest' ? 'lives inside the same folder tree' : state.hideNames ? "shares a word in its name" : `shares “${link.word}”`;
       button.append(name, why);
       button.addEventListener('click', () => focusProject(link.other));
@@ -1675,6 +1678,7 @@ function markTeam() {
     button.append(dot, document.createTextNode(member.name)); filters.append(button);
   });
 }
+function islandMeta(project) { return state.hideNames ? crewLabel(project) : `${crewLabel(project)} · ${kindOf(project)}`; }
 function buildInterface() {
   $('#personaTitle').textContent = PERSONA.title;
   document.title = `${PERSONA.title} · My Pelago`;
@@ -1690,8 +1694,8 @@ function buildInterface() {
     button.className = 'island-card'; button.dataset.project = project.id; button.dataset.agents = Object.keys(crewsOf(project)).join(' ');
     const canvas = document.createElement('canvas'); canvas.className = 'card-island'; canvas.setAttribute('aria-hidden', 'true');
     const copy = document.createElement('span');
-    const name = document.createElement('strong'); name.className = 'island-name'; name.textContent = nameOf(project);
-    const meta = document.createElement('small'); meta.textContent = `${crewLabel(project)} · ${(CATEGORIES[project.category] || CATEGORIES.other).label}`;
+    const name = document.createElement('strong'); name.className = 'island-name'; name.textContent = nameOf(project) || kindOf(project);
+    const meta = document.createElement('small'); meta.className = 'island-meta'; meta.textContent = islandMeta(project);
     copy.append(name, meta); button.append(canvas, copy); button.addEventListener('click', () => focusProject(project));
     track.appendChild(button); renderThumbnail(canvas, project);
   });
@@ -1725,7 +1729,7 @@ world.addEventListener('pointermove', (event) => {
   const label = $('#hoverLabel');
   if (found) {
     label.innerHTML = '';
-    const title = document.createTextNode(nameOf(found.project));
+    const title = document.createTextNode(nameOf(found.project) || kindOf(found.project));
     const recipe = islandRecipe(found.project);
     const small = document.createElement('small'); small.textContent = `${plural(recipe.buildings.count, 'building')} · ${plural(recipe.trees.count, 'tree')} · ${plural(recipe.waterfalls, 'waterfall')} — ${recencyText(found.project)}`;
     label.append(title, small); label.classList.add('visible');
@@ -1749,7 +1753,7 @@ world.addEventListener('wheel', (event) => {
 
 function openShare(selected = null) {
   state.exportSelected = selected;
-  $('#cardTitle').value = selected ? nameOf(selected) : PERSONA.title;
+  $('#cardTitle').value = selected ? nameOf(selected) || kindOf(selected) : PERSONA.title;
   renderExport(); $('#shareDialog').showModal();
 }
 function renderExport() { renderCard($('#exportCanvas')); }
@@ -1773,13 +1777,13 @@ function setHideNames(hide) {
   button.setAttribute('aria-label', hide ? 'Show project names' : 'Hide project names');
   button.title = hide ? 'Show project names' : 'Hide project names';
   $('#includeNames').checked = !hide;
-  $$('.island-card').forEach((card) => { card.querySelector('.island-name').textContent = nameOf(PROJECTS.find((project) => project.id === card.dataset.project)); });
+  $$('.island-card').forEach((card) => { const project = PROJECTS.find((item) => item.id === card.dataset.project); card.querySelector('.island-name').textContent = nameOf(project) || kindOf(project); card.querySelector('.island-meta').textContent = islandMeta(project); });
   const open = PROJECTS.find((project) => project.id === state.selected);
   if (open) fillSheet(open);
   buildGuide();
   hideRelicCard();
   drawWorld();
-  toast(hide ? 'Project names hidden. Islands are numbered by size.' : 'Project names are back.');
+  toast(hide ? 'Project names hidden everywhere.' : 'Project names are back.');
 }
 $('#toggleNames').addEventListener('click', () => setHideNames(!state.hideNames));
 if (state.hideNames) {
@@ -1918,7 +1922,7 @@ function buildSlides() {
   if (top) slides.push(at({ mode: 'island', project: top, shade: .15 }, () => {
     const slide = element('div', 'slide slide-capital');
     slide.append(element('p', 'story-over', 'YOUR CAPITAL'));
-    slide.append(element('h2', 'story-title', nameOf(top)));
+    slide.append(element('h2', 'story-title', nameOf(top) || kindOf(top)));
     slide.append(element('p', 'story-copy', `${capitalShare()}% of everything you built lives here: ${islandLine(top).charAt(0).toLowerCase()}${islandLine(top).slice(1)}`));
     return slide;
   }));
@@ -1990,7 +1994,7 @@ function buildSlides() {
     });
     slide.append(grid);
     const rarest = RELICS.filter((relic) => relicsFound.has(relic.id)).sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity])[0];
-    slide.append(element('p', 'story-copy', `Rarest: ${rarest.name}, ${rarest.rarity === 'epic' ? 'an' : 'a'} ${RARITY[rarest.rarity].label.toLowerCase()} relic on ${nameOf(relicsFound.get(rarest.id)[0])}.`));
+    slide.append(element('p', 'story-copy', `Rarest: ${rarest.name}, ${rarest.rarity === 'epic' ? 'an' : 'a'} ${RARITY[rarest.rarity].label.toLowerCase()} relic on ${calledOf(relicsFound.get(rarest.id)[0])}.`));
     const next = nextRelics(1)[0];
     if (next) slide.append(element('p', 'story-next', `Next up: ${next.relic.name}, ${progressText(next)}.`));
     return slide;

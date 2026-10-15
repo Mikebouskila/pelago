@@ -46,7 +46,7 @@ Mention how many relics they found and the rarest one. Then tell the user to pre
 
 Pelago is local-first. Never upload history, prompts, file contents, or project data. The generator reads message text transiently to classify projects. It keeps only aggregates: project name, agent, category, dates, session/request/message counts, per-session message counts, token totals, tool-category counts, model family names, hour/weekday/day counts (overall and per project), which islands are related (as id pairs), and mention counts for a fixed list of 17 technologies. Do not quote or summarize prompt content in the response.
 
-Do not scan unrelated folders or shell history. Do not publish or share a card without an explicit user request. Project names appear on cards by default. If the user plans to share publicly and has client or confidential project names, point out the "Show project names" toggle in the export studio, or the **Aa** button on the map, which hides every project name on the page (islands become "Island 1", "Island 2"…) for screenshots and screen sharing.
+Do not scan unrelated folders or shell history. Do not publish or share a card without an explicit user request. Project names appear on cards by default. If the user plans to share publicly and has client or confidential project names, point out the "Show project names" toggle in the export studio, or the **Aa** button on the map, which hides every project name on the page and on cards (islands are described by their kind instead) for screenshots and screen sharing.
 
 ## Explaining the world
 
