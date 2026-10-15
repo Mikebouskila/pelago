@@ -490,3 +490,4 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .demo-link:hover { text-decoration: underline; }
 @media (max-width: 760px) { .welcome .privacy:has(.demo-link) { display: block !important; margin-top: 12px; } }
 .next-relic .relic-frame canvas { filter: grayscale(.55) brightness(.9); opacity: .78; }
+@media (max-width: 760px) { .masthead:has(.demo-cta) .brand-word, .masthead:has(.demo-cta) .brand-edition { display: none; } .demo-cta { min-height: 36px; padding: 0 12px; } }
