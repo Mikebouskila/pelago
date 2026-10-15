@@ -145,6 +145,22 @@ It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap 
 
 <br>
 
+## 👥 Build one world as a team
+
+Everyone exports their own aggregates, one person merges them. Shared projects become one island, built together and credited to everyone who worked on it. The story gets a crew slide, and the card says *our* archetype.
+
+```bash
+# each teammate
+python3 scripts/pelago.py --name "Maya" --json-output maya.json
+
+# whoever collects the files
+python3 scripts/pelago.py --team maya.json noam.json dana.json --team-name "Our team" --open
+```
+
+Islands merge by project name (ignoring case and punctuation). The exports hold only the aggregates listed under [Privacy](#-private-by-design): project names and counts, never prompts or code. Share them only with people you'd show those names to.
+
+<br>
+
 ## 🧭 Which one are you?
 
 Your archetype is earned from your real rhythm and project mix. The title comes from what you build most:

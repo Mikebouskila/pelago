@@ -32,6 +32,7 @@ const worldContext = world.getContext('2d');
 
 const REPO_URL = 'github.com/Mikebouskila/pelago';
 const PERSONA = DATA.persona || { title: 'The Steady Harbormaster', realm: 'harbor', line: 'You keep returning, and the islands keep growing.', realmLine: '' };
+const TEAM = DATA.team?.members?.length ? DATA.team : null;
 const RHYTHM = DATA.rhythm || { hours: Array(24).fill(0), weekdays: Array(7).fill(0), activeDays: 0, longestStreak: 0 };
 const TOTAL_SESSIONS = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
 const TOTAL_TOKENS = PROJECTS.reduce((sum, project) => sum + (project.tokens?.total || 0), 0);
@@ -124,7 +125,7 @@ function islandLine(project) {
 function cardCopy(selected) {
   if (selected) {
     return {
-      overline: 'AN ISLAND I BUILT WITH AI',
+      overline: TEAM ? 'AN ISLAND WE BUILT WITH AI' : 'AN ISLAND I BUILT WITH AI',
       title: selected.name,
       line: islandLine(selected),
       stats: [[compact(selected.sessions), 'sessions'], [compact(selected.prompts ?? selected.messages), selected.prompts !== undefined ? 'requests' : 'messages'], totalTokens(selected) ? [compact(totalTokens(selected)), 'tokens'] : [`${activeSpan(selected)}d`, 'lifespan']],
@@ -132,7 +133,7 @@ function cardCopy(selected) {
   }
   const custom = ($('#cardTitle')?.value || '').trim();
   return {
-    overline: 'MY AI CODING ARCHETYPE',
+    overline: TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
     title: custom || PERSONA.title,
     line: PERSONA.line,
     stats: [
@@ -341,6 +342,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
 
 function shareText(selected = state.exportSelected) {
   if (selected) return `${selected.name} is one of ${PROJECTS.length} islands I built with AI. Map your own Claude Code + Codex history 🏝️ ${REPO_URL}`;
+  if (TEAM) return `We're ${PERSONA.title} 🏝️ ${TEAM.members.length} builders, ${PROJECTS.length} islands and ${compact(TOTAL_SESSIONS)} sessions built with Claude Code + Codex. Map yours: https://${REPO_URL} #pelago`;
   return `I'm ${PERSONA.title} 🏝️ ${PROJECTS.length} islands and ${compact(TOTAL_SESSIONS)} sessions built with Claude Code + Codex. Map yours: https://${REPO_URL} #pelago`;
 }
 function cardBlob() {
@@ -1482,6 +1484,8 @@ function fillSheet(project) {
     ['⚒', mixText, 'Built from the tools your agent used: forges for shell commands, workshops for edits, libraries for reading, signal towers for the web, windmills for subagents.'],
     ['♣', plural(recipe.trees.count, 'tree'), `Grown from ${compact(recipe.trees.prompts)} requests you typed${recipe.trees.perTree > 1 ? `, one tree for every ${recipe.trees.perTree}` : ''}.`],
     ['≈', recipe.waterfalls ? plural(recipe.waterfalls, 'waterfall') : 'No waterfall yet', tokens ? `${compact(tokens)} tokens flowed through here. The island's size and its waterfalls grow with every 10× more tokens.` : 'Island size follows how much work happened here.'],
+    ...(TEAM && project.builders ? [['☺', Object.keys(project.builders).length > 1 ? `Built by ${plural(Object.keys(project.builders).length, 'builder')}` : `Built by ${Object.keys(project.builders)[0]}`,
+      Object.entries(project.builders).map(([name, share]) => `${name} ${Math.round(share * 100)}%`).join(' · ') + ' of the work here.']] : []),
     ['✦', recencyText(project), recipe.beacon ? 'The keep\'s beacon is lit and the forges are smoking because you worked here recently.' : recipe.snow ? 'Snow has settled and most windows went dark while this island rested.' : 'The lights are dimming slowly until you return.'],
   ];
   $('#whyList').innerHTML = '';
@@ -1535,7 +1539,8 @@ function updateSummary() {
   const sessions = shown.reduce((sum, project) => sum + project.sessions, 0);
   const tokens = shown.reduce((sum, project) => sum + totalTokens(project), 0);
   const who = state.filter === 'all' ? '' : `<span>${state.filter === 'claude' ? 'Claude Code' : 'Codex'}</span><i></i>`;
-  $('#worldSummary').innerHTML = `${who}<span>${plural(shown.length, 'island')}</span><i></i><span>${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i></i><span>since ${sinceLabel()}</span>` : ''}`;
+  const crew = TEAM ? `<span>${plural(TEAM.members.length, 'builder')}</span><i></i>` : '';
+  $('#worldSummary').innerHTML = `${crew}${who}<span>${plural(shown.length, 'island')}</span><i></i><span>${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i></i><span>since ${sinceLabel()}</span>` : ''}`;
 }
 
 const GET_YOURS = `https://${REPO_URL}#-get-yours-in-one-prompt`;
@@ -1554,10 +1559,22 @@ function markDemo() {
   cta.href = GET_YOURS; cta.target = '_blank'; cta.rel = 'noopener';
   $('.mast-actions').prepend(cta);
 }
+function markTeam() {
+  // A team world: several people's exports merged, shared islands built together.
+  document.title = `${TEAM.name} · Pelago`;
+  $('.brand-edition').textContent = 'TEAM ATLAS';
+  $('#welcome .overline').textContent = `${TEAM.name.toUpperCase()} · ${plural(TEAM.members.length, 'BUILDER')}`;
+  $('#welcomeTitle').innerHTML = 'Everything we built <br>became a <em>place.</em>';
+  $('.welcome-copy').textContent = `Every project is an island built from its own work: a building for each session, a tree for each request, waterfalls from the tokens. Merged from ${TEAM.members.length} people's Claude Code and Codex history; the islands you share were built together.`;
+  $('#personaChip span').textContent = 'Together you are';
+  const play = $('.welcome .primary-action');
+  if (play) play.innerHTML = '<span aria-hidden="true">▶</span> Play the team story';
+}
 function buildInterface() {
   $('#personaTitle').textContent = PERSONA.title;
   document.title = `${PERSONA.title} · My Pelago`;
   if (DATA.demo) markDemo();
+  if (TEAM) markTeam();
   const sessions = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
   updateSummary();
   $('#indexCount').textContent = String(PROJECTS.length).padStart(2, '0');
@@ -1739,10 +1756,27 @@ function buildSlides() {
 
   slides.push(at({ mode: 'wide', zoom: 1.08, shade: .2 }, () => {
     const slide = element('div', 'slide slide-intro');
-    slide.append(element('p', 'story-over', 'YOUR AI CODING HISTORY'));
+    slide.append(element('p', 'story-over', TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : 'YOUR AI CODING HISTORY'));
     const big = element('p', 'story-mega'); slide.append(big); countUp(big, TOTAL_SESSIONS);
     slide.append(element('h2', 'story-title', 'sessions with your agents.'));
     slide.append(element('p', 'story-copy', days ? `Across ${plural(days, 'day')} at sea${sinceLabel() ? ` since ${sinceLabel()}` : ''}, they quietly raised ${plural(PROJECTS.length, 'island')}.` : `Together they raised ${plural(PROJECTS.length, 'island')}.`));
+    return slide;
+  }));
+
+  if (TEAM) slides.push(at({ mode: 'wide', zoom: 1.02, shade: .55 }, () => {
+    const slide = element('div', 'slide slide-team');
+    slide.append(element('p', 'story-over', 'THE CREW'));
+    const shared = PROJECTS.filter((project) => Object.keys(project.builders || {}).length > 1).length;
+    slide.append(element('h2', 'story-title', `${TEAM.members.length} builders. ${shared ? `${plural(shared, 'island')} built together.` : 'One archipelago.'}`));
+    const most = Math.max(1, ...TEAM.members.map((member) => member.activity));
+    const list = element('div', 'team-list');
+    TEAM.members.slice(0, 8).forEach((member) => {
+      const row = element('div', 'team-row');
+      row.style.setProperty('--share', `${Math.max(4, Math.round(member.activity / most * 100))}%`);
+      row.append(element('strong', '', member.name), element('span', 'team-bar'), element('small', '', `${plural(member.islands, 'island')} · ${compact(member.sessions)} sessions`));
+      list.append(row);
+    });
+    slide.append(list);
     return slide;
   }));
 
@@ -1829,7 +1863,7 @@ function buildSlides() {
 
   slides.push(at({ mode: 'wide', zoom: .95, shade: .25, reveal: true }, () => {
     const slide = element('div', 'slide slide-persona');
-    slide.append(element('p', 'story-over', 'WHICH MAKES YOU'));
+    slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : 'WHICH MAKES YOU'));
     const title = element('h2', 'story-persona');
     const { lead, accent } = personaParts();
     title.append(document.createTextNode(`${lead} `));

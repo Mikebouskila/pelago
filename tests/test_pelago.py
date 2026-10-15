@@ -216,6 +216,47 @@ class PelagoTests(unittest.TestCase):
         self.assertEqual(pelago.persona(builder("cli", 14, crew=40))["title"], "The Hive Toolsmith")
         self.assertEqual(pelago.persona(builder("other", 14, codex=0.4))["title"], "The Two-Tide Wayfinder")
 
+    def test_team_worlds_merge_shared_islands(self):
+        def export(builder, projects, daily):
+            data = pelago.demo_data()
+            data.pop("demo")
+            data["builder"] = builder
+            data["projects"] = projects
+            data["links"] = [{"a": projects[0]["id"], "b": projects[-1]["id"], "kind": "name", "word": "pelago"}]
+            data["rhythm"] = {**data["rhythm"], "daily": daily}
+            return data
+
+        def project(pid, name, activity, sessions, shell, agent="claude"):
+            return {"id": pid, "name": name, "agent": agent, "category": "web", "sessions": sessions, "messages": activity,
+                    "activity": activity, "prompts": 10, "seed": activity, "crews": {agent: 1.0},
+                    "firstActive": "2026-05-01T00:00:00+00:00", "lastActive": "2026-06-01T00:00:00+00:00",
+                    "tokens": {"input": 10, "output": 5, "cached": 85, "total": 100}, "tools": {"shell": shell},
+                    "models": [], "sessionSizes": [activity], "techSample": activity, "tech": {}}
+
+        maya = export("Maya", [project("a1", "Pelago", 300, 3, 20), project("a2", "Notes", 50, 1, 2)], {"2026-05-01": 4, "2026-05-02": 1})
+        noam = export("Noam", [project("b1", "pelago", 100, 2, 5, "codex"), project("b2", "CLI kit", 80, 1, 1, "codex")], {"2026-05-03": 2})
+        with tempfile.TemporaryDirectory() as directory:
+            paths = []
+            for data in (maya, noam):
+                path = Path(directory) / f"{data['builder'].lower()}.json"
+                path.write_text(json.dumps(data), encoding="utf-8")
+                paths.append(path)
+            team = pelago.merge_team(pelago.load_team(paths), "Crew")
+
+        self.assertEqual(len(team["projects"]), 3)
+        shared = next(p for p in team["projects"] if p["name"] == "Pelago")
+        self.assertEqual((shared["sessions"], shared["activity"], shared["tokens"]["total"]), (5, 400, 200))
+        self.assertEqual(shared["tools"], {"shell": 25})
+        self.assertEqual(shared["builders"], {"Maya": 0.75, "Noam": 0.25})
+        self.assertEqual(shared["crews"], {"claude": 0.75, "codex": 0.25})
+        self.assertEqual(shared["seed"], 300)  # the look of whoever built the most of it
+        self.assertEqual(team["team"]["name"], "Crew")
+        self.assertEqual([m["name"] for m in team["team"]["members"]], ["Maya", "Noam"])
+        self.assertEqual(team["rhythm"]["longestStreak"], 3)
+        ids = {p["id"] for p in team["projects"]}
+        self.assertTrue(team["links"] and all(link["a"] in ids and link["b"] in ids for link in team["links"]))
+        self.assertTrue(team["persona"]["title"].startswith("The "))
+
     def test_old_exports_are_enriched(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "old.json"
