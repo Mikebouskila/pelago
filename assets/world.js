@@ -1477,7 +1477,7 @@ function fillSheet(project) {
   const recipe = islandRecipe(project);
   const mix = {};
   recipe.buildings.types.slice(1).forEach((type) => { mix[type] = (mix[type] || 0) + 1; });
-  const mixText = Object.entries(mix).sort((a, b) => b[1] - a[1]).map(([type, count]) => `${count} ${BUILDING_LABELS[type].toLowerCase()}${count === 1 ? '' : 's'}`).join(' · ') || 'A single keep';
+  const mixText = Object.entries(mix).sort((a, b) => b[1] - a[1]).map(([type, count]) => `${count} ${count === 1 ? BUILDING_LABELS[type].toLowerCase() : BUILDING_LABELS[type].toLowerCase().replace(/y$/, "ie") + "s"}`).join(' · ') || 'A single keep';
   const per = recipe.buildings.perBuilding;
   const rows = [
     ['⌂', plural(recipe.buildings.count, 'building'), per > 1 ? `Each building stands for ${per} of ${compact(project.sessions)} sessions. Taller means longer sessions. The keep holds your biggest one.` : `One per session. Taller means a longer session. The keep is your biggest one.`],
