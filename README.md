@@ -253,6 +253,7 @@ The test suite pins each of these rules against records shaped like real transcr
 - No network requests, no uploads. Every island is drawn in your browser from the numbers.
 - Message text is read in memory to guess each project's realm, then forgotten.
 - The page keeps only aggregates: project names, dates, counts, token totals, tool categories, hour, weekday and day counts (per project), and how often a fixed list of 17 technologies came up.
+- Showing your screen or taking screenshots? Press **Aa** on the map to hide every project name. Islands become *Island 1, 2, 3…* everywhere: the map, the details, the story and the cards. It stays that way until you turn it back on.
 - Sharing a card? Untick **Show project names** if any are confidential.
 - Team worlds never sync anything. Your export leaves your machine only if you send it to a teammate yourself, and with `--only` it holds just the projects you picked.
 

@@ -100,6 +100,8 @@ class PelagoTests(unittest.TestCase):
             self.assertIn("The Midnight Harbormaster", html)
             self.assertLess(len(html), 3_000_000)
             self.assertIn("Download video", html)
+            self.assertIn('id="toggleNames"', html)
+            self.assertIn("function nameOf", html)
             self.assertIn("function nextRelics", html)
             # The sample doubles as the live demo, so it carries link previews; a real world never does.
             self.assertIn('property="og:image"', html)
