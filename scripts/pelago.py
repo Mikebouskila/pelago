@@ -772,6 +772,7 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
     """
     islands: dict[str, dict[str, Any]] = {}
     contributions: dict[str, Counter[str]] = {}
+    work_by: dict[str, dict[str, Counter[str]]] = {}
     rhythm = Rhythm()
     members = []
     id_map: dict[tuple[int, str], str] = {}
@@ -779,6 +780,7 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
         projects = data.get("projects") or []
         members.append({
             "name": builder,
+            "title": (data.get("persona") or persona(data))["title"],
             "islands": len(projects),
             "sessions": sum(project.get("sessions", 0) for project in projects),
             "tokens": sum((project.get("tokens") or {}).get("total", 0) for project in projects),
@@ -793,6 +795,9 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
             id_map[(index, project["id"])] = hashlib.sha256(f"team:{key}".encode()).hexdigest()[:12]
             weight = max(1, int(project.get("activity") or 0))
             contributions.setdefault(key, Counter())[builder] += weight
+            work = work_by.setdefault(key, {}).setdefault(builder, Counter())
+            work.update({"sessions": int(project.get("sessions") or 0), "prompts": int(project.get("prompts") or 0),
+                         "tokens": int((project.get("tokens") or {}).get("total") or 0)})
             island = islands.get(key)
             if island is None:
                 islands[key] = island = {
@@ -833,6 +838,7 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
             "tech": dict(island["tech"].most_common()),
             "sessionSizes": sorted(island["sessionSizes"], reverse=True)[:MAX_BUILDINGS],
             "builders": {name: round(weight / sum(builders.values()), 3) for name, weight in builders.most_common()},
+            "work": {name: dict(work_by[key][name]) for name, _ in builders.most_common()},
         })
     merged.sort(key=lambda project: project["activity"], reverse=True)
 
@@ -844,6 +850,8 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
             if a and b and a != b and pair not in seen:
                 seen.add(pair)
                 links.append({**link, "a": a, "b": b})
+    for member in members:
+        member["shared"] = sum(1 for island in merged if member["name"] in island["builders"] and len(island["builders"]) > 1)
     names = [member["name"] for member in members]
     return enrich({
         "version": 2, "generatedAt": datetime.now(timezone.utc).isoformat(), "projects": merged, "links": links,
@@ -853,9 +861,43 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
     })
 
 
+def demo_team() -> dict[str, Any]:
+    """A sample crew of three, carved deterministically out of the demo world."""
+    base = demo_data()
+    crew = ("Maya", "Noam", "Dana")
+    exports = []
+    for index, name in enumerate(crew):
+        data = json.loads(json.dumps(base))
+        kept = []
+        for position, project in enumerate(data["projects"]):
+            owner = position % 3
+            share = (.62, .28, .1)[(index - owner) % 3] if position < 5 else (1.0 if owner == index else 0)
+            if not share:
+                continue
+            for field_name in ("sessions", "messages", "activity", "prompts", "techSample"):
+                project[field_name] = max(1, round((project.get(field_name) or 0) * share))
+            project["tokens"] = {k: round(v * share) for k, v in project["tokens"].items()}
+            project["tools"] = {k: max(1, round(v * share)) for k, v in project["tools"].items()}
+            project["sessionSizes"] = project["sessionSizes"][index::3] or project["sessionSizes"][:1]
+            kept.append(project)
+        data["projects"] = kept
+        hours = base["rhythm"]["hours"]
+        data["rhythm"] = {**base["rhythm"], "hours": hours[index * 5:] + hours[:index * 5]}
+        exports.append((name, enrich(data)))
+    team = merge_team(exports, "Lighthouse Labs")
+    team["demo"] = True
+    return team
+
+
 def load_team(paths: list[Path], names: list[str] | None = None) -> list[tuple[str, dict[str, Any]]]:
+    """Read team exports; a folder stands for every .json file inside it."""
+    files = []
+    for path in paths:
+        files.extend(sorted(path.glob("*.json")) if path.is_dir() else [path])
+    if len(files) < 1:
+        raise ValueError("No Pelago exports found for the team world")
     exports, used = [], Counter()
-    for index, path in enumerate(paths):
+    for index, path in enumerate(files):
         data = load_input(path)
         builder = (names[index] if names and index < len(names) else None) or data.get("builder") or path.stem
         used[builder] += 1
@@ -915,7 +957,9 @@ def print_summary(data: dict[str, Any], output: Path) -> None:
         print(f"  Longest voyage: {rhythm['longestStreak']} days in a row")
     team = data.get("team")
     if team:
-        print(f"  Built by {len(team['members'])}: {', '.join(member['name'] for member in team['members'])}")
+        print(f"  Built by {len(team['members'])}:")
+        for member in team["members"]:
+            print(f"    {member['name']}: {member.get('title', '')}, {member['islands']} islands ({member.get('shared', 0)} shared), {member['sessions']} sessions")
     print(f"  {'Together you are' if team else 'You are'} {who['title']}.")
     print()
     print(f"  World: {output}")
@@ -932,20 +976,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--demo", action="store_true", help="generate a sample world without scanning")
     parser.add_argument("--open", action="store_true", help="open the world in the default browser when done")
     parser.add_argument("--name", help="your name, stamped into --json-output so a team world can credit you")
-    parser.add_argument("--team", type=Path, nargs="+", metavar="EXPORT", help="merge several people's --json-output files into one team world")
+    parser.add_argument("--team", type=Path, nargs="+", metavar="EXPORT", help="merge several people's --json-output files (or a folder of them) into one team world")
+    parser.add_argument("--demo-team", action="store_true", help="generate a sample team world without scanning")
     parser.add_argument("--team-name", help="what to call the team world")
     args = parser.parse_args(argv)
 
     if args.since_days is not None and args.since_days < 1:
         parser.error("--since-days must be at least 1")
     try:
-        if args.team:
+        if args.demo_team:
+            data = demo_team()
+        elif args.team:
             data = merge_team(load_team(args.team), args.team_name)
         else:
             data = demo_data() if args.demo else load_input(args.input) if args.input else scan(args.home.expanduser(), args.since_days)
         if args.name:
             data["builder"] = args.name.strip()[:40]
-        if not data["projects"] and not args.demo:
+        if not data["projects"] and not (args.demo or args.demo_team):
             locations = ", ".join(str(args.home.expanduser() / folder) for folder in (".claude/projects", ".codex/sessions"))
             print(f"Pelago found no supported history in: {locations}", file=sys.stderr)
             return 2

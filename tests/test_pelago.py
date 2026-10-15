@@ -241,13 +241,15 @@ class PelagoTests(unittest.TestCase):
                 path = Path(directory) / f"{data['builder'].lower()}.json"
                 path.write_text(json.dumps(data), encoding="utf-8")
                 paths.append(path)
-            team = pelago.merge_team(pelago.load_team(paths), "Crew")
+            team = pelago.merge_team(pelago.load_team([Path(directory)]), "Crew")
 
         self.assertEqual(len(team["projects"]), 3)
         shared = next(p for p in team["projects"] if p["name"] == "Pelago")
         self.assertEqual((shared["sessions"], shared["activity"], shared["tokens"]["total"]), (5, 400, 200))
         self.assertEqual(shared["tools"], {"shell": 25})
         self.assertEqual(shared["builders"], {"Maya": 0.75, "Noam": 0.25})
+        self.assertEqual(shared["work"]["Noam"], {"sessions": 2, "prompts": 10, "tokens": 100})
+        self.assertTrue(all(member["title"].startswith("The ") and member["shared"] == 1 for member in team["team"]["members"]))
         self.assertEqual(shared["crews"], {"claude": 0.75, "codex": 0.25})
         self.assertEqual(shared["seed"], 300)  # the look of whoever built the most of it
         self.assertEqual(team["team"]["name"], "Crew")
@@ -256,6 +258,15 @@ class PelagoTests(unittest.TestCase):
         ids = {p["id"] for p in team["projects"]}
         self.assertTrue(team["links"] and all(link["a"] in ids and link["b"] in ids for link in team["links"]))
         self.assertTrue(team["persona"]["title"].startswith("The "))
+
+    def test_demo_team_world_renders(self):
+        team = pelago.demo_team()
+        self.assertEqual([member["name"] for member in team["team"]["members"]], ["Maya", "Noam", "Dana"])
+        self.assertTrue(any(len(project["builders"]) == 3 for project in team["projects"]))
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "team.html"
+            pelago.render_html(team, output)
+            self.assertIn("Lighthouse Labs", output.read_text(encoding="utf-8"))
 
     def test_old_exports_are_enriched(self):
         with tempfile.TemporaryDirectory() as directory:

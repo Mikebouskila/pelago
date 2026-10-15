@@ -33,6 +33,17 @@ const worldContext = world.getContext('2d');
 const REPO_URL = 'github.com/Mikebouskila/pelago';
 const PERSONA = DATA.persona || { title: 'The Steady Harbormaster', realm: 'harbor', line: 'You keep returning, and the islands keep growing.', realmLine: '' };
 const TEAM = DATA.team?.members?.length ? DATA.team : null;
+// Each builder gets a colour; roofs, flags and airships on the islands they built wear it.
+const TEAM_COLORS = ['#ff7a59', '#45b4ff', '#ffd23f', '#b07bff', '#3fd08a', '#ff8fd0', '#5ee0e0', '#ff9f43'];
+if (TEAM) {
+  TEAM.members.forEach((member, index) => { member.color = TEAM_COLORS[index % TEAM_COLORS.length]; });
+  PROJECTS.forEach((project) => {
+    if (project.builders) project.builderPalette = Object.entries(project.builders).map(([name, share]) => [builderColor(name), share]);
+  });
+}
+function builderColor(name) { return TEAM?.members.find((member) => member.name === name)?.color || '#9fb3c8'; }
+function leadBuilder(project) { return Object.keys(project.builders || {})[0] || null; }
+function isShared(project) { return Object.values(project.builders || {}).filter((share) => share >= .15).length > 1; }
 const RHYTHM = DATA.rhythm || { hours: Array(24).fill(0), weekdays: Array(7).fill(0), activeDays: 0, longestStreak: 0 };
 const TOTAL_SESSIONS = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
 const TOTAL_TOKENS = PROJECTS.reduce((sum, project) => sum + (project.tokens?.total || 0), 0);
@@ -254,7 +265,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   // 3. Header: brand, overline, title, line.
   drawBrandMark(context, pad, pad - 10 * scale, 4.4 * scale);
   context.textAlign = 'right'; context.fillStyle = '#9fbad4'; context.font = `800 ${15 * scale}px ${SANS}`;
-  if (!wide) context.fillText(`MY PELAGO · ${year}`, width - pad, pad + 26 * scale);
+  if (!wide) context.fillText(`${TEAM ? "OUR" : "MY"} PELAGO · ${year}`, width - pad, pad + 26 * scale);
   const textWidth = wide ? width * .36 - pad : width - pad * 2;
   const top = wide ? height * .2 : pad + 92 * scale;
   context.textAlign = 'left'; context.fillStyle = COLORS.coral; context.font = `900 ${(wide ? 16 : 19) * scale}px ${SANS}`;
@@ -262,7 +273,23 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   const titleSize = (tall ? 92 : square ? 66 : 62) * scale;
   const end = drawTitle(context, copy.title, pad, top + titleSize * 1.04, textWidth, titleSize);
   context.fillStyle = '#d2e1f0'; context.font = `600 ${(tall ? 28 : 22) * scale}px ${SANS}`;
-  wrapLines(context, copy.line, textWidth).slice(0, 2).forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
+  const lines = wrapLines(context, copy.line, textWidth).slice(0, 2);
+  lines.forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
+  if (TEAM && !selected) {
+    // The crew, each in their colour.
+    let chipX = pad;
+    const chipY = end + (tall ? 58 : 44) * scale + lines.length * (tall ? 38 : 30) * scale + (tall ? 8 : 4) * scale;
+    const dot = (tall ? 9 : 7) * scale;
+    context.font = `800 ${(tall ? 24 : 18) * scale}px ${SANS}`;
+    TEAM.members.slice(0, 6).forEach((member) => {
+      const nameWidth = context.measureText(member.name).width;
+      if (chipX + dot * 2.6 + nameWidth > pad + textWidth) return;
+      context.fillStyle = member.color;
+      context.beginPath(); context.arc(chipX + dot, chipY - dot * .7, dot, 0, Math.PI * 2); context.fill();
+      context.fillStyle = '#fff6dc'; context.fillText(member.name, chipX + dot * 2.6, chipY);
+      chipX += dot * 2.6 + nameWidth + dot * 2.8;
+    });
+  }
 
   // 4. Footer: a glass panel of stat tiles, the rarest relic, rhythm and the call to action.
   const relicsFound = earnedRelics();
@@ -451,6 +478,7 @@ function compact(value) {
   const scaled = value / size;
   return `${scaled >= 10 ? Math.round(scaled) : scaled.toFixed(1).replace(/\.0$/, '')}${suffix}`;
 }
+function escapeHtml(text) { return String(text).replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`); }
 function plural(value, word) { return `${value} ${word}${value === 1 ? '' : 's'}`; }
 function daysSince(value) {
   const date = new Date(value);
@@ -763,9 +791,18 @@ function drawIslandLabel(context, item, options = {}) {
   context.beginPath();
   context.roundRect(x - width / 2, labelY - fontSize * 1.1, width, fontSize * 1.8, fontSize * .5);
   context.fill();
-  context.strokeStyle = project.agent === 'claude' ? 'rgba(220,129,80,.72)' : 'rgba(69,163,141,.72)';
+  context.strokeStyle = project.builderPalette ? hexAlpha(project.builderPalette[0][0], .8) : project.agent === 'claude' ? 'rgba(220,129,80,.72)' : 'rgba(69,163,141,.72)';
   context.lineWidth = 1;
   context.stroke();
+  if (project.builderPalette) {
+    // Who built it: one coloured segment per builder, sized by their share.
+    const stripWidth = width - fontSize * 1.4, stripHeight = Math.max(2, fontSize * .2);
+    let left = x - stripWidth / 2;
+    const top = labelY + fontSize * .48;
+    project.builderPalette.forEach(([color, share]) => {
+      context.fillStyle = color; context.fillRect(left, top, stripWidth * share, stripHeight); left += stripWidth * share;
+    });
+  }
   context.fillStyle = '#f8f1df';
   context.fillText(project.name, x, labelY + fontSize * .28, width - fontSize);
   context.restore();
@@ -778,6 +815,17 @@ function linksOf(project) {
     .filter((link) => link.other);
 }
 
+function teamAnchor(project, placed, aspect) {
+  // Team worlds: shared islands gather at the heart, each builder's own islands in their own direction.
+  if (!TEAM || isShared(project) || !leadBuilder(project)) return null;
+  const lead = leadBuilder(project);
+  const home = placed.filter((item) => !isShared(item.project) && leadBuilder(item.project) === lead).sort((a, b) => b.project.activity - a.project.activity)[0];
+  if (home) return home;
+  const index = Math.max(0, TEAM.members.findIndex((member) => member.name === lead));
+  const angle = index / TEAM.members.length * Math.PI * 2 - Math.PI / 2;
+  const reach = (placed[0]?.unit || .4) * 2.4;
+  return { x: Math.cos(angle) * reach, y: Math.sin(angle) * reach * aspect };
+}
 function packIslands(projects, aspect, factors = null) {
   // Deterministic golden-spiral packing. The biggest island sits at the heart; an island with a bridge
   // to one already placed searches outward from that neighbour, so related worlds end up side by side.
@@ -790,7 +838,7 @@ function packIslands(projects, aspect, factors = null) {
     const unit = metrics.unit;
     const twist = seeded(project.seed)() * Math.PI * 2;
     const relatives = linksOf(project).map((link) => placed.find((item) => item.project.id === link.other.id)).filter(Boolean);
-    const anchor = relatives.sort((a, b) => b.project.activity - a.project.activity)[0] || { x: 0, y: 0 };
+    const anchor = relatives.sort((a, b) => b.project.activity - a.project.activity)[0] || teamAnchor(project, placed, aspect) || { x: 0, y: 0 };
     let spot = { x: anchor.x, y: anchor.y };
     if (index) {
       for (let step = 1; step < 9000; step += 1) {
@@ -880,6 +928,7 @@ function resizeWorld() {
 
 let SCENE_MODE = 'packed';
 function visibleProjects() {
+  if (state.filter.startsWith('builder:')) return PROJECTS.filter((project) => (project.builders || {})[state.filter.slice(8)] > 0);
   return PROJECTS.filter((project) => state.filter === 'all' || hasCrew(project, state.filter));
 }
 
@@ -1334,6 +1383,18 @@ function nextRelicRow(next, withIsland = true) {
 function buildGuide() {
   const read = $('#guideRead');
   read.innerHTML = '';
+  if (TEAM) {
+    const section = element('section', 'guide-section');
+    section.append(element('h3', 'guide-heading', 'Your crew'));
+    section.append(element('p', 'guide-copy', 'Every builder has a colour. Roofs, flags and airships wear the colour of whoever built them, and the strip under each name shows how the work was split. Islands you share sit at the heart of the map; everyone\'s own islands gather on their side of it.'));
+    const chips = element('div', 'category-key');
+    TEAM.members.forEach((member) => {
+      const chip = element('span', 'category-chip'); chip.style.setProperty('--chip', member.color);
+      chip.append(element('i', ''), document.createTextNode(`${member.name} · ${member.title.replace(/^The /, '')}`)); chips.append(chip);
+    });
+    section.append(chips);
+    read.append(section);
+  }
   GUIDE.forEach(([title, rows]) => {
     const section = element('section', 'guide-section');
     section.append(element('h3', 'guide-heading', title));
@@ -1407,6 +1468,29 @@ function selectGuideTab(name) {
 }
 $$('.guide-tab').forEach((tab) => tab.addEventListener('click', () => selectGuideTab(tab.dataset.guide)));
 
+function fillSheetBuilders(project) {
+  const box = $('#sheetBuilders');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!project.builders) return;
+  const names = Object.keys(project.builders);
+  const title = element('div', 'why-title');
+  title.append(element('span', '', names.length > 1 ? `Built together · ${names.length} builders` : `Built by ${names[0]}`), element('i', ''));
+  const list = element('div', 'builder-list');
+  Object.entries(project.builders).forEach(([name, share]) => {
+    const work = (project.work || {})[name] || {};
+    const row = element('div', 'builder-row');
+    row.style.setProperty('--builder', builderColor(name));
+    row.style.setProperty('--share', `${Math.max(3, Math.round(share * 100))}%`);
+    const head = element('div', 'builder-head');
+    head.append(element('strong', '', name), element('small', '', `${Math.round(share * 100)}%`));
+    const detail = [work.sessions && plural(work.sessions, 'session'), work.prompts && `${compact(work.prompts)} requests`, work.tokens && `${compact(work.tokens)} tokens`].filter(Boolean).join(' · ');
+    row.append(head, element('span', 'builder-bar'), element('p', '', detail));
+    list.append(row);
+  });
+  box.append(title, list);
+  if (names.length > 1) box.append(element('p', 'builder-note', 'Each roof wears the colour of whoever built it, in proportion to their share of the work.'));
+}
 function fillSheetRelics(project) {
   const box = $('#sheetRelics');
   box.innerHTML = '';
@@ -1484,8 +1568,6 @@ function fillSheet(project) {
     ['⚒', mixText, 'Built from the tools your agent used: forges for shell commands, workshops for edits, libraries for reading, signal towers for the web, windmills for subagents.'],
     ['♣', plural(recipe.trees.count, 'tree'), `Grown from ${compact(recipe.trees.prompts)} requests you typed${recipe.trees.perTree > 1 ? `, one tree for every ${recipe.trees.perTree}` : ''}.`],
     ['≈', recipe.waterfalls ? plural(recipe.waterfalls, 'waterfall') : 'No waterfall yet', tokens ? `${compact(tokens)} tokens flowed through here. The island's size and its waterfalls grow with every 10× more tokens.` : 'Island size follows how much work happened here.'],
-    ...(TEAM && project.builders ? [['☺', Object.keys(project.builders).length > 1 ? `Built by ${plural(Object.keys(project.builders).length, 'builder')}` : `Built by ${Object.keys(project.builders)[0]}`,
-      Object.entries(project.builders).map(([name, share]) => `${name} ${Math.round(share * 100)}%`).join(' · ') + ' of the work here.']] : []),
     ['✦', recencyText(project), recipe.beacon ? 'The keep\'s beacon is lit and the forges are smoking because you worked here recently.' : recipe.snow ? 'Snow has settled and most windows went dark while this island rested.' : 'The lights are dimming slowly until you return.'],
   ];
   $('#whyList').innerHTML = '';
@@ -1498,6 +1580,7 @@ function fillSheet(project) {
     const paragraph = document.createElement('p'); paragraph.textContent = copy;
     copyNode.append(strong, paragraph); row.append(iconNode, copyNode); $('#whyList').appendChild(row);
   });
+  fillSheetBuilders(project);
   fillSheetRelics(project);
   const links = linksOf(project);
   const linkBox = $('#sheetLinks');
@@ -1536,9 +1619,11 @@ function renderThumbnail(canvas, project) {
 
 function updateSummary() {
   const shown = visibleProjects();
-  const sessions = shown.reduce((sum, project) => sum + project.sessions, 0);
-  const tokens = shown.reduce((sum, project) => sum + totalTokens(project), 0);
-  const who = state.filter === 'all' ? '' : `<span>${state.filter === 'claude' ? 'Claude Code' : 'Codex'}</span><i></i>`;
+  // With one builder picked, count only their own work on the islands they touched.
+  const builder = state.filter.startsWith('builder:') ? state.filter.slice(8) : null;
+  const sessions = shown.reduce((sum, project) => sum + (builder ? project.work?.[builder]?.sessions || 0 : project.sessions), 0);
+  const tokens = shown.reduce((sum, project) => sum + (builder ? project.work?.[builder]?.tokens || 0 : totalTokens(project)), 0);
+  const who = state.filter === 'all' ? '' : `<span>${state.filter.startsWith('builder:') ? escapeHtml(state.filter.slice(8)) : state.filter === 'claude' ? 'Claude Code' : 'Codex'}</span><i></i>`;
   const crew = TEAM ? `<span>${plural(TEAM.members.length, 'builder')}</span><i></i>` : '';
   $('#worldSummary').innerHTML = `${crew}${who}<span>${plural(shown.length, 'island')}</span><i></i><span>${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i></i><span>since ${sinceLabel()}</span>` : ''}`;
 }
@@ -1569,6 +1654,17 @@ function markTeam() {
   $('#personaChip span').textContent = 'Together you are';
   const play = $('.welcome .primary-action');
   if (play) play.innerHTML = '<span aria-hidden="true">▶</span> Play the team story';
+  const builders = element('div', 'sheet-builders'); builders.id = 'sheetBuilders';
+  $('#selectedFacts').after(builders);
+  const filters = $('.agent-filters');
+  filters.innerHTML = '';
+  filters.setAttribute('aria-label', 'Filter islands by builder');
+  const all = element('button', 'agent-filter active', 'All'); all.dataset.filter = 'all'; filters.append(all);
+  TEAM.members.forEach((member) => {
+    const button = element('button', 'agent-filter'); button.dataset.filter = `builder:${member.name}`;
+    const dot = element('i', 'agent-dot'); dot.style.background = member.color;
+    button.append(dot, document.createTextNode(member.name)); filters.append(button);
+  });
 }
 function buildInterface() {
   $('#personaTitle').textContent = PERSONA.title;
@@ -1662,9 +1758,12 @@ $('#resetView').addEventListener('click', resetView);
 $('#shareButton').addEventListener('click', () => openShare());
 if (!navigator.canShare) $('#nativeShare').hidden = true;
 $('#shareSelected').addEventListener('click', () => openShare(PROJECTS.find((project) => project.id === state.selected) || null));
-$$('.agent-filter').forEach((button) => button.addEventListener('click', () => {
+$('.agent-filters').addEventListener('click', (event) => {
+  const button = event.target.closest('.agent-filter');
+  if (!button) return;
   $$('.agent-filter').forEach((item) => item.classList.remove('active')); button.classList.add('active'); state.filter = button.dataset.filter;
-  $$('.island-card').forEach((card) => { card.hidden = state.filter !== 'all' && !card.dataset.agents.split(' ').includes(state.filter); });
+  const shown = new Set(visibleProjects().map((project) => project.id));
+  $$('.island-card').forEach((card) => { card.hidden = !shown.has(card.dataset.project); });
   $('#indexCount').textContent = String(visibleProjects().length).padStart(2, '0');
   updateSummary();
   hideRelicCard();
@@ -1672,7 +1771,7 @@ $$('.agent-filter').forEach((button) => button.addEventListener('click', () => {
   state.selected = null; state.hovered = null; $('#islandSheet').classList.remove('open'); updateCardSelection();
   state.panX = 0; state.panY = 0; state.scale = 1;
   drawWorld();
-}));
+});
 $$('.format-option').forEach((button) => button.addEventListener('click', () => {
   $$('.format-option').forEach((item) => item.classList.remove('active')); button.classList.add('active'); state.format = button.dataset.format; renderExport();
 }));
@@ -1773,7 +1872,10 @@ function buildSlides() {
     TEAM.members.slice(0, 8).forEach((member) => {
       const row = element('div', 'team-row');
       row.style.setProperty('--share', `${Math.max(4, Math.round(member.activity / most * 100))}%`);
-      row.append(element('strong', '', member.name), element('span', 'team-bar'), element('small', '', `${plural(member.islands, 'island')} · ${compact(member.sessions)} sessions`));
+      row.style.setProperty('--builder', member.color);
+      const name = element('strong', '', member.name);
+      row.append(name, element('em', '', member.title || ''), element('span', 'team-bar'),
+        element('small', '', `${plural(member.islands, 'island')}${member.shared ? `, ${member.shared} shared` : ''} · ${compact(member.sessions)} sessions${member.tokens ? ` · ${compact(member.tokens)} tokens` : ''}`));
       list.append(row);
     });
     slide.append(list);

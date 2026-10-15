@@ -288,9 +288,19 @@ function renderIslandArt(project) {
   const anims = [];
   const relicBoxes = [];
   const anim = (entry) => anims.push(entry);
-  const crewColors = Object.entries(project.crews || { [project.agent]: 1 })
-    .filter(([, share]) => share >= .15)
-    .map(([agent]) => hexRgb(agent === 'claude' ? '#e0784a' : '#3fae94'));
+  // In a team world, flags, airships and roofs wear the colours of the people who built the island.
+  const builders = (project.builderPalette || []).filter(([, share]) => share > 0);
+  const crewColors = builders.length
+    ? builders.filter(([, share], index) => index === 0 || share >= .1).slice(0, 3).map(([color]) => hexRgb(color))
+    : Object.entries(project.crews || { [project.agent]: 1 })
+      .filter(([, share]) => share >= .15)
+      .map(([agent]) => hexRgb(agent === 'claude' ? '#e0784a' : '#3fae94'));
+  // Each building belongs to one builder, in proportion to their share of the work, spread evenly.
+  const builderAt = (index) => {
+    let pick = (index * .6180339887 + .31) % 1;
+    for (const [color, share] of builders) { if (pick < share) return hexRgb(color); pick -= share; }
+    return hexRgb(builders[builders.length - 1][0]);
+  };
   const rect = (x, y, w, h, color, alpha = 1) => { for (let yy = 0; yy < h; yy += 1) for (let xx = 0; xx < w; xx += 1) put(x + xx, y + yy, color, alpha); };
   const dither = (x, y, t) => t > BAYER[((y & 3) << 2) | (x & 3)];
   const pickFrom = (list, value) => list[Math.min(list.length - 1, Math.floor(value * list.length))];
@@ -686,12 +696,13 @@ function renderIslandArt(project) {
   }
 
   function roofHue(index, salt) {
+    if (builders.length) return tone(builderAt(index), (salt - 1) * .1);
     const base = biome.roofs[(index + salt) % biome.roofs.length];
     return tone(base, (hash2(seed, index, 40 + salt) - .5) * .26);
   }
 
   function building(object, cx, baseY, i, j) {
-    const roofColor = tone(biome.roofs[object.index % biome.roofs.length], (hash2(seed, i * 3, j * 5) - .5) * .22);
+    const roofColor = tone(builders.length ? builderAt(object.index) : biome.roofs[object.index % biome.roofs.length], (hash2(seed, i * 3, j * 5) - .5) * .22);
     const level = object.level;
     if (object.type === 'keep') {
       landmark(level, cx, baseY);

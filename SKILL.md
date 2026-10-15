@@ -28,7 +28,8 @@ Options:
 - `--demo` builds a polished sample world without reading any history. Use it when the user wants a preview.
 - `--open` opens the result in the default browser. Drop it in headless or remote environments.
 - `--json-output <path>` also saves the aggregate data. `--input <path>` rebuilds from that file.
-- Team worlds: each person runs `--name "<their name>" --json-output <name>.json` and sends the file to one teammate, who runs `--team a.json b.json ... --team-name "<team>" --output team-world.html`. Islands with the same project name merge into one, credited to everyone who built it. Before anyone sends their export, remind them it contains their project names and counts (no prompts or code), so they should only share it with people they'd show those names to.
+- Team worlds: when the user wants a world for their team, ask for their first name and whether they are collecting. Everyone runs `--name "<name>" --json-output pelago-team/<name>.json`. The collector puts every export in one folder and runs `--team pelago-team/ --team-name "<team>" --output pelago-team-world.html`. Islands with the same project name merge into one, credited to everyone who built it; each builder gets a colour on the map. Before anyone sends their export, remind them it contains their project names and counts (no prompts or code), so they should only share it with people they'd show those names to. After merging, tell them each person's archetype (printed by the script in the team data), how many islands they share, and the team archetype.
+- `--demo-team` builds a sample team world without reading any history.
 
 Write outputs to the user's current workspace unless they name another location. If the environment needs permission to read `~/.claude/projects` or `~/.codex/sessions`, ask for read access to those two directories only.
 

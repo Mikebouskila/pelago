@@ -23,7 +23,9 @@ Every project is an island, built from the work itself. Then it tells you who yo
 
 ## ⚡ Get yours in one prompt
 
-Open a new session in **Claude Code** or **Codex**, paste this, and wait about a minute:
+Open a new session in **Claude Code** or **Codex**, paste one of these, and wait about a minute.
+
+### 🧍 Just me
 
 ```text
 Build my Pelago world from my local AI coding history.
@@ -42,7 +44,33 @@ Build my Pelago world from my local AI coding history.
 4. Tell me to open pelago-world.html and press "Play your story".
 ```
 
-That's it. Everything runs on your machine, nothing is uploaded, and the page works offline.
+### 👥 With my team
+
+Everyone on the team pastes the same prompt. Each person exports their part, one person merges.
+
+```text
+Help me build our team's Pelago world from our local AI coding history.
+
+1. Get the Pelago skill from https://github.com/Mikebouskila/pelago:
+   - Claude Code: clone it to ~/.claude/skills/pelago
+   - Codex: clone it to ~/.codex/skills/pelago
+   If that folder already exists, run `git pull` in it instead.
+2. Ask me two things: my first name (suggest the one in `git config user.name`),
+   and whether I'm the one putting the team world together.
+3. Export my part with Python 3 (standard library only, nothing to install):
+   python3 <skill folder>/scripts/pelago.py --name "<my name>" --json-output ./pelago-team/<my name>.json --output ./pelago-world.html
+   It only reads ~/.claude/projects and ~/.codex/sessions. If you need permission
+   to read those two folders, ask me for read access to just them.
+4. If I'm not putting it together: tell me to send pelago-team/<my name>.json to
+   whoever is. It holds only project names and counts, never prompts or code.
+5. If I am: ask for our team name, have me drop everyone's .json files into
+   ./pelago-team/, then run:
+   python3 <skill folder>/scripts/pelago.py --team ./pelago-team --team-name "<team name>" --output ./pelago-team-world.html --open
+   Then tell me who built what: each person's archetype, how many islands we
+   share, and our team archetype. Don't quote any prompts or code.
+```
+
+That's it. Everything runs on your machines, nothing is uploaded, and the page works offline.
 
 <details>
 <summary><b>Prefer to install it yourself?</b></summary>
@@ -147,17 +175,24 @@ It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap 
 
 ## 👥 Build one world as a team
 
-Everyone exports their own aggregates, one person merges them. Shared projects become one island, built together and credited to everyone who worked on it. The story gets a crew slide, and the card says *our* archetype.
+**[▶ See a sample team world](https://mikebouskila.github.io/pelago/team.html)**
+
+Use the [team prompt](#-with-my-team) above, or run it by hand:
 
 ```bash
 # each teammate
-python3 scripts/pelago.py --name "Maya" --json-output maya.json
+python3 scripts/pelago.py --name "Maya" --json-output pelago-team/maya.json
 
 # whoever collects the files
-python3 scripts/pelago.py --team maya.json noam.json dana.json --team-name "Our team" --open
+python3 scripts/pelago.py --team pelago-team/ --team-name "Our team" --open
 ```
 
-Islands merge by project name (ignoring case and punctuation). The exports hold only the aggregates listed under [Privacy](#-private-by-design): project names and counts, never prompts or code. Share them only with people you'd show those names to.
+- **One archipelago.** Projects with the same name become one island, built by everyone who worked on it. Shared islands sit at the heart of the map; everyone's own islands gather on their side of it.
+- **Everyone has a colour.** Roofs, flags and airships wear the colour of whoever built them, in proportion to their share of the work. The strip under each island's name shows the split.
+- **Who did what.** Click an island to see each builder's share, sessions, requests and tokens there. Filter the map to one person to see just their islands and their own numbers.
+- **A crew slide.** The story introduces each builder with their own archetype, and the card says *our* archetype with the whole crew on it.
+
+Islands merge by project name, ignoring case and punctuation. The exports hold only the aggregates listed under [Privacy](#-private-by-design): project names and counts, never prompts or code. Share them only with people you'd show those names to.
 
 <br>
 

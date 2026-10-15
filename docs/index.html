@@ -505,13 +505,26 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .next-relic .relic-frame canvas { filter: grayscale(.55) brightness(.9); opacity: .78; }
 @media (max-width: 760px) { .masthead:has(.demo-cta) .brand-word, .masthead:has(.demo-cta) .brand-edition { display: none; } .demo-cta { min-height: 36px; padding: 0 12px; } }
 
-/* Team worlds: the crew slide */
-.team-list { display: grid; gap: 12px; width: 100%; margin: 18px 0 4px; }
-.team-row { display: grid; grid-template-columns: minmax(70px, auto) 1fr; grid-template-rows: auto auto; column-gap: 14px; align-items: center; }
-.team-row strong { grid-row: span 2; color: #fff6dc; font-family: Georgia, serif; font-size: 20px; font-weight: 700; }
-.team-bar { display: block; height: 12px; border-radius: 99px; background: rgba(255,255,255,.08); position: relative; overflow: hidden; }
-.team-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--share); border-radius: inherit; background: linear-gradient(90deg, #ff8465, #ffd66f); }
-.team-row small { color: rgba(220,232,248,.72); font-size: 12px; font-weight: 700; margin-top: 4px; }
+/* Team worlds: the crew slide, the builders on each island */
+.team-list { display: grid; gap: 14px; width: 100%; margin: 18px 0 4px; }
+.team-row { display: grid; grid-template-columns: 1fr; gap: 3px; }
+.team-row strong { display: flex; align-items: center; gap: 8px; color: #fff6dc; font-family: Georgia, serif; font-size: 21px; font-weight: 700; }
+.team-row strong::before { content: ""; width: 11px; height: 11px; border-radius: 50%; background: var(--builder, #ffd66f); box-shadow: 0 0 10px var(--builder, #ffd66f); }
+.team-row em { color: var(--builder, #ffd66f); font-family: Georgia, serif; font-size: 14px; font-style: italic; }
+.team-bar { display: block; height: 10px; margin-top: 3px; border-radius: 99px; background: rgba(255,255,255,.08); position: relative; overflow: hidden; }
+.team-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--share); border-radius: inherit; background: var(--builder, #ffd66f); }
+.team-row small { color: rgba(220,232,248,.72); font-size: 12px; font-weight: 700; }
+.builder-list { display: grid; gap: 8px; margin-top: 8px; }
+.builder-row { padding: 8px 10px 9px; border-radius: 12px; background: color-mix(in srgb, var(--builder) 8%, transparent); border: 1px solid color-mix(in srgb, var(--builder) 28%, transparent); }
+.builder-head { display: flex; justify-content: space-between; align-items: baseline; }
+.builder-head strong { display: flex; align-items: center; gap: 7px; color: #fff6dc; font-size: 13px; }
+.builder-head strong::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--builder); }
+.builder-head small { color: var(--builder); font-size: 12px; font-weight: 900; }
+.builder-bar { display: block; height: 6px; margin: 6px 0 5px; border-radius: 99px; background: rgba(255,255,255,.08); position: relative; overflow: hidden; }
+.builder-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--share); border-radius: inherit; background: var(--builder); }
+.builder-row p { margin: 0; color: rgba(220,232,248,.7); font-size: 11.5px; }
+.builder-note { margin: 8px 0 4px; color: rgba(220,232,248,.6); font-size: 11px; line-height: 1.4; }
+.sheet-builders:empty { display: none; }
 </style>
 </head>
 <body>
@@ -655,7 +668,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   </section>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-15T23:11:12.839804+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-17T23:11:12.839804+00:00","lastActive":"2026-10-15T23:11:12.839804+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-06-30T23:11:12.839804+00:00","lastActive":"2026-10-13T23:11:12.839804+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-13T23:11:12.839804+00:00","lastActive":"2026-10-09T23:11:12.839804+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-27T23:11:12.839804+00:00","lastActive":"2026-10-04T23:11:12.839804+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-10T23:11:12.839804+00:00","lastActive":"2026-08-01T23:11:12.839804+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-23T23:11:12.839804+00:00","lastActive":"2026-09-26T23:11:12.839804+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-06T23:11:12.839804+00:00","lastActive":"2026-06-07T23:11:12.839804+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-20T23:11:12.839804+00:00","lastActive":"2026-09-19T23:11:12.839804+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-03T23:11:12.839804+00:00","lastActive":"2026-10-12T23:11:12.839804+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-14T23:11:12.839804+00:00","lastActive":"2026-10-06T23:11:12.839804+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-28T23:11:12.839804+00:00","lastActive":"2026-10-14T23:11:12.839804+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-11T23:11:12.839804+00:00","lastActive":"2026-09-05T23:11:12.839804+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-25T23:11:12.839804+00:00","lastActive":"2026-08-06T23:11:12.839804+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-08T23:11:12.839804+00:00","lastActive":"2026-10-13T23:11:12.839804+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22}}</script>
+  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-15T23:17:16.472459+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-17T23:17:16.472459+00:00","lastActive":"2026-10-15T23:17:16.472459+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-06-30T23:17:16.472459+00:00","lastActive":"2026-10-13T23:17:16.472459+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-13T23:17:16.472459+00:00","lastActive":"2026-10-09T23:17:16.472459+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-27T23:17:16.472459+00:00","lastActive":"2026-10-04T23:17:16.472459+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-10T23:17:16.472459+00:00","lastActive":"2026-08-01T23:17:16.472459+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-23T23:17:16.472459+00:00","lastActive":"2026-09-26T23:17:16.472459+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-06T23:17:16.472459+00:00","lastActive":"2026-06-07T23:17:16.472459+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-20T23:17:16.472459+00:00","lastActive":"2026-09-19T23:17:16.472459+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-03T23:17:16.472459+00:00","lastActive":"2026-10-12T23:17:16.472459+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-14T23:17:16.472459+00:00","lastActive":"2026-10-06T23:17:16.472459+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-28T23:17:16.472459+00:00","lastActive":"2026-10-14T23:17:16.472459+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-11T23:17:16.472459+00:00","lastActive":"2026-09-05T23:17:16.472459+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-25T23:17:16.472459+00:00","lastActive":"2026-08-06T23:17:16.472459+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-08T23:17:16.472459+00:00","lastActive":"2026-10-13T23:17:16.472459+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22}}</script>
   <script>/* ---------- Procedural islands: every island is built from its own work ---------- */
 // Isometric pixel art, painted pixel by pixel into a buffer with one light source (upper left),
 // warm highlights, cool shadows, dithered materials and a dark silhouette outline.
@@ -946,9 +959,19 @@ function renderIslandArt(project) {
   const anims = [];
   const relicBoxes = [];
   const anim = (entry) => anims.push(entry);
-  const crewColors = Object.entries(project.crews || { [project.agent]: 1 })
-    .filter(([, share]) => share >= .15)
-    .map(([agent]) => hexRgb(agent === 'claude' ? '#e0784a' : '#3fae94'));
+  // In a team world, flags, airships and roofs wear the colours of the people who built the island.
+  const builders = (project.builderPalette || []).filter(([, share]) => share > 0);
+  const crewColors = builders.length
+    ? builders.filter(([, share], index) => index === 0 || share >= .1).slice(0, 3).map(([color]) => hexRgb(color))
+    : Object.entries(project.crews || { [project.agent]: 1 })
+      .filter(([, share]) => share >= .15)
+      .map(([agent]) => hexRgb(agent === 'claude' ? '#e0784a' : '#3fae94'));
+  // Each building belongs to one builder, in proportion to their share of the work, spread evenly.
+  const builderAt = (index) => {
+    let pick = (index * .6180339887 + .31) % 1;
+    for (const [color, share] of builders) { if (pick < share) return hexRgb(color); pick -= share; }
+    return hexRgb(builders[builders.length - 1][0]);
+  };
   const rect = (x, y, w, h, color, alpha = 1) => { for (let yy = 0; yy < h; yy += 1) for (let xx = 0; xx < w; xx += 1) put(x + xx, y + yy, color, alpha); };
   const dither = (x, y, t) => t > BAYER[((y & 3) << 2) | (x & 3)];
   const pickFrom = (list, value) => list[Math.min(list.length - 1, Math.floor(value * list.length))];
@@ -1344,12 +1367,13 @@ function renderIslandArt(project) {
   }
 
   function roofHue(index, salt) {
+    if (builders.length) return tone(builderAt(index), (salt - 1) * .1);
     const base = biome.roofs[(index + salt) % biome.roofs.length];
     return tone(base, (hash2(seed, index, 40 + salt) - .5) * .26);
   }
 
   function building(object, cx, baseY, i, j) {
-    const roofColor = tone(biome.roofs[object.index % biome.roofs.length], (hash2(seed, i * 3, j * 5) - .5) * .22);
+    const roofColor = tone(builders.length ? builderAt(object.index) : biome.roofs[object.index % biome.roofs.length], (hash2(seed, i * 3, j * 5) - .5) * .22);
     const level = object.level;
     if (object.type === 'keep') {
       landmark(level, cx, baseY);
@@ -2487,6 +2511,17 @@ const worldContext = world.getContext('2d');
 const REPO_URL = 'github.com/Mikebouskila/pelago';
 const PERSONA = DATA.persona || { title: 'The Steady Harbormaster', realm: 'harbor', line: 'You keep returning, and the islands keep growing.', realmLine: '' };
 const TEAM = DATA.team?.members?.length ? DATA.team : null;
+// Each builder gets a colour; roofs, flags and airships on the islands they built wear it.
+const TEAM_COLORS = ['#ff7a59', '#45b4ff', '#ffd23f', '#b07bff', '#3fd08a', '#ff8fd0', '#5ee0e0', '#ff9f43'];
+if (TEAM) {
+  TEAM.members.forEach((member, index) => { member.color = TEAM_COLORS[index % TEAM_COLORS.length]; });
+  PROJECTS.forEach((project) => {
+    if (project.builders) project.builderPalette = Object.entries(project.builders).map(([name, share]) => [builderColor(name), share]);
+  });
+}
+function builderColor(name) { return TEAM?.members.find((member) => member.name === name)?.color || '#9fb3c8'; }
+function leadBuilder(project) { return Object.keys(project.builders || {})[0] || null; }
+function isShared(project) { return Object.values(project.builders || {}).filter((share) => share >= .15).length > 1; }
 const RHYTHM = DATA.rhythm || { hours: Array(24).fill(0), weekdays: Array(7).fill(0), activeDays: 0, longestStreak: 0 };
 const TOTAL_SESSIONS = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
 const TOTAL_TOKENS = PROJECTS.reduce((sum, project) => sum + (project.tokens?.total || 0), 0);
@@ -2708,7 +2743,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   // 3. Header: brand, overline, title, line.
   drawBrandMark(context, pad, pad - 10 * scale, 4.4 * scale);
   context.textAlign = 'right'; context.fillStyle = '#9fbad4'; context.font = `800 ${15 * scale}px ${SANS}`;
-  if (!wide) context.fillText(`MY PELAGO · ${year}`, width - pad, pad + 26 * scale);
+  if (!wide) context.fillText(`${TEAM ? "OUR" : "MY"} PELAGO · ${year}`, width - pad, pad + 26 * scale);
   const textWidth = wide ? width * .36 - pad : width - pad * 2;
   const top = wide ? height * .2 : pad + 92 * scale;
   context.textAlign = 'left'; context.fillStyle = COLORS.coral; context.font = `900 ${(wide ? 16 : 19) * scale}px ${SANS}`;
@@ -2716,7 +2751,23 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   const titleSize = (tall ? 92 : square ? 66 : 62) * scale;
   const end = drawTitle(context, copy.title, pad, top + titleSize * 1.04, textWidth, titleSize);
   context.fillStyle = '#d2e1f0'; context.font = `600 ${(tall ? 28 : 22) * scale}px ${SANS}`;
-  wrapLines(context, copy.line, textWidth).slice(0, 2).forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
+  const lines = wrapLines(context, copy.line, textWidth).slice(0, 2);
+  lines.forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
+  if (TEAM && !selected) {
+    // The crew, each in their colour.
+    let chipX = pad;
+    const chipY = end + (tall ? 58 : 44) * scale + lines.length * (tall ? 38 : 30) * scale + (tall ? 8 : 4) * scale;
+    const dot = (tall ? 9 : 7) * scale;
+    context.font = `800 ${(tall ? 24 : 18) * scale}px ${SANS}`;
+    TEAM.members.slice(0, 6).forEach((member) => {
+      const nameWidth = context.measureText(member.name).width;
+      if (chipX + dot * 2.6 + nameWidth > pad + textWidth) return;
+      context.fillStyle = member.color;
+      context.beginPath(); context.arc(chipX + dot, chipY - dot * .7, dot, 0, Math.PI * 2); context.fill();
+      context.fillStyle = '#fff6dc'; context.fillText(member.name, chipX + dot * 2.6, chipY);
+      chipX += dot * 2.6 + nameWidth + dot * 2.8;
+    });
+  }
 
   // 4. Footer: a glass panel of stat tiles, the rarest relic, rhythm and the call to action.
   const relicsFound = earnedRelics();
@@ -2905,6 +2956,7 @@ function compact(value) {
   const scaled = value / size;
   return `${scaled >= 10 ? Math.round(scaled) : scaled.toFixed(1).replace(/\.0$/, '')}${suffix}`;
 }
+function escapeHtml(text) { return String(text).replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`); }
 function plural(value, word) { return `${value} ${word}${value === 1 ? '' : 's'}`; }
 function daysSince(value) {
   const date = new Date(value);
@@ -3217,9 +3269,18 @@ function drawIslandLabel(context, item, options = {}) {
   context.beginPath();
   context.roundRect(x - width / 2, labelY - fontSize * 1.1, width, fontSize * 1.8, fontSize * .5);
   context.fill();
-  context.strokeStyle = project.agent === 'claude' ? 'rgba(220,129,80,.72)' : 'rgba(69,163,141,.72)';
+  context.strokeStyle = project.builderPalette ? hexAlpha(project.builderPalette[0][0], .8) : project.agent === 'claude' ? 'rgba(220,129,80,.72)' : 'rgba(69,163,141,.72)';
   context.lineWidth = 1;
   context.stroke();
+  if (project.builderPalette) {
+    // Who built it: one coloured segment per builder, sized by their share.
+    const stripWidth = width - fontSize * 1.4, stripHeight = Math.max(2, fontSize * .2);
+    let left = x - stripWidth / 2;
+    const top = labelY + fontSize * .48;
+    project.builderPalette.forEach(([color, share]) => {
+      context.fillStyle = color; context.fillRect(left, top, stripWidth * share, stripHeight); left += stripWidth * share;
+    });
+  }
   context.fillStyle = '#f8f1df';
   context.fillText(project.name, x, labelY + fontSize * .28, width - fontSize);
   context.restore();
@@ -3232,6 +3293,17 @@ function linksOf(project) {
     .filter((link) => link.other);
 }
 
+function teamAnchor(project, placed, aspect) {
+  // Team worlds: shared islands gather at the heart, each builder's own islands in their own direction.
+  if (!TEAM || isShared(project) || !leadBuilder(project)) return null;
+  const lead = leadBuilder(project);
+  const home = placed.filter((item) => !isShared(item.project) && leadBuilder(item.project) === lead).sort((a, b) => b.project.activity - a.project.activity)[0];
+  if (home) return home;
+  const index = Math.max(0, TEAM.members.findIndex((member) => member.name === lead));
+  const angle = index / TEAM.members.length * Math.PI * 2 - Math.PI / 2;
+  const reach = (placed[0]?.unit || .4) * 2.4;
+  return { x: Math.cos(angle) * reach, y: Math.sin(angle) * reach * aspect };
+}
 function packIslands(projects, aspect, factors = null) {
   // Deterministic golden-spiral packing. The biggest island sits at the heart; an island with a bridge
   // to one already placed searches outward from that neighbour, so related worlds end up side by side.
@@ -3244,7 +3316,7 @@ function packIslands(projects, aspect, factors = null) {
     const unit = metrics.unit;
     const twist = seeded(project.seed)() * Math.PI * 2;
     const relatives = linksOf(project).map((link) => placed.find((item) => item.project.id === link.other.id)).filter(Boolean);
-    const anchor = relatives.sort((a, b) => b.project.activity - a.project.activity)[0] || { x: 0, y: 0 };
+    const anchor = relatives.sort((a, b) => b.project.activity - a.project.activity)[0] || teamAnchor(project, placed, aspect) || { x: 0, y: 0 };
     let spot = { x: anchor.x, y: anchor.y };
     if (index) {
       for (let step = 1; step < 9000; step += 1) {
@@ -3334,6 +3406,7 @@ function resizeWorld() {
 
 let SCENE_MODE = 'packed';
 function visibleProjects() {
+  if (state.filter.startsWith('builder:')) return PROJECTS.filter((project) => (project.builders || {})[state.filter.slice(8)] > 0);
   return PROJECTS.filter((project) => state.filter === 'all' || hasCrew(project, state.filter));
 }
 
@@ -3788,6 +3861,18 @@ function nextRelicRow(next, withIsland = true) {
 function buildGuide() {
   const read = $('#guideRead');
   read.innerHTML = '';
+  if (TEAM) {
+    const section = element('section', 'guide-section');
+    section.append(element('h3', 'guide-heading', 'Your crew'));
+    section.append(element('p', 'guide-copy', 'Every builder has a colour. Roofs, flags and airships wear the colour of whoever built them, and the strip under each name shows how the work was split. Islands you share sit at the heart of the map; everyone\'s own islands gather on their side of it.'));
+    const chips = element('div', 'category-key');
+    TEAM.members.forEach((member) => {
+      const chip = element('span', 'category-chip'); chip.style.setProperty('--chip', member.color);
+      chip.append(element('i', ''), document.createTextNode(`${member.name} · ${member.title.replace(/^The /, '')}`)); chips.append(chip);
+    });
+    section.append(chips);
+    read.append(section);
+  }
   GUIDE.forEach(([title, rows]) => {
     const section = element('section', 'guide-section');
     section.append(element('h3', 'guide-heading', title));
@@ -3861,6 +3946,29 @@ function selectGuideTab(name) {
 }
 $$('.guide-tab').forEach((tab) => tab.addEventListener('click', () => selectGuideTab(tab.dataset.guide)));
 
+function fillSheetBuilders(project) {
+  const box = $('#sheetBuilders');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!project.builders) return;
+  const names = Object.keys(project.builders);
+  const title = element('div', 'why-title');
+  title.append(element('span', '', names.length > 1 ? `Built together · ${names.length} builders` : `Built by ${names[0]}`), element('i', ''));
+  const list = element('div', 'builder-list');
+  Object.entries(project.builders).forEach(([name, share]) => {
+    const work = (project.work || {})[name] || {};
+    const row = element('div', 'builder-row');
+    row.style.setProperty('--builder', builderColor(name));
+    row.style.setProperty('--share', `${Math.max(3, Math.round(share * 100))}%`);
+    const head = element('div', 'builder-head');
+    head.append(element('strong', '', name), element('small', '', `${Math.round(share * 100)}%`));
+    const detail = [work.sessions && plural(work.sessions, 'session'), work.prompts && `${compact(work.prompts)} requests`, work.tokens && `${compact(work.tokens)} tokens`].filter(Boolean).join(' · ');
+    row.append(head, element('span', 'builder-bar'), element('p', '', detail));
+    list.append(row);
+  });
+  box.append(title, list);
+  if (names.length > 1) box.append(element('p', 'builder-note', 'Each roof wears the colour of whoever built it, in proportion to their share of the work.'));
+}
 function fillSheetRelics(project) {
   const box = $('#sheetRelics');
   box.innerHTML = '';
@@ -3938,8 +4046,6 @@ function fillSheet(project) {
     ['⚒', mixText, 'Built from the tools your agent used: forges for shell commands, workshops for edits, libraries for reading, signal towers for the web, windmills for subagents.'],
     ['♣', plural(recipe.trees.count, 'tree'), `Grown from ${compact(recipe.trees.prompts)} requests you typed${recipe.trees.perTree > 1 ? `, one tree for every ${recipe.trees.perTree}` : ''}.`],
     ['≈', recipe.waterfalls ? plural(recipe.waterfalls, 'waterfall') : 'No waterfall yet', tokens ? `${compact(tokens)} tokens flowed through here. The island's size and its waterfalls grow with every 10× more tokens.` : 'Island size follows how much work happened here.'],
-    ...(TEAM && project.builders ? [['☺', Object.keys(project.builders).length > 1 ? `Built by ${plural(Object.keys(project.builders).length, 'builder')}` : `Built by ${Object.keys(project.builders)[0]}`,
-      Object.entries(project.builders).map(([name, share]) => `${name} ${Math.round(share * 100)}%`).join(' · ') + ' of the work here.']] : []),
     ['✦', recencyText(project), recipe.beacon ? 'The keep\'s beacon is lit and the forges are smoking because you worked here recently.' : recipe.snow ? 'Snow has settled and most windows went dark while this island rested.' : 'The lights are dimming slowly until you return.'],
   ];
   $('#whyList').innerHTML = '';
@@ -3952,6 +4058,7 @@ function fillSheet(project) {
     const paragraph = document.createElement('p'); paragraph.textContent = copy;
     copyNode.append(strong, paragraph); row.append(iconNode, copyNode); $('#whyList').appendChild(row);
   });
+  fillSheetBuilders(project);
   fillSheetRelics(project);
   const links = linksOf(project);
   const linkBox = $('#sheetLinks');
@@ -3990,9 +4097,11 @@ function renderThumbnail(canvas, project) {
 
 function updateSummary() {
   const shown = visibleProjects();
-  const sessions = shown.reduce((sum, project) => sum + project.sessions, 0);
-  const tokens = shown.reduce((sum, project) => sum + totalTokens(project), 0);
-  const who = state.filter === 'all' ? '' : `<span>${state.filter === 'claude' ? 'Claude Code' : 'Codex'}</span><i></i>`;
+  // With one builder picked, count only their own work on the islands they touched.
+  const builder = state.filter.startsWith('builder:') ? state.filter.slice(8) : null;
+  const sessions = shown.reduce((sum, project) => sum + (builder ? project.work?.[builder]?.sessions || 0 : project.sessions), 0);
+  const tokens = shown.reduce((sum, project) => sum + (builder ? project.work?.[builder]?.tokens || 0 : totalTokens(project)), 0);
+  const who = state.filter === 'all' ? '' : `<span>${state.filter.startsWith('builder:') ? escapeHtml(state.filter.slice(8)) : state.filter === 'claude' ? 'Claude Code' : 'Codex'}</span><i></i>`;
   const crew = TEAM ? `<span>${plural(TEAM.members.length, 'builder')}</span><i></i>` : '';
   $('#worldSummary').innerHTML = `${crew}${who}<span>${plural(shown.length, 'island')}</span><i></i><span>${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i></i><span>since ${sinceLabel()}</span>` : ''}`;
 }
@@ -4023,6 +4132,17 @@ function markTeam() {
   $('#personaChip span').textContent = 'Together you are';
   const play = $('.welcome .primary-action');
   if (play) play.innerHTML = '<span aria-hidden="true">▶</span> Play the team story';
+  const builders = element('div', 'sheet-builders'); builders.id = 'sheetBuilders';
+  $('#selectedFacts').after(builders);
+  const filters = $('.agent-filters');
+  filters.innerHTML = '';
+  filters.setAttribute('aria-label', 'Filter islands by builder');
+  const all = element('button', 'agent-filter active', 'All'); all.dataset.filter = 'all'; filters.append(all);
+  TEAM.members.forEach((member) => {
+    const button = element('button', 'agent-filter'); button.dataset.filter = `builder:${member.name}`;
+    const dot = element('i', 'agent-dot'); dot.style.background = member.color;
+    button.append(dot, document.createTextNode(member.name)); filters.append(button);
+  });
 }
 function buildInterface() {
   $('#personaTitle').textContent = PERSONA.title;
@@ -4116,9 +4236,12 @@ $('#resetView').addEventListener('click', resetView);
 $('#shareButton').addEventListener('click', () => openShare());
 if (!navigator.canShare) $('#nativeShare').hidden = true;
 $('#shareSelected').addEventListener('click', () => openShare(PROJECTS.find((project) => project.id === state.selected) || null));
-$$('.agent-filter').forEach((button) => button.addEventListener('click', () => {
+$('.agent-filters').addEventListener('click', (event) => {
+  const button = event.target.closest('.agent-filter');
+  if (!button) return;
   $$('.agent-filter').forEach((item) => item.classList.remove('active')); button.classList.add('active'); state.filter = button.dataset.filter;
-  $$('.island-card').forEach((card) => { card.hidden = state.filter !== 'all' && !card.dataset.agents.split(' ').includes(state.filter); });
+  const shown = new Set(visibleProjects().map((project) => project.id));
+  $$('.island-card').forEach((card) => { card.hidden = !shown.has(card.dataset.project); });
   $('#indexCount').textContent = String(visibleProjects().length).padStart(2, '0');
   updateSummary();
   hideRelicCard();
@@ -4126,7 +4249,7 @@ $$('.agent-filter').forEach((button) => button.addEventListener('click', () => {
   state.selected = null; state.hovered = null; $('#islandSheet').classList.remove('open'); updateCardSelection();
   state.panX = 0; state.panY = 0; state.scale = 1;
   drawWorld();
-}));
+});
 $$('.format-option').forEach((button) => button.addEventListener('click', () => {
   $$('.format-option').forEach((item) => item.classList.remove('active')); button.classList.add('active'); state.format = button.dataset.format; renderExport();
 }));
@@ -4227,7 +4350,10 @@ function buildSlides() {
     TEAM.members.slice(0, 8).forEach((member) => {
       const row = element('div', 'team-row');
       row.style.setProperty('--share', `${Math.max(4, Math.round(member.activity / most * 100))}%`);
-      row.append(element('strong', '', member.name), element('span', 'team-bar'), element('small', '', `${plural(member.islands, 'island')} · ${compact(member.sessions)} sessions`));
+      row.style.setProperty('--builder', member.color);
+      const name = element('strong', '', member.name);
+      row.append(name, element('em', '', member.title || ''), element('span', 'team-bar'),
+        element('small', '', `${plural(member.islands, 'island')}${member.shared ? `, ${member.shared} shared` : ''} · ${compact(member.sessions)} sessions${member.tokens ? ` · ${compact(member.tokens)} tokens` : ''}`));
       list.append(row);
     });
     slide.append(list);
