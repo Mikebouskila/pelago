@@ -61,18 +61,26 @@ When one island holds more than 60% of activity, the line adds "One island holds
 
 ## Story
 
-The story has up to eight slides, and a slide is skipped when its data is missing:
+The story has up to nine slides (ten in a team world), and a slide is skipped when its data is missing:
 
 1. Total sessions and days at sea.
+- Team worlds only: the crew, each builder with their own archetype, islands, shared islands and sessions.
 2. The capital: the most active island, its share of the total, and what it is built from.
 3. Tokens, compared to War and Peace (~780k tokens) or English Wikipedia (~6B tokens), plus total requests.
 4. The 24-hour clock with the busiest hour.
 5. The longest run of consecutive active days, plus the busiest date.
 6. The crew: Claude Code versus Codex activity share, shown only when both are present.
-7. The archetype reveal, over the top islands.
-8. The share card, with share, post, more formats, and explore actions.
+7. Relics found, rarest first, and the locked relic closest to unlocking.
+8. The archetype reveal, over the top islands.
+9. The share card, with share, post, more formats, and explore actions.
 
 Rhythm data is stored only as 24 hour buckets, 7 weekday buckets, the active-day count, the longest streak, and the first, last, and busiest dates.
+
+## Team worlds
+
+`--team` merges several people's `--json-output` exports. Projects whose names match (ignoring case and punctuation) become one island: counts, tokens, tools and technologies add up, and the island keeps the seed and realm of whoever built the most of it. Each island records `builders` (each person's share of the activity) and `work` (their sessions, requests and tokens there).
+
+On the map every builder has a colour. Roofs are assigned to builders in proportion to their share, flags and airships show the top builders, and a colour strip under each label shows the split. Shared islands are packed at the heart of the map and each builder's own islands gather in their own direction. Rhythm is the sum of everyone's, so the team archetype describes the crew as a whole; each member's own archetype is kept for the crew slide.
 
 ## Tone
 

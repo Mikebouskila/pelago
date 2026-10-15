@@ -9,10 +9,11 @@ allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/pelago.py *)
 Pelago turns local AI coding history into a living world. Every project becomes a procedurally generated pixel-art island built from its own data: one building per session, trees from requests, land and waterfalls from tokens, and architecture from the tools the agent used. The result is one offline HTML file with:
 
 - **The map**: an explorable, animated archipelago under a night sky. Related projects sit side by side, joined by rope and light bridges, and a golden route traces the order they were founded.
-- **The story**: an 8-slide recap (sessions, capital island, tokens, busiest hour, longest streak, crew, archetype, card).
+- **The story**: a nine-slide recap (sessions, capital island, tokens, busiest hour, longest streak, agents, relics with the next one to unlock, archetype, card).
 - **The relics**: 31 collectible items earned by technologies, scale, tools and time, standing on the islands and collected in the Field Guide.
 - **The archetype**: a playful title such as *The Midnight Harbormaster* or *The Dawn Stargazer*.
-- **The cards**: PNG cards for Story, Square, X/LinkedIn, and GitHub, with copy, native share, and post-to-X.
+- **The cards**: PNG cards and 8-second videos for Story, Square, X/LinkedIn, and GitHub, with copy, native share, and post-to-X.
+- **Team worlds**: several people's exports merged into one archipelago, every builder in their own colour.
 
 ## Run it
 

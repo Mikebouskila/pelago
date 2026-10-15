@@ -5,7 +5,7 @@
 # Everything you built with AI became a place.
 
 **Pelago turns your Claude Code and Codex history into a living pixel-art archipelago.**<br>
-Every project is an island, built from the work itself. Then it tells you who you are as a builder.
+Every project is an island, built from the work itself. Then it tells you who you are as a builder. Or build one world with your whole team.
 
 <br>
 
@@ -15,7 +15,7 @@ Every project is an island, built from the work itself. Then it tells you who yo
 
 **[▶ Explore a live sample world](https://mikebouskila.github.io/pelago/)**
 
-**[⚡ Get yours in one prompt](#-get-yours-in-one-prompt)** &nbsp;·&nbsp; **[🏝️ How islands grow](#️-every-island-is-built-from-your-work)** &nbsp;·&nbsp; **[💎 Relics](#-31-relics-to-find)** &nbsp;·&nbsp; **[🎬 Your story](#-your-story-and-your-card)** &nbsp;·&nbsp; **[🔒 Privacy](#-private-by-design)**
+**[⚡ Get yours in one prompt](#-get-yours-in-one-prompt)** &nbsp;·&nbsp; **[🏝️ How islands grow](#️-every-island-is-built-from-your-work)** &nbsp;·&nbsp; **[💎 Relics](#-31-relics-to-find)** &nbsp;·&nbsp; **[🎬 Your story](#-your-story-and-your-card)** &nbsp;·&nbsp; **[👥 Teams](#-build-one-world-as-a-team)** &nbsp;·&nbsp; **[🔒 Privacy](#-private-by-design)**
 
 </div>
 
@@ -158,7 +158,7 @@ Press **▶ Play your story** for a nine-slide recap filmed over your own world.
 - a 24-hour clock of **when you build**
 - a calendar of your **longest streak**
 - how you split work between **Claude Code and Codex**
-- your **relics**, rarest first
+- your **relics**, rarest first, and the next one you're closest to
 - your **archetype**
 
 It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post, or **download it as an 8-second video** of your world in motion.
@@ -177,6 +177,8 @@ It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap 
 
 **[▶ See a sample team world](https://mikebouskila.github.io/pelago/team.html)**
 
+<img src="docs/card-team.jpg" alt="A team Pelago card: our archetype, the crew in their colours, and a strip under each island showing who built it" width="100%">
+
 Use the [team prompt](#-with-my-team) above, or run it by hand:
 
 ```bash
@@ -190,7 +192,7 @@ python3 scripts/pelago.py --team pelago-team/ --team-name "Our team" --open
 - **One archipelago.** Projects with the same name become one island, built by everyone who worked on it. Shared islands sit at the heart of the map; everyone's own islands gather on their side of it.
 - **Everyone has a colour.** Roofs, flags and airships wear the colour of whoever built them, in proportion to their share of the work. The strip under each island's name shows the split.
 - **Who did what.** Click an island to see each builder's share, sessions, requests and tokens there. Filter the map to one person to see just their islands and their own numbers.
-- **A crew slide.** The story introduces each builder with their own archetype, and the card says *our* archetype with the whole crew on it.
+- **A crew slide.** The team story adds a slide that introduces each builder with their own archetype, and the card says *our* archetype with the whole crew on it.
 
 Islands merge by project name, ignoring case and punctuation. The exports hold only the aggregates listed under [Privacy](#-private-by-design): project names and counts, never prompts or code. Share them only with people you'd show those names to.
 
@@ -244,6 +246,7 @@ The test suite pins each of these rules against records shaped like real transcr
 - Message text is read in memory to guess each project's realm, then forgotten.
 - The page keeps only aggregates: project names, dates, counts, token totals, tool categories, hour and weekday totals, and how often a fixed list of 17 technologies came up.
 - Sharing a card? Untick **Show project names** if any are confidential.
+- Team worlds never sync anything. Your export leaves your machine only if you send it to a teammate yourself.
 
 Pelago describes a footprint, not a score. A small island isn't a worse project, and nothing ranks you against anyone.
 
@@ -256,6 +259,11 @@ python3 scripts/pelago.py --since-days 30 --open     # your month
 python3 scripts/pelago.py --since-days 365 --open    # your year
 python3 scripts/pelago.py --json-output pelago.json  # keep the aggregates
 python3 scripts/pelago.py --input pelago.json        # rebuild from them
+python3 scripts/pelago.py --demo --open              # a sample world, reads nothing
+
+python3 scripts/pelago.py --name Maya --json-output pelago-team/maya.json   # your part of a team world
+python3 scripts/pelago.py --team pelago-team/ --team-name "Our team"        # merge a folder of exports
+python3 scripts/pelago.py --demo-team --open                                # a sample team world
 
 python3 -m unittest discover -s tests -v             # run the tests
 ```
