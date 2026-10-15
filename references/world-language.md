@@ -78,7 +78,7 @@ Rhythm data is stored only as 24 hour buckets, 7 weekday buckets, the active-day
 
 ## Team worlds
 
-`--team` merges several people's `--json-output` exports. Projects whose names match (ignoring case and punctuation) become one island: counts, tokens, tools and technologies add up, and the island keeps the seed and realm of whoever built the most of it. Each island records `builders` (each person's share of the activity) and `work` (their sessions, requests and tokens there).
+Before sharing, each person can run `--only "<names>"` on their export: projects not named are dropped together with their links, their share of the rhythm (every project records its own hour, weekday and day counts), and the scan's file counts. `--team` merges several people's `--json-output` exports, and `--shared-only` keeps only islands two or more people built. Projects whose names match (ignoring case and punctuation) become one island: counts, tokens, tools and technologies add up, and the island keeps the seed and realm of whoever built the most of it. Each island records `builders` (each person's share of the activity) and `work` (their sessions, requests and tokens there).
 
 On the map every builder has a colour. Roofs are assigned to builders in proportion to their share, flags and airships show the top builders, and a colour strip under each label shows the split. Shared islands are packed at the heart of the map and each builder's own islands gather in their own direction. Rhythm is the sum of everyone's, so the team archetype describes the crew as a whole; each member's own archetype is kept for the crew slide.
 

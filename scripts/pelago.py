@@ -96,6 +96,7 @@ class Project:
     crews: Counter = field(default_factory=Counter)
     tech: Counter = field(default_factory=Counter)
     analysed: int = 0
+    rhythm: "Rhythm" = field(default_factory=lambda: Rhythm())
 
     def absorb(self, other: "Project") -> None:
         self.sessions |= other.sessions
@@ -108,6 +109,7 @@ class Project:
         for mine, theirs in ((self.signals, other.signals), (self.tokens, other.tokens), (self.tools, other.tools),
                              (self.models, other.models), (self.session_sizes, other.session_sizes), (self.crews, other.crews), (self.tech, other.tech)):
             mine.update(theirs)
+        self.rhythm.absorb(other.rhythm)
 
     def public(self) -> dict[str, Any]:
         seed = int(hashlib.sha256(self.key.encode()).hexdigest()[:8], 16)
@@ -133,6 +135,8 @@ class Project:
             "sessionSizes": sorted(self.session_sizes.values(), reverse=True)[:MAX_BUILDINGS],
             "techSample": self.analysed,
             "tech": {name: count for name, count in self.tech.most_common() if count >= TECH_MIN_MENTIONS},
+            # When this project's work happened, so a world built from a few projects keeps only their rhythm.
+            "rhythm": self.rhythm.buckets(),
         }
 
 
@@ -424,6 +428,15 @@ class Rhythm:
         self.weekdays[local.weekday()] += 1
         self.days[local.date().isoformat()] += 1
 
+    def absorb(self, other: "Rhythm | dict[str, Any]") -> None:
+        source = other.buckets() if isinstance(other, Rhythm) else other
+        self.hours = [a + b for a, b in zip(self.hours, source.get("hours") or [0] * 24)]
+        self.weekdays = [a + b for a, b in zip(self.weekdays, source.get("weekdays") or [0] * 7)]
+        self.days.update(source.get("daily") or {})
+
+    def buckets(self) -> dict[str, Any]:
+        return {"hours": list(self.hours), "weekdays": list(self.weekdays), "daily": dict(sorted(self.days.items()))}
+
     def public(self) -> dict[str, Any]:
         days = sorted(self.days)
         longest = current = 0
@@ -647,6 +660,7 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                         project.tokens.update(dict(zip(("input", "output", "cached"), work["tokens"])))
                     if timestamp:
                         rhythm.add(timestamp)
+                        project.rhythm.add(timestamp)
                         if timestamp.isoformat() > project.last_active:
                             project.last_active = timestamp.isoformat()
                         if timestamp.isoformat() < project.first_active:
@@ -764,7 +778,24 @@ def island_key(name: str) -> str:
     return re.sub(r"[^0-9a-z]+", "", name.casefold()) or name
 
 
-def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None = None) -> dict[str, Any]:
+def select_projects(data: dict[str, Any], names: list[str]) -> tuple[dict[str, Any], list[str]]:
+    """Keep only the named projects (matched ignoring case and punctuation), and only their rhythm."""
+    wanted = {island_key(name): name.strip() for name in names if name.strip()}
+    kept = [project for project in data.get("projects") or [] if island_key(project["name"]) in wanted]
+    missing = [name for key, name in wanted.items() if key not in {island_key(project["name"]) for project in kept}]
+    ids = {project["id"] for project in kept}
+    rhythm = Rhythm()
+    if all(project.get("rhythm") for project in kept):
+        for project in kept:
+            rhythm.absorb(project["rhythm"])
+    # Nothing about the projects left out survives: not their rhythm, links, or how many files were scanned.
+    selected = {key: value for key, value in data.items() if key not in ("persona", "rhythm", "sources")}
+    selected.update(projects=kept, sources=[], links=[link for link in data.get("links") or [] if link.get("a") in ids and link.get("b") in ids],
+                    rhythm=rhythm.public())
+    return enrich(selected), missing
+
+
+def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None = None, shared_only: bool = False) -> dict[str, Any]:
     """Merge several people's aggregate exports into one archipelago.
 
     Projects with the same name (ignoring case and punctuation) become one island built by everyone who
@@ -806,6 +837,7 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
                     "sessions": 0, "messages": 0, "activity": 0, "prompts": 0, "techSample": 0,
                     "firstActive": project.get("firstActive"), "lastActive": project.get("lastActive"),
                     "tokens": Counter(), "tools": Counter(), "tech": Counter(), "crews": Counter(), "models": Counter(), "sessionSizes": [],
+                    "rhythm": Rhythm(), "timed": True,
                 }
             elif weight > island["lead"]:
                 # The island keeps the look and realm of whoever built the most of it.
@@ -822,11 +854,17 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
                 island["crews"][agent] += weight * share
             island["models"].update({model: weight for model in project.get("models") or []})
             island["sessionSizes"].extend(project.get("sessionSizes") or [])
+            if project.get("rhythm"):
+                island["rhythm"].absorb(project["rhythm"])
+            else:
+                island["timed"] = False
 
     merged = []
     for key, island in islands.items():
         crews = island.pop("crews"); models = island.pop("models"); tokens = island.pop("tokens"); island.pop("lead")
         builders = contributions[key]
+        if shared_only and len(builders) < 2:
+            continue
         merged.append({
             **island,
             "agent": crews.most_common(1)[0][0] if crews else "claude",
@@ -839,8 +877,29 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
             "sessionSizes": sorted(island["sessionSizes"], reverse=True)[:MAX_BUILDINGS],
             "builders": {name: round(weight / sum(builders.values()), 3) for name, weight in builders.most_common()},
             "work": {name: dict(work_by[key][name]) for name, _ in builders.most_common()},
+            "rhythm": island["rhythm"].buckets() if island["timed"] else None,
+            "timed": None,
         })
+    for island in merged:
+        island.pop("timed")
+        if island["rhythm"] is None:
+            island.pop("rhythm")
     merged.sort(key=lambda project: project["activity"], reverse=True)
+    # The team's rhythm comes from the islands on the map, so private projects never shape it.
+    if merged and all(island.get("rhythm") for island in merged):
+        rhythm = Rhythm()
+        for island in merged:
+            rhythm.absorb(island["rhythm"])
+    # Each builder's numbers are counted from the islands that made it onto the map.
+    for member in members:
+        mine = [island for island in merged if member["name"] in island["builders"]]
+        member.update(
+            islands=len(mine),
+            sessions=sum(island["work"][member["name"]].get("sessions", 0) for island in mine),
+            tokens=sum(island["work"][member["name"]].get("tokens", 0) for island in mine),
+            activity=round(sum(island["activity"] * island["builders"][member["name"]] for island in mine)),
+        )
+    members = [member for member in members if member["islands"]]
 
     links, seen = [], set()
     for index, (_, data) in enumerate(exports):
@@ -939,6 +998,13 @@ def short_number(value: float) -> str:
     return str(int(value))
 
 
+def print_projects(data: dict[str, Any]) -> None:
+    print()
+    print("  Projects found (most active first):")
+    for index, project in enumerate(data.get("projects") or [], 1):
+        print(f"  {index:>3}. {project['name']}  ·  {project.get('sessions', 0)} sessions  ·  last active {str(project.get('lastActive') or '')[:10]}")
+
+
 def print_summary(data: dict[str, Any], output: Path) -> None:
     projects = data["projects"]
     rhythm = data.get("rhythm") or {}
@@ -979,6 +1045,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--team", type=Path, nargs="+", metavar="EXPORT", help="merge several people's --json-output files (or a folder of them) into one team world")
     parser.add_argument("--demo-team", action="store_true", help="generate a sample team world without scanning")
     parser.add_argument("--team-name", help="what to call the team world")
+    parser.add_argument("--only", action="append", metavar="NAMES", help="keep only these projects (comma-separated names); use it before sharing an export")
+    parser.add_argument("--shared-only", action="store_true", help="in a team world, keep only islands two or more people built")
+    parser.add_argument("--list-projects", action="store_true", help="print every project found, to choose which to share")
     args = parser.parse_args(argv)
 
     if args.since_days is not None and args.since_days < 1:
@@ -987,11 +1056,23 @@ def main(argv: list[str] | None = None) -> int:
         if args.demo_team:
             data = demo_team()
         elif args.team:
-            data = merge_team(load_team(args.team), args.team_name)
+            data = merge_team(load_team(args.team), args.team_name, args.shared_only)
         else:
             data = demo_data() if args.demo else load_input(args.input) if args.input else scan(args.home.expanduser(), args.since_days)
+        if args.list_projects:
+            print_projects(data)
+        if args.only:
+            data, missing = select_projects(data, [name for value in args.only for name in value.split(",")])
+            if missing:
+                print(f"Pelago found no project named: {', '.join(missing)} (see --list-projects)", file=sys.stderr)
+            if not data["projects"]:
+                return 2
         if args.name:
             data["builder"] = args.name.strip()[:40]
+        if args.team and not data["projects"]:
+            print("Pelago found no island that two or more people built. Shared islands are matched by project name, "
+                  "so check the names match, or leave out --shared-only to map everyone's chosen projects.", file=sys.stderr)
+            return 2
         if not data["projects"] and not (args.demo or args.demo_team):
             locations = ", ".join(str(args.home.expanduser() / folder) for folder in (".claude/projects", ".codex/sessions"))
             print(f"Pelago found no supported history in: {locations}", file=sys.stderr)

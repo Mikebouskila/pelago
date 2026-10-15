@@ -46,7 +46,7 @@ Build my Pelago world from my local AI coding history.
 
 ### 👥 With my team
 
-Everyone on the team pastes the same prompt. Each person exports their part, one person merges.
+Everyone on the team pastes the same prompt. Each person picks which of their projects to share, one person merges. Your other projects never leave your machine.
 
 ```text
 Help me build our team's Pelago world from our local AI coding history.
@@ -57,15 +57,20 @@ Help me build our team's Pelago world from our local AI coding history.
    If that folder already exists, run `git pull` in it instead.
 2. Ask me two things: my first name (suggest the one in `git config user.name`),
    and whether I'm the one putting the team world together.
-3. Export my part with Python 3 (standard library only, nothing to install):
-   python3 <skill folder>/scripts/pelago.py --name "<my name>" --json-output ./pelago-team/<my name>.json --output ./pelago-world.html
+3. Scan my history once with Python 3 (standard library only, nothing to install):
+   python3 <skill folder>/scripts/pelago.py --json-output ./pelago-me.json --output ./pelago-world.html --list-projects
    It only reads ~/.claude/projects and ~/.codex/sessions. If you need permission
    to read those two folders, ask me for read access to just them.
-4. If I'm not putting it together: tell me to send pelago-team/<my name>.json to
-   whoever is. It holds only project names and counts, never prompts or code.
-5. If I am: ask for our team name, have me drop everyone's .json files into
+   pelago-me.json is my full history and stays on this machine. Never send it.
+4. Show me the project list it printed and ask which ones are team projects.
+5. Export only those:
+   python3 <skill folder>/scripts/pelago.py --input ./pelago-me.json --only "<project>, <project>" --name "<my name>" --json-output ./pelago-team/<my name>.json --output ./pelago-team/<my name>-preview.html
+   The preview page shows exactly what I'm sharing.
+6. If I'm not putting it together: tell me to send pelago-team/<my name>.json to
+   whoever is. It holds only those projects' names and counts, never prompts or code.
+7. If I am: ask for our team name, have me drop everyone's .json files into
    ./pelago-team/, then run:
-   python3 <skill folder>/scripts/pelago.py --team ./pelago-team --team-name "<team name>" --output ./pelago-team-world.html --open
+   python3 <skill folder>/scripts/pelago.py --team ./pelago-team --team-name "<team name>" --shared-only --output ./pelago-team-world.html --open
    Then tell me who built what: each person's archetype, how many islands we
    share, and our team archetype. Don't quote any prompts or code.
 ```
@@ -182,14 +187,17 @@ It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap 
 Use the [team prompt](#-with-my-team) above, or run it by hand:
 
 ```bash
-# each teammate
-python3 scripts/pelago.py --name "Maya" --json-output pelago-team/maya.json
+# each teammate: see your projects, then export only the team ones
+python3 scripts/pelago.py --json-output pelago-me.json --list-projects
+python3 scripts/pelago.py --input pelago-me.json --only "api, web app" --name "Maya" --json-output pelago-team/maya.json
 
 # whoever collects the files
-python3 scripts/pelago.py --team pelago-team/ --team-name "Our team" --open
+python3 scripts/pelago.py --team pelago-team/ --team-name "Our team" --shared-only --open
 ```
 
-- **One archipelago.** Projects with the same name become one island, built by everyone who worked on it. Shared islands sit at the heart of the map; everyone's own islands gather on their side of it.
+- **You choose what to share.** `--only` keeps just the projects you name, and everything else is dropped before the file is written: their names, their numbers, and even the hours you worked on them. `pelago-me.json` is your full history; it stays on your machine.
+- **Only what you built together.** `--shared-only` keeps the islands two or more people worked on. Leave it out to also show each person's chosen solo projects around the shared ones.
+- **One archipelago.** Projects with the same name become one island, built by everyone who worked on it. Shared islands sit at the heart of the map; any solo islands gather on their builder's side of it.
 - **Everyone has a colour.** Roofs, flags and airships wear the colour of whoever built them, in proportion to their share of the work. The strip under each island's name shows the split.
 - **Who did what.** Click an island to see each builder's share, sessions, requests and tokens there. Filter the map to one person to see just their islands and their own numbers.
 - **A crew slide.** The team story adds a slide that introduces each builder with their own archetype, and the card says *our* archetype with the whole crew on it.
@@ -244,9 +252,9 @@ The test suite pins each of these rules against records shaped like real transcr
 - Reads only `~/.claude/projects` and `~/.codex/sessions`.
 - No network requests, no uploads. Every island is drawn in your browser from the numbers.
 - Message text is read in memory to guess each project's realm, then forgotten.
-- The page keeps only aggregates: project names, dates, counts, token totals, tool categories, hour and weekday totals, and how often a fixed list of 17 technologies came up.
+- The page keeps only aggregates: project names, dates, counts, token totals, tool categories, hour, weekday and day counts (per project), and how often a fixed list of 17 technologies came up.
 - Sharing a card? Untick **Show project names** if any are confidential.
-- Team worlds never sync anything. Your export leaves your machine only if you send it to a teammate yourself.
+- Team worlds never sync anything. Your export leaves your machine only if you send it to a teammate yourself, and with `--only` it holds just the projects you picked.
 
 Pelago describes a footprint, not a score. A small island isn't a worse project, and nothing ranks you against anyone.
 
@@ -261,8 +269,9 @@ python3 scripts/pelago.py --json-output pelago.json  # keep the aggregates
 python3 scripts/pelago.py --input pelago.json        # rebuild from them
 python3 scripts/pelago.py --demo --open              # a sample world, reads nothing
 
-python3 scripts/pelago.py --name Maya --json-output pelago-team/maya.json   # your part of a team world
-python3 scripts/pelago.py --team pelago-team/ --team-name "Our team"        # merge a folder of exports
+python3 scripts/pelago.py --list-projects                                  # see every project found
+python3 scripts/pelago.py --input pelago-me.json --only "api, web" --name Maya --json-output pelago-team/maya.json   # share only these
+python3 scripts/pelago.py --team pelago-team/ --team-name "Our team" --shared-only   # merge, keep what you built together
 python3 scripts/pelago.py --demo-team --open                                # a sample team world
 
 python3 -m unittest discover -s tests -v             # run the tests

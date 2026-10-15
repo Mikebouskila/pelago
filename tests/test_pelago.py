@@ -190,6 +190,7 @@ class PelagoTests(unittest.TestCase):
 
             rhythm = result["rhythm"]
             self.assertEqual(sum(rhythm["hours"]), 4)
+            self.assertEqual(sum(sum(project["rhythm"]["hours"]) for project in result["projects"]), 4)
             self.assertEqual(rhythm["activeDays"], 4)
             self.assertEqual(rhythm["longestStreak"], 3)
             self.assertTrue(result["persona"]["title"].endswith("Castle Builder"))
@@ -258,6 +259,37 @@ class PelagoTests(unittest.TestCase):
         ids = {p["id"] for p in team["projects"]}
         self.assertTrue(team["links"] and all(link["a"] in ids and link["b"] in ids for link in team["links"]))
         self.assertTrue(team["persona"]["title"].startswith("The "))
+
+    def test_only_keeps_chosen_projects_and_their_rhythm(self):
+        data = pelago.demo_data()
+        for index, project in enumerate(data["projects"]):
+            hours = [0] * 24
+            hours[index % 24] = 5
+            project["rhythm"] = {"hours": hours, "weekdays": [5, 0, 0, 0, 0, 0, 0], "daily": {f"2026-05-{index + 1:02d}": 5}}
+        picked, missing = pelago.select_projects(data, ["atlas studio", " Tiny-Quest ", "Nowhere"])
+        self.assertEqual(sorted(p["name"] for p in picked["projects"]), ["Atlas Studio", "Tiny Quest"])
+        self.assertEqual(missing, ["Nowhere"])
+        self.assertEqual(sum(picked["rhythm"]["hours"]), 10)
+        self.assertEqual(picked["rhythm"]["activeDays"], 2)
+        self.assertEqual(picked["sources"], [])
+        ids = {p["id"] for p in picked["projects"]}
+        self.assertTrue(all(link["a"] in ids and link["b"] in ids for link in picked["links"]))
+
+    def test_shared_only_team_keeps_islands_built_together(self):
+        team = pelago.merge_team(self._crew(), "Crew", shared_only=True)
+        self.assertTrue(team["projects"])
+        self.assertTrue(all(len(project["builders"]) > 1 for project in team["projects"]))
+        for member in team["team"]["members"]:
+            self.assertEqual(member["islands"], sum(1 for p in team["projects"] if member["name"] in p["builders"]))
+
+    def _crew(self):
+        base = pelago.demo_data()
+        crew = []
+        for index, name in enumerate(("Maya", "Noam")):
+            data = json.loads(json.dumps(base))
+            data["projects"] = data["projects"][:3] + data["projects"][3 + index::2]
+            crew.append((name, pelago.enrich(data)))
+        return crew
 
     def test_demo_team_world_renders(self):
         team = pelago.demo_team()
