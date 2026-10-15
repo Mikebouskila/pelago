@@ -462,3 +462,31 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .relic-pop-why { margin: 14px 0 10px; color: #fff6dc; font-size: 14px; line-height: 1.45; }
 .relic-pop-meta { margin: 6px 0 0; color: rgba(220,232,248,.72); font-size: 12.5px; line-height: 1.4; }
 .relic-pop-meta strong { display: block; margin-bottom: 2px; color: rgba(220,232,248,.5); font-size: 10.5px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+
+/* Video export */
+.video-action { width: 100%; min-height: 41px; margin-top: 8px; padding: 0 13px; border: 1px solid rgba(255,132,101,.55); border-radius: 4px; background: rgba(255,132,101,.08); color: #ffd9cd; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; font-weight: 900; cursor: pointer; transition: background .16s, transform .16s; }
+.video-action:hover { background: rgba(255,132,101,.16); transform: translateY(-1px); }
+.video-action:disabled { cursor: progress; opacity: .8; transform: none; }
+.video-action i { font-style: normal; font-size: 10px; }
+
+/* Next relics: the locked ones you are closest to */
+.next-relic-list { display: grid; gap: 8px; }
+.next-relic { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; padding: 8px 10px 10px 8px; border: 1px dashed color-mix(in srgb, var(--rarity) 45%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--rarity) 6%, transparent); }
+.next-relic[role="button"] { cursor: pointer; }
+.next-relic[role="button"]:hover { background: color-mix(in srgb, var(--rarity) 12%, transparent); }
+.next-relic-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.next-relic strong { font-size: 13px; color: #fff6dc; }
+.next-relic small { color: var(--rarity); font-size: 11px; font-weight: 900; }
+.next-relic p { margin: 2px 0 7px; color: rgba(220,232,248,.72); font-size: 11.5px; line-height: 1.35; }
+.next-relic-bar { display: block; height: 6px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; position: relative; }
+.next-relic-bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--progress); border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--rarity) 60%, #fff0), var(--rarity)); box-shadow: 0 0 10px var(--rarity); }
+.sheet-relics .next-relic { margin-top: 8px; }
+.story-next { margin: 14px 0 0; padding: 9px 14px; border: 1px dashed rgba(255,214,111,.45); border-radius: 999px; color: #ffe7a8; font-size: 13px; font-weight: 700; display: inline-block; }
+
+/* Live demo: the sample world points at the one prompt */
+.demo-cta { display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px; border-radius: 999px; background: linear-gradient(180deg, #ffd66f, #f2b544); color: #2a1a05; font-size: 12px; font-weight: 900; text-decoration: none; box-shadow: 0 3px 0 #b88220; white-space: nowrap; }
+.demo-cta:hover { transform: translateY(-1px); }
+.demo-link { color: #ffd66f; font-weight: 800; text-decoration: none; }
+.demo-link:hover { text-decoration: underline; }
+@media (max-width: 760px) { .welcome .privacy:has(.demo-link) { display: block !important; margin-top: 12px; } }
+.next-relic .relic-frame canvas { filter: grayscale(.55) brightness(.9); opacity: .78; }

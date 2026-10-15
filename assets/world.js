@@ -159,12 +159,15 @@ function drawTitle(context, title, x, y, maxWidth, size, align = 'left') {
   return y + (shown.length - 1) * size * .98;
 }
 
-function renderCard(canvas, format = state.format, selected = state.exportSelected, showNames = state.showNames) {
+function renderCard(canvas, format = state.format, selected = state.exportSelected, showNames = state.showNames, options = {}) {
   // The card is the same night scene as the desktop map: the whole archipelago fills the frame and the
-  // words sit on dark scrims at the top and bottom.
+  // words sit on dark scrims at the top and bottom. A video records the 'scene' layer every frame and
+  // lays one 'overlay' render of the words on top.
   const [width, height] = FORMATS[format] || FORMATS.story;
-  canvas.width = width; canvas.height = height;
+  const layer = options.layer || 'all';
+  if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
   const context = canvas.getContext('2d');
+  context.clearRect(0, 0, width, height);
   const tall = height / width > 1.4;
   const square = !tall && height / width > .9;
   const wide = !tall && !square;
@@ -172,10 +175,8 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   const pad = (wide ? 60 : 68) * scale;
   const copy = cardCopy(selected);
   const year = new Date(DATA.generatedAt).getFullYear();
-  const time = 2400;
-
-  drawOcean(context, width, height, selected ? selected.seed : 73, time);
-  drawCloudSea(context, width, height, time);
+  const time = options.time ?? 2400;
+  const zoom = options.zoom || 1;
 
   // 1. The archipelago: the capital as the hero, the next biggest islands packed tight around it.
   const ranked = [...PROJECTS].sort((a, b) => b.activity - a.activity);
@@ -190,6 +191,14 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   const flat = { transform: { x: 0, y: 0, scale: 1 }, detail: true, selected: false, hovered: false };
   const pixel = items[0]?.px || 1;
   const heroItem = items.find((item) => item.project.id === hero.id);
+  if (layer !== 'overlay') {
+  context.save();
+  if (zoom !== 1) {
+    const centreX = heroItem ? heroItem.x : width / 2, centreY = heroItem ? heroItem.y : height / 2;
+    context.translate(centreX, centreY); context.scale(zoom, zoom); context.translate(-centreX, -centreY);
+  }
+  drawOcean(context, width, height, selected ? selected.seed : 73, time);
+  drawCloudSea(context, width, height, time);
   if (heroItem) {
     // A warm halo behind the capital gives the card a centre.
     const radius = heroItem.size * 2.4;
@@ -222,6 +231,9 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     context.fillText(`+ ${hidden} MORE ISLANDS`, centreX, Math.min(bottom + 26 * scale, height - (tall ? 410 : wide ? 70 : 250) * scale));
     if ('letterSpacing' in context) context.letterSpacing = '0px';
   }
+  context.restore();
+  }
+  if (layer === 'scene') return canvas;
 
   // 2. Scrims so the words always read.
   const scrim = (y0, y1, from, to) => {
@@ -363,6 +375,61 @@ async function nativeShare() {
   } else {
     await downloadCard();
   }
+}
+const VIDEO_SECONDS = 8;
+function videoType() {
+  // MP4 posts everywhere; browsers that can only record WebM still get a working file.
+  const types = ['video/mp4;codecs=avc1.640033', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+  return window.MediaRecorder ? types.find((type) => MediaRecorder.isTypeSupported(type)) : null;
+}
+async function downloadVideo() {
+  const button = $('#downloadVideo');
+  const type = videoType();
+  const frame = document.createElement('canvas');
+  if (!type || !frame.captureStream) { toast('Video needs a recent Chrome, Edge or Safari.'); return; }
+  if (button.disabled) return;
+  button.disabled = true;
+  const label = button.querySelector('span');
+  const format = state.format, selected = state.exportSelected, names = state.showNames;
+  const overlay = renderCard(document.createElement('canvas'), format, selected, names, { layer: 'overlay' });
+  const scene = document.createElement('canvas');
+  frame.width = overlay.width; frame.height = overlay.height;
+  const context = frame.getContext('2d');
+  const paint = (elapsed) => {
+    const progress = elapsed / (VIDEO_SECONDS * 1000);
+    // A slow push in towards the capital while the world keeps moving.
+    renderCard(scene, format, selected, names, { layer: 'scene', time: 2400 + elapsed, zoom: 1 + .1 * (1 - Math.cos(Math.min(1, progress) * Math.PI)) / 2 });
+    context.drawImage(scene, 0, 0);
+    context.drawImage(overlay, 0, 0);
+  };
+  paint(0);
+  const recorder = new MediaRecorder(frame.captureStream(30), { mimeType: type, videoBitsPerSecond: 12_000_000 });
+  const chunks = [];
+  recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+  const done = new Promise((resolve) => { recorder.onstop = resolve; });
+  recorder.start();
+  const start = performance.now();
+  // Paced by timers rather than animation frames, which some embedded browsers throttle.
+  await new Promise((resolve) => {
+    const step = () => {
+      const elapsed = performance.now() - start;
+      paint(elapsed);
+      label.textContent = `Recording… ${Math.max(1, Math.ceil(VIDEO_SECONDS - elapsed / 1000))}s`;
+      if (elapsed < VIDEO_SECONDS * 1000) setTimeout(step, 1000 / 30); else resolve();
+    };
+    step();
+  });
+  recorder.stop();
+  await done;
+  const blob = new Blob(chunks, { type: type.split(';')[0] });
+  const anchor = document.createElement('a');
+  anchor.download = cardFileName().replace(/\.png$/, type.includes('mp4') ? '.mp4' : '.webm');
+  anchor.href = URL.createObjectURL(blob);
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(anchor.href), 4000);
+  label.textContent = 'Download video';
+  button.disabled = false;
+  toast('Your world, in motion ✦');
 }
 function postToX() {
   window.open(`https://x.com/intent/post?text=${encodeURIComponent(shareText())}`, '_blank', 'noopener');
@@ -1230,6 +1297,38 @@ function earnedRelics() {
   return found;
 }
 
+// The locked relics you are closest to, each on the island nearest to earning it.
+function nextRelics(limit = 3, only = null) {
+  const found = earnedRelics();
+  const pool = only ? [only] : PROJECTS;
+  const owned = only ? new Set(relicsOf(only).map(({ relic }) => relic.id)) : new Set(found.keys());
+  return RELICS.filter((relic) => relic.progress && !owned.has(relic.id)).map((relic) => {
+    let best = null;
+    pool.forEach((project) => {
+      const [have, need, unit] = relic.progress(project);
+      const ratio = have / need;
+      if (ratio > 0 && ratio < 1 && (!best || ratio > best.ratio)) best = { relic, project, have, need, unit, ratio };
+    });
+    return best;
+  }).filter(Boolean).sort((a, b) => b.ratio - a.ratio).slice(0, limit);
+}
+function progressText({ have, need, unit, project }, withIsland = true) {
+  return `${compact(have)} of ${compact(need)} ${unit}${withIsland ? ` on ${project.name}` : ''}`;
+}
+function nextRelicRow(next, withIsland = true) {
+  const row = element('div', 'next-relic');
+  row.style.setProperty('--rarity', RARITY[next.relic.rarity].color);
+  row.style.setProperty('--progress', `${Math.max(3, Math.round(next.ratio * 100))}%`);
+  const icon = element('span', 'relic-frame'); icon.append(relicIcon(next.relic.sprite, 2));
+  const text = element('div', '');
+  const head = element('div', 'next-relic-head');
+  head.append(element('strong', '', next.relic.name), element('small', 'relic-rarity', `${Math.floor(next.ratio * 100)}%`));
+  text.append(head, element('p', '', progressText(next, withIsland)), element('span', 'next-relic-bar'));
+  row.append(icon, text);
+  if (withIsland) { row.tabIndex = 0; row.setAttribute('role', 'button'); row.addEventListener('click', () => focusProject(next.project)); }
+  return row;
+}
+
 function buildGuide() {
   const read = $('#guideRead');
   read.innerHTML = '';
@@ -1266,6 +1365,15 @@ function buildGuide() {
   const big = element('strong', '', `${found.size} of ${RELICS.length}`);
   intro.append(big, element('span', '', 'relics found. Each one is earned by what you built, how big it grew, or the tools you used. Find them standing on your islands and click one to see why it is there.'));
   relics.append(intro);
+  const upcoming = nextRelics(3);
+  if (upcoming.length) {
+    const section = element('section', 'guide-section');
+    section.append(element('h3', 'guide-heading', 'Closest to unlocking'));
+    const list = element('div', 'next-relic-list');
+    upcoming.forEach((next) => list.append(nextRelicRow(next)));
+    section.append(list);
+    relics.append(section);
+  }
   ['Craft', 'Scale', 'Tools', 'Crew', 'Time'].forEach((group) => {
     const section = element('section', 'guide-section');
     section.append(element('h3', 'guide-heading', group));
@@ -1301,20 +1409,26 @@ function fillSheetRelics(project) {
   const box = $('#sheetRelics');
   box.innerHTML = '';
   const earned = relicsOf(project);
-  if (!earned.length) return;
-  const title = element('div', 'why-title');
-  title.append(element('span', '', `Relics found here · ${earned.length}`), element('i', ''));
-  const list = element('div', 'sheet-relic-list');
-  earned.forEach(({ relic, reason }) => {
-    const row = element('div', 'sheet-relic');
-    row.style.setProperty('--rarity', RARITY[relic.rarity].color);
-    const icon = element('span', 'relic-frame'); icon.append(relicIcon(relic.sprite, 2));
-    const text = element('div', '');
-    const name = element('strong', '', relic.name);
-    text.append(name, element('small', 'relic-rarity', RARITY[relic.rarity].label), element('p', '', reason));
-    row.append(icon, text); list.append(row);
-  });
-  box.append(title, list);
+  if (earned.length) {
+    const title = element('div', 'why-title');
+    title.append(element('span', '', `Relics found here · ${earned.length}`), element('i', ''));
+    const list = element('div', 'sheet-relic-list');
+    earned.forEach(({ relic, reason }) => {
+      const row = element('div', 'sheet-relic');
+      row.style.setProperty('--rarity', RARITY[relic.rarity].color);
+      const icon = element('span', 'relic-frame'); icon.append(relicIcon(relic.sprite, 2));
+      const text = element('div', '');
+      text.append(element('strong', '', relic.name), element('small', 'relic-rarity', RARITY[relic.rarity].label), element('p', '', reason));
+      row.append(icon, text); list.append(row);
+    });
+    box.append(title, list);
+  }
+  const next = nextRelics(1, project)[0];
+  if (next) {
+    const title = element('div', 'why-title');
+    title.append(element('span', '', 'Next relic here'), element('i', ''));
+    box.append(title, nextRelicRow(next, false));
+  }
 }
 
 function showGuide(tab = 'read') {
@@ -1424,9 +1538,26 @@ function updateSummary() {
   $('#worldSummary').innerHTML = `${who}<span>${plural(shown.length, 'island')}</span><i></i><span>${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i></i><span>since ${sinceLabel()}</span>` : ''}`;
 }
 
+const GET_YOURS = `https://${REPO_URL}#-get-yours-in-one-prompt`;
+function markDemo() {
+  // The sample world doubles as the public live demo: say so, and point at the one prompt.
+  document.title = 'Pelago · a sample world';
+  $('#welcome .overline').textContent = 'A SAMPLE WORLD';
+  $('#personaChip span').textContent = 'This sample is';
+  $('.welcome-copy').textContent = 'Every project is an island built from its own work: a building for each session, a tree for each request, waterfalls from the tokens. This one is made up. Yours is built on your machine from your Claude Code and Codex history.';
+  const privacy = $('#welcome .privacy');
+  privacy.innerHTML = '';
+  const link = element('a', 'demo-link', 'Get your own world in one prompt →');
+  link.href = GET_YOURS; link.target = '_blank'; link.rel = 'noopener';
+  privacy.append(link);
+  const cta = element('a', 'demo-cta', 'Get yours');
+  cta.href = GET_YOURS; cta.target = '_blank'; cta.rel = 'noopener';
+  $('.mast-actions').prepend(cta);
+}
 function buildInterface() {
   $('#personaTitle').textContent = PERSONA.title;
   document.title = `${PERSONA.title} · My Pelago`;
+  if (DATA.demo) markDemo();
   const sessions = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
   updateSummary();
   $('#indexCount').textContent = String(PROJECTS.length).padStart(2, '0');
@@ -1534,6 +1665,7 @@ document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hi
 $('#cardTitle').addEventListener('input', renderExport);
 $('#includeNames').addEventListener('change', (event) => { state.showNames = event.target.checked; renderExport(); });
 $('#downloadCard').addEventListener('click', downloadCard);
+$('#downloadVideo').addEventListener('click', downloadVideo);
 $('#copyCard').addEventListener('click', copyCard);
 $('#postCard').addEventListener('click', postToX);
 $('#nativeShare').addEventListener('click', nativeShare);
@@ -1690,6 +1822,8 @@ function buildSlides() {
     slide.append(grid);
     const rarest = RELICS.filter((relic) => relicsFound.has(relic.id)).sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity])[0];
     slide.append(element('p', 'story-copy', `Rarest: ${rarest.name}, ${rarest.rarity === 'epic' ? 'an' : 'a'} ${RARITY[rarest.rarity].label.toLowerCase()} relic on ${relicsFound.get(rarest.id)[0].name}.`));
+    const next = nextRelics(1)[0];
+    if (next) slide.append(element('p', 'story-next', `Next up: ${next.relic.name}, ${progressText(next)}.`));
     return slide;
   }));
 

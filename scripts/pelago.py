@@ -747,7 +747,7 @@ def demo_data() -> dict[str, Any]:
         {"a": by_name["Northstar"], "b": by_name["Tidepool"], "kind": "name", "word": "tide"},
         {"a": by_name["Tiny Quest"], "b": by_name["Pixel Forge"], "kind": "nest", "word": ""},
     ]
-    return enrich({"version": 2, "generatedAt": now.isoformat(), "projects": projects, "links": links, "rhythm": rhythm, "sources": [
+    return enrich({"version": 2, "demo": True, "generatedAt": now.isoformat(), "projects": projects, "links": links, "rhythm": rhythm, "sources": [
         {"agent": "claude", "available": True, "files": 4, "sessions": 4},
         {"agent": "codex", "available": True, "files": 4, "sessions": 4},
     ]})
@@ -760,6 +760,16 @@ def load_input(path: Path) -> dict[str, Any]:
     return enrich(data)
 
 
+DEMO_URL = "https://mikebouskila.github.io/pelago/"
+DEMO_META = "\n  ".join((
+    '<meta property="og:title" content="Pelago: your AI coding history as a pixel-art world">',
+    '<meta property="og:description" content="Every project becomes an island built from your Claude Code and Codex sessions, tokens and tools. Explore a sample world.">',
+    f'<meta property="og:image" content="{DEMO_URL}hero.jpg">',
+    f'<meta property="og:url" content="{DEMO_URL}">',
+    '<meta name="twitter:card" content="summary_large_image">',
+))
+
+
 def render_html(data: dict[str, Any], destination: Path) -> None:
     asset_dir = Path(__file__).resolve().parent.parent / "assets"
     template = asset_dir / "world-template.html"
@@ -769,6 +779,9 @@ def render_html(data: dict[str, Any], destination: Path) -> None:
     script = "\n".join((asset_dir / name).read_text(encoding="utf-8") for name in ("island.js", "relics.js", "world.js"))
     html = html.replace("__PELAGO_JS__", script.replace("</script", "<\\/script"))
     html = html.replace("__PELAGO_DATA__", payload)
+    if data.get("demo"):
+        # The sample world is also the public live demo, so links to it unfurl with a preview.
+        html = html.replace("<title>", DEMO_META + "\n  <title>", 1)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(html, encoding="utf-8")
 

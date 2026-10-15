@@ -13,6 +13,8 @@ Every project is an island, built from the work itself. Then it tells you who yo
 
 <br>
 
+**[▶ Explore a live sample world](https://mikebouskila.github.io/pelago/)**
+
 **[⚡ Get yours in one prompt](#-get-yours-in-one-prompt)** &nbsp;·&nbsp; **[🏝️ How islands grow](#️-every-island-is-built-from-your-work)** &nbsp;·&nbsp; **[💎 Relics](#-31-relics-to-find)** &nbsp;·&nbsp; **[🎬 Your story](#-your-story-and-your-card)** &nbsp;·&nbsp; **[🔒 Privacy](#-private-by-design)**
 
 </div>
@@ -105,7 +107,7 @@ What you built leaves treasures behind. Each relic stands on the island that ear
 | 🧰 **Tools** | Beehive for heavy subagent use, Lightning Rod for 2,000 shell commands, Master's Hammer for 1,000 edits, Compass Rose for using every kind of tool |
 | ⏳ **Crew & time** | Twin Arch when both agents built together, Ancient Oak for a 60-day project, Seedling for something new this week, Sleeping Snowman for one that's resting |
 
-Common, Rare, Epic, Legendary. The **Field Guide** explains every symbol on the map and shows your whole collection, including what it takes to unlock the ones you're missing.
+Common, Rare, Epic, Legendary. The **Field Guide** explains every symbol on the map and shows your whole collection, including what it takes to unlock the ones you're missing, and which ones you're **closest to unlocking**: *Titan's Crown, 640M of 1B tokens on your capital*. Every island tells you its next relic too.
 
 <img src="docs/guide.jpg" alt="The Field Guide's relic collection: each relic shows its rarity, what earns it, and which islands it was found on" width="100%">
 
@@ -131,7 +133,7 @@ Press **▶ Play your story** for a nine-slide recap filmed over your own world.
 - your **relics**, rarest first
 - your **archetype**
 
-It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post.
+It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post, or **download it as an 8-second video** of your world in motion.
 
 <img src="docs/card-story-v2.jpg" alt="A Pelago story card: The Midnight Harbormaster over a full archipelago, with islands, sessions, tokens and relics" width="48%">&nbsp;<img src="docs/card-square-v2.jpg" alt="A square Pelago card" width="48%">
 

@@ -103,7 +103,7 @@
 
   <dialog class="share-dialog" id="shareDialog">
     <div class="dialog-head">
-      <div><p class="overline">EXPORT STUDIO</p><h2>Make your world travel.</h2><p>Rendered locally as a high-resolution PNG.</p></div>
+      <div><p class="overline">EXPORT STUDIO</p><h2>Make your world travel.</h2><p>Rendered locally as a high-resolution PNG or an 8-second video.</p></div>
       <button class="icon-button" data-close-dialog aria-label="Close export studio">×</button>
     </div>
     <div class="export-layout">
@@ -119,6 +119,7 @@
         <input id="cardTitle" maxlength="48" value="">
         <label class="check-row"><input type="checkbox" id="includeNames" checked><span>Show project names</span></label>
         <button class="download-action" id="downloadCard">Download PNG <span aria-hidden="true">↓</span></button>
+        <button class="video-action" id="downloadVideo"><span>Download video</span> <i aria-hidden="true">▶</i></button>
         <div class="share-row">
           <button class="share-mini" id="copyCard">Copy image</button>
           <button class="share-mini" id="postCard">Post on X</button>

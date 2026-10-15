@@ -99,6 +99,14 @@ class PelagoTests(unittest.TestCase):
             self.assertIn("Play your story", html)
             self.assertIn("The Midnight Harbormaster", html)
             self.assertLess(len(html), 3_000_000)
+            self.assertIn("Download video", html)
+            self.assertIn("function nextRelics", html)
+            # The sample doubles as the live demo, so it carries link previews; a real world never does.
+            self.assertIn('property="og:image"', html)
+            data = pelago.demo_data()
+            data.pop("demo")
+            pelago.render_html(data, output)
+            self.assertNotIn('property="og:image"', output.read_text(encoding="utf-8"))
 
     def test_sessions_are_files_and_worktrees_fold_into_their_repo(self):
         with tempfile.TemporaryDirectory() as directory:
