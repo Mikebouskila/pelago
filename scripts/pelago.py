@@ -545,6 +545,19 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def edition(year: int, projects: list[dict[str, Any]]) -> dict[str, Any]:
+    """A Wrapped edition is named for the agents it holds."""
+    agents = {agent for project in projects for agent, share in (project.get("crews") or {project.get("agent", "claude"): 1}).items() if share}
+    name = {frozenset({"claude"}): "CLAUDE CODE", frozenset({"codex"}): "CODEX"}.get(frozenset(agents), "AI CODING")
+    return {"year": year, "label": f"{name} WRAPPED {year}"}
+
+
+def edition_year(data: dict[str, Any]) -> int | None:
+    saved = data.get("edition")
+    year = saved.get("year") if isinstance(saved, dict) else None
+    return year if isinstance(year, int) and not isinstance(year, bool) else None
+
+
 def enrich(data: dict[str, Any]) -> dict[str, Any]:
     data.setdefault("rhythm", Rhythm().public())
     data.setdefault("links", [])
@@ -589,7 +602,7 @@ def find_links(projects: list[tuple[dict[str, Any], str]], per_island: int = 4) 
     return links
 
 
-def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
+def scan(home: Path, since_days: int | None = None, year: int | None = None) -> dict[str, Any]:
     roots = [("claude", home / ".claude" / "projects"), ("codex", home / ".codex" / "sessions")]
     projects: dict[str, Project] = {}
     source_info: list[dict[str, Any]] = []
@@ -629,6 +642,9 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                     if isinstance(found_path, str):
                         file_project = project_root(found_path)
                     if threshold and timestamp and timestamp < threshold:
+                        continue
+                    # A Wrapped edition counts only what it can date to that calendar year, in local time.
+                    if year and (not timestamp or timestamp.astimezone().year != year):
                         continue
                     work = read_work(record, agent, seen_messages, subagent)
                     if work["cumulative"]:
@@ -687,10 +703,14 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
         public_projects.append((project.public(), project.key))
     public_projects.sort(key=lambda pair: (pair[0]["activity"], pair[0]["lastActive"] or ""), reverse=True)
     kept = public_projects[:MAX_PROJECTS]
+    generated = datetime.now(timezone.utc)
+    if year:
+        # A past year is a snapshot taken as it ended, so its islands do not look abandoned.
+        generated = min(generated, datetime(year, 12, 31, 23, 59, 59).astimezone(timezone.utc))
     return enrich({
         "links": find_links(kept),
         "version": 2,
-        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "generatedAt": generated.isoformat(),
         "projects": [public for public, _ in kept],
         "sources": source_info,
         "rhythm": rhythm.public(),
@@ -915,12 +935,17 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
     for member in members:
         member["shared"] = sum(1 for island in merged if member["name"] in island["builders"] and len(island["builders"]) > 1)
     names = [member["name"] for member in members]
-    return enrich({
+    team = enrich({
         "version": 2, "generatedAt": datetime.now(timezone.utc).isoformat(), "projects": merged, "links": links,
         "rhythm": rhythm.public(), "sources": [],
         "team": {"name": team_name or " & ".join(names[:2]) + (f" +{len(names) - 2}" if len(names) > 2 else ""),
                  "members": sorted(members, key=lambda member: member["activity"], reverse=True)},
     })
+    # Everyone exported the same Wrapped year: the team world is that edition too.
+    years = {edition_year(data) for _, data in exports}
+    if len(years) == 1 and None not in years:
+        team["edition"] = edition(years.pop(), merged)
+    return team
 
 
 def demo_team() -> dict[str, Any]:
@@ -968,13 +993,35 @@ def load_team(paths: list[Path], names: list[str] | None = None) -> list[tuple[s
 
 
 DEMO_URL = "https://mikebouskila.github.io/pelago/"
-DEMO_META = "\n  ".join((
-    '<meta property="og:title" content="Pelago: your AI coding history as a pixel-art world">',
-    '<meta property="og:description" content="Every project becomes an island built from your Claude Code and Codex sessions, tokens and tools. Explore a sample world.">',
-    f'<meta property="og:image" content="{DEMO_URL}hero.jpg">',
-    f'<meta property="og:url" content="{DEMO_URL}">',
-    '<meta name="twitter:card" content="summary_large_image">',
-))
+# Link previews for the two live demos. og.jpg is made by tools/capture_docs.py.
+DEMO_META = {
+    False: ("Pelago: your AI coding history as a pixel-art world", DEMO_URL,
+            "Every project becomes an island built from your Claude Code and Codex sessions, tokens and tools. Explore a sample world."),
+    True: ("Pelago: a team world", f"{DEMO_URL}team.html",
+           "Three builders' Claude Code and Codex history merged into one pixel-art archipelago. The shared islands were built together."),
+}
+DEMO_IMAGE_ALT = "Pelago: your Claude Code + Codex history as a pixel-art world of floating islands under a night sky"
+
+
+def demo_meta(team: bool = False) -> str:
+    title, url, description = (escape(value) for value in DEMO_META[team])
+    alt = escape(DEMO_IMAGE_ALT)
+    return "\n  ".join((
+        '<meta property="og:site_name" content="Pelago">',
+        '<meta property="og:type" content="website">',
+        f'<meta property="og:title" content="{title}">',
+        f'<meta property="og:description" content="{description}">',
+        f'<meta property="og:url" content="{url}">',
+        f'<meta property="og:image" content="{DEMO_URL}og.jpg">',
+        '<meta property="og:image:width" content="1200">',
+        '<meta property="og:image:height" content="630">',
+        f'<meta property="og:image:alt" content="{alt}">',
+        '<meta name="twitter:card" content="summary_large_image">',
+        f'<meta name="twitter:title" content="{title}">',
+        f'<meta name="twitter:description" content="{description}">',
+        f'<meta name="twitter:image" content="{DEMO_URL}og.jpg">',
+        f'<meta name="twitter:image:alt" content="{alt}">',
+    ))
 
 
 def render_html(data: dict[str, Any], destination: Path) -> None:
@@ -992,7 +1039,7 @@ def render_html(data: dict[str, Any], destination: Path) -> None:
     html = html.replace("__PELAGO_DATA__", payload)
     if data.get("demo"):
         # The sample world is also the public live demo, so links to it unfurl with a preview.
-        html = html.replace("<title>", DEMO_META + "\n  <title>", 1)
+        html = html.replace("<title>", demo_meta(bool(team)) + "\n  <title>", 1)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(html, encoding="utf-8")
 
@@ -1036,6 +1083,7 @@ def print_summary(data: dict[str, Any], output: Path) -> None:
     print(f"  {'Together you are' if team else 'You are'} {who['title']}.")
     print()
     print(f"  World: {output}")
+    print("  Open it and press ▶ Play your story; the last slide makes your card and a 12-second reel.")
     print("  Only aggregate metadata was saved; prompts and file contents were not persisted.")
 
 
@@ -1046,6 +1094,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--input", type=Path, help="build from a Pelago JSON export instead of scanning")
     parser.add_argument("--home", type=Path, default=Path.home(), help=argparse.SUPPRESS)
     parser.add_argument("--since-days", type=int, help="only include records newer than this many days")
+    parser.add_argument("--year", type=int, metavar="YYYY", help="a Wrapped edition: only records from this calendar year (local time)")
     parser.add_argument("--demo", action="store_true", help="generate a sample world without scanning")
     parser.add_argument("--open", action="store_true", help="open the world in the default browser when done")
     parser.add_argument("--name", help="your name, stamped into --json-output so a team world can credit you")
@@ -1059,13 +1108,22 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.since_days is not None and args.since_days < 1:
         parser.error("--since-days must be at least 1")
+    if args.year is not None:
+        if not 2000 <= args.year <= datetime.now().year:
+            parser.error(f"--year must be between 2000 and {datetime.now().year}")
+        if args.since_days is not None:
+            parser.error("use --year or --since-days, not both")
+        if args.input or args.team:
+            parser.error("--year filters a fresh scan; an export made with --year keeps its year")
+        if (args.demo or args.demo_team) and args.year != datetime.now().year:
+            parser.error(f"a sample world is dated this year: use --year {datetime.now().year}")
     try:
         if args.demo_team:
             data = demo_team()
         elif args.team:
             data = merge_team(load_team(args.team), args.team_name, args.shared_only)
         else:
-            data = demo_data() if args.demo else load_input(args.input) if args.input else scan(args.home.expanduser(), args.since_days)
+            data = demo_data() if args.demo else load_input(args.input) if args.input else scan(args.home.expanduser(), args.since_days, args.year)
         if args.list_projects:
             print_projects(data)
         if args.only:
@@ -1076,6 +1134,10 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
         if args.name:
             data["builder"] = args.name.strip()[:40]
+        year = args.year or edition_year(data)
+        data.pop("edition", None)
+        if year:
+            data["edition"] = edition(year, data["projects"])
         if args.team and not data["projects"]:
             print("Pelago found no island that two or more people built. Shared islands are matched by project name, "
                   "so check the names match, or leave out --shared-only to map everyone's chosen projects.", file=sys.stderr)

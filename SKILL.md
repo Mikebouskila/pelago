@@ -1,6 +1,6 @@
 ---
 name: pelago
-description: Turn the user's local Claude Code and Codex history into a pixel-art archipelago, a Wrapped-style story, an AI-coding archetype ("The Midnight Harbormaster"), and shareable social cards. Use when the user asks to visualize, recap, celebrate, or share what they built with AI coding agents, wants their "AI coding wrapped", year/month in review, coding archetype, or says "pelago".
+description: Make an AI coding Wrapped from local Claude Code and Codex history. Turns every project into a pixel-art island and adds a story-style recap, a coding archetype such as "The Midnight Harbormaster", relics, shareable cards and a short video reel, all in one offline HTML page. Use when the user asks for their Claude Code Wrapped, Codex Wrapped or AI coding Wrapped, a year in review or monthly recap of what they built with AI agents, their coding archetype or coding personality, a stats recap of sessions and tokens, a team recap or team Wrapped merged from several people's exports, or a way to visualize, celebrate or share their AI coding history, or says "pelago". Reads only ~/.claude/projects and ~/.codex/sessions and keeps aggregates, never prompts.
 allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/pelago.py *)
 ---
 
@@ -25,7 +25,8 @@ In Codex, resolve `scripts/pelago.py` from this skill's directory and run it by 
 
 Options:
 
-- `--since-days 30` limits the recap window, for example a monthly recap. Use 365 for a year in review.
+- `--year 2026` makes a Wrapped edition: only that calendar year (local time), with the story and card titled CLAUDE CODE WRAPPED 2026, CODEX WRAPPED 2026 or AI CODING WRAPPED 2026 by the agents found. Use it for a Wrapped or a year in review. Team exports made with the same `--year` merge into a team Wrapped.
+- `--since-days 30` limits the recap window instead, for example a monthly recap.
 - `--demo` builds a polished sample world without reading any history. Use it when the user wants a preview.
 - `--open` opens the result in the default browser. Drop it in headless or remote environments.
 - `--json-output <path>` also saves the aggregate data. `--input <path>` rebuilds from that file.

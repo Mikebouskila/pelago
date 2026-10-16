@@ -1,4 +1,6 @@
+import contextlib
 import importlib.util
+import io
 import json
 import re
 import sys
@@ -468,6 +470,88 @@ class PelagoTests(unittest.TestCase):
             ])
             tokens = pelago.scan(home)["projects"][0]["tokens"]
             self.assertEqual(tokens["total"], (10 + 40 + 100) + (55 + 25 + 300))
+
+    def test_year_keeps_one_calendar_year_and_names_the_edition(self):
+        from datetime import datetime
+        edge = "2025-12-31T23:30:00Z"
+        edge_in_2026 = datetime.fromisoformat(edge.replace("Z", "+00:00")).astimezone().year == 2026
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            write(home / ".claude" / "projects" / "-work-old" / "a.jsonl", [claude_user("/work/old", "old work", ts="2025-06-15T12:00:00Z")])
+            write(home / ".claude" / "projects" / "-work-edge" / "b.jsonl", [claude_user("/work/edge", "late night", ts=edge)])
+            write(home / ".claude" / "projects" / "-work-new" / "c.jsonl", [
+                claude_user("/work/new", "new work", ts="2026-03-01T10:00:00Z"),
+                claude_user("/work/new", "undated", ts=None),
+            ])
+            data = pelago.scan(home, year=2026)
+            projects = {project["name"]: project for project in data["projects"]}
+            self.assertEqual(set(projects), {"new", "edge"} if edge_in_2026 else {"new"})
+            self.assertEqual(projects["new"]["messages"], 1)
+            self.assertTrue(all(day.startswith("2026") for day in data["rhythm"]["daily"]))
+            # A past year is a snapshot taken as it ended.
+            past = pelago.scan(home, year=2025)
+            self.assertEqual(datetime.fromisoformat(past["generatedAt"]).astimezone().year, 2025)
+            self.assertEqual({project["name"] for project in past["projects"]}, {"old"} if edge_in_2026 else {"old", "edge"})
+
+            output, export = home / "wrapped.html", home / "wrapped.json"
+            with contextlib.redirect_stdout(io.StringIO()) as printed:
+                self.assertEqual(pelago.main(["--home", str(home), "--year", "2026", "--output", str(output), "--json-output", str(export)]), 0)
+            self.assertIn("Play your story; the last slide makes your card and a 12-second reel.", printed.getvalue())
+            saved = json.loads(export.read_text(encoding="utf-8"))
+            self.assertEqual(saved["edition"], {"year": 2026, "label": "CLAUDE CODE WRAPPED 2026"})
+            html = output.read_text(encoding="utf-8")
+            self.assertIn('"label":"CLAUDE CODE WRAPPED 2026"', html)
+            self.assertIn("EDITION?.label ||", html)
+            # A rebuilt export keeps its edition; --year itself only filters a fresh scan.
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(pelago.main(["--input", str(export), "--output", str(output)]), 0)
+            self.assertIn('"label":"CLAUDE CODE WRAPPED 2026"', output.read_text(encoding="utf-8"))
+            # A hand-edited edition is rebuilt from its year, or dropped.
+            for saved, label in (({"year": 2026, "label": "<b>"}, "CLAUDE CODE WRAPPED 2026"), ("2026", None), ({"year": "2026"}, None)):
+                export.write_text(json.dumps({**json.loads(export.read_text(encoding="utf-8")), "edition": saved}), encoding="utf-8")
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(pelago.main(["--input", str(export), "--output", str(output), "--json-output", str(home / "again.json")]), 0)
+                self.assertEqual(json.loads((home / "again.json").read_text(encoding="utf-8")).get("edition", {}).get("label"), label)
+            last_year = str(datetime.now().year - 1)
+            for argv in (["--year", "2026", "--since-days", "30"], ["--year", "2026", "--input", str(export)], ["--year", "1999"], ["--demo", "--year", last_year]):
+                with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+                    pelago.main(["--home", str(home), "--output", str(output), *argv])
+
+    def test_edition_label_follows_the_agents_present(self):
+        claude = {"agent": "claude", "crews": {"claude": 1.0}}
+        codex = {"agent": "codex", "crews": {"codex": 1.0}}
+        self.assertEqual(pelago.edition(2026, [claude])["label"], "CLAUDE CODE WRAPPED 2026")
+        self.assertEqual(pelago.edition(2025, [codex])["label"], "CODEX WRAPPED 2025")
+        self.assertEqual(pelago.edition(2026, [claude, codex])["label"], "AI CODING WRAPPED 2026")
+        self.assertEqual(pelago.edition(2026, [{"agent": "claude", "crews": {"claude": .9, "codex": .1}}])["label"], "AI CODING WRAPPED 2026")
+        crew = [(name, {**data, "edition": {"year": 2026, "label": "x"}}) for name, data in self._crew()]
+        self.assertEqual(pelago.merge_team(crew, "Crew")["edition"]["label"], "AI CODING WRAPPED 2026")
+        crew[1][1]["edition"] = {"year": 2025}
+        self.assertNotIn("edition", pelago.merge_team(crew, "Crew"))
+        self.assertNotIn("edition", pelago.demo_data())
+
+    def test_demo_link_previews(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "demo.html"
+            pelago.render_html(pelago.demo_data(), output)
+            html = output.read_text(encoding="utf-8")
+            for tag in ('property="og:image" content="https://mikebouskila.github.io/pelago/og.jpg"', 'property="og:image:width" content="1200"',
+                        'property="og:image:height" content="630"', 'property="og:image:alt"', 'name="twitter:image" content="https://mikebouskila.github.io/pelago/og.jpg"',
+                        'property="og:site_name" content="Pelago"', 'property="og:url" content="https://mikebouskila.github.io/pelago/"'):
+                self.assertIn(tag, html)
+            pelago.render_html(pelago.demo_team(), output)
+            html = output.read_text(encoding="utf-8")
+            self.assertIn('property="og:url" content="https://mikebouskila.github.io/pelago/team.html"', html)
+            self.assertIn('property="og:title" content="Pelago: a team world"', html)
+            self.assertIn('property="og:image" content="https://mikebouskila.github.io/pelago/og.jpg"', html)
+
+    def test_skill_description_is_discoverable(self):
+        skill = (Path(__file__).parents[1] / "SKILL.md").read_text(encoding="utf-8")
+        description = re.search(r"^description: (.+)$", skill, re.M).group(1)
+        self.assertLessEqual(len(description), 1024)
+        self.assertNotIn(": ", description)
+        for phrase in ("Claude Code", "Codex", "Wrapped", "recap", "year in review", "coding archetype", "team recap"):
+            self.assertIn(phrase, description)
 
 
 if __name__ == "__main__":
