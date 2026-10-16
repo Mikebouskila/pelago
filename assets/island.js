@@ -81,17 +81,17 @@ function islandRecipe(project) {
   const biome = BIOMES[project.category] || BIOMES.other;
   const buildings = buildingPlan(project);
   const trees = treePlan(project);
-  const days = daysSince(project.lastActive);
+  const days = daysSince(project.lastActive), known = days !== null;
   return {
     biome, buildings, trees, days,
     grid: gridSize(project),
     waterfalls: waterfallCount(project),
     decor: clamp(Math.round((project.messages || 0) / 60), 4, 70),
     lanterns: clamp(Math.round(Math.log2(Math.max(1, (project.tokens?.output || project.messages * 120) / 4000))), 0, 24),
-    lit: clamp(.3 + Math.log10(Math.max(1, project.tokens?.output || project.messages * 120)) / 9, .3, .95) * (days < 30 ? 1 : days < 120 ? .6 : .25),
-    snow: days > 60,
-    smoke: days < 14,
-    beacon: days < 21,
+    lit: clamp(.3 + Math.log10(Math.max(1, project.tokens?.output || project.messages * 120)) / 9, .3, .95) * (!known ? .6 : days < 30 ? 1 : days < 120 ? .6 : .25),
+    snow: known && days > 60,
+    smoke: known && days < 14,
+    beacon: known && days < 21,
   };
 }
 
@@ -354,7 +354,7 @@ function renderIslandArt(project) {
         put(gx, y, tone(color, faceShade));
       }
       // Hanging vines and roots from the grass lip.
-      if (!water[i][j] && !coast && hash2(seed, gx, j * 7 + i) > (recipe.days < 60 ? .8 : .93)) {
+      if (!water[i][j] && !coast && hash2(seed, gx, j * 7 + i) > (recipe.days !== null && recipe.days < 60 ? .8 : .93)) {
         const length = 4 + Math.floor(hash2(seed, gx, i * 5) * 16);
         for (let y = 0; y < length && edgeY + lip + y < bottomY; y += 1) {
           const leaf = biome.leaves[(y + gx) % 3 === 0 ? 2 : 1];
@@ -919,7 +919,7 @@ function renderIslandArt(project) {
   for (let ship = 0; ship < ships; ship += 1) {
     anim({ type: 'airship', x: centreX, y: centreTop - 40 - ship * 18, rx: size * TILE_W * (.75 + ship * .12), ry: size * TILE_H * .55, phase: hash2(seed, ship, 61) * Math.PI * 2, speed: .07 + ship * .02, color: crewColors[ship % crewColors.length] || hexRgb('#e0784a') });
   }
-  if (recipe.days < 30) anim({ type: 'fireflies', x: centreX, y: centreTop + size * TILE_H * .6, rx: size * TILE_W * .7, ry: size * TILE_H * .6, count: clamp(Math.round(size * 1.2), 6, 30) });
+  if (recipe.days !== null && recipe.days < 30) anim({ type: 'fireflies', x: centreX, y: centreTop + size * TILE_H * .6, rx: size * TILE_W * .7, ry: size * TILE_H * .6, count: clamp(Math.round(size * 1.2), 6, 30) });
 
   function floatingRelics() { floating.forEach((entry) => {
     const wx = originX + landLeft - 46, wy = originY + size * TILE_H * .2;

@@ -113,6 +113,8 @@ class Project:
 
     def public(self) -> dict[str, Any]:
         seed = int(hashlib.sha256(self.key.encode()).hexdigest()[:8], 16)
+        first = None if self.first_active.startswith("9999") else self.first_active
+        last = None if self.last_active.startswith("1970") else self.last_active
         return {
             "id": hashlib.sha256(self.key.encode()).hexdigest()[:12],
             "name": self.name[:54],
@@ -122,8 +124,8 @@ class Project:
             "sessions": max(1, len(self.sessions)),
             "messages": self.messages,
             "activity": self.activity,
-            "firstActive": self.first_active if self.first_active.startswith("9999") is False else self.last_active,
-            "lastActive": self.last_active,
+            "firstActive": first or last,
+            "lastActive": last,
             "seed": seed,
             "prompts": self.prompts,
             "tokens": {
@@ -210,6 +212,7 @@ def clean_name(path_value: Any, fallback: str, home: Path | None = None) -> str:
         name = re.split(r"[/\\:]", path_value.rstrip("/\\"))[-1]
     else:
         name = fallback
+    name = re.sub(r"[\u200e\u200f\u202a-\u202e\u2066-\u2069]", "", name)
     name = re.sub(r"[-_]+", " ", name).strip(" .-")
     name = re.sub(r"\s+[0-9a-f]{6,}$", "", name)
     return (name or "Untitled project")[:54]
@@ -682,7 +685,7 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
         name_category = classify(project.name, minimum=0.5)
         project.category = name_category if name_category != "other" else pick_category(project.signals)
         public_projects.append((project.public(), project.key))
-    public_projects.sort(key=lambda pair: (pair[0]["activity"], pair[0]["lastActive"]), reverse=True)
+    public_projects.sort(key=lambda pair: (pair[0]["activity"], pair[0]["lastActive"] or ""), reverse=True)
     kept = public_projects[:MAX_PROJECTS]
     return enrich({
         "links": find_links(kept),

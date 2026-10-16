@@ -1,5 +1,7 @@
 const DATA = JSON.parse(document.getElementById('pelago-data').textContent);
 const PROJECTS = Array.isArray(DATA.projects) ? DATA.projects : [];
+// A world is a snapshot: recency is measured from when it was generated, so a shared page never ages.
+const NOW = Date.parse(DATA.generatedAt) || Date.now();
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
@@ -197,7 +199,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   const scale = tall || square ? width / 1080 : height / 900;
   const pad = (wide ? 60 : 68) * scale;
   const copy = cardCopy(selected);
-  const year = new Date(DATA.generatedAt).getFullYear();
+  const year = new Date(NOW).getFullYear();
   const time = options.time ?? 2400;
   const zoom = options.zoom || 1;
 
@@ -492,8 +494,8 @@ function compact(value) {
 function escapeHtml(text) { return String(text).replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`); }
 function plural(value, word) { return `${value} ${word}${value === 1 ? '' : 's'}`; }
 function daysSince(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? 9999 : Math.max(0, Math.floor((Date.now() - date.valueOf()) / 86400000));
+  const time = value ? Date.parse(value) : NaN;
+  return Number.isNaN(time) ? null : Math.max(0, Math.floor((NOW - time) / 86400000));
 }
 function crewsOf(project) { return project.crews || { [project.agent || 'claude']: 1 }; }
 function hasCrew(project, agent) { return (crewsOf(project)[agent] || 0) > 0; }
@@ -501,13 +503,13 @@ function crewLabel(project) {
   return Object.entries(crewsOf(project)).filter(([, share]) => share >= .1).map(([agent]) => (agent === 'claude' ? 'Claude Code' : 'Codex')).join(' + ');
 }
 function activeSpan(project) {
-  const first = new Date(project.firstActive || project.lastActive);
-  const last = new Date(project.lastActive);
-  if (Number.isNaN(first.valueOf()) || Number.isNaN(last.valueOf())) return 1;
+  const first = Date.parse(project.firstActive || project.lastActive || ''), last = Date.parse(project.lastActive || '');
+  if (Number.isNaN(first) || Number.isNaN(last)) return 1;
   return Math.max(1, Math.round((last - first) / 86400000));
 }
 function recencyText(project) {
   const days = daysSince(project.lastActive);
+  if (days === null) return 'Date unknown';
   if (days === 0) return 'Active today';
   if (days === 1) return 'Active yesterday';
   if (days < 30) return `Active ${days} days ago`;
@@ -793,15 +795,31 @@ function drawIslandLabel(context, item, options = {}) {
   context.save();
   context.translate(transform.x, transform.y);
   context.scale(transform.scale, transform.scale);
-  const labelY = y + size * .62;
   const labelScale = (options.labelScale || 1) / transform.scale;
   const fontSize = clamp(size * .085, 10 * labelScale, 15 * labelScale);
   context.textAlign = 'center';
   context.font = `800 ${fontSize}px ui-sans-serif, system-ui`;
-  const width = Math.min(Math.max(diameter * .9, 120 * labelScale), context.measureText(nameOf(project)).width + fontSize * 2);
+  // Long names are cut with an ellipsis; the full name stays in the hover label and the sheet.
+  let text = nameOf(project);
+  const room = Math.max(size * 2.2, 120 * labelScale) - fontSize * 2;
+  if (context.measureText(text).width > room) {
+    let low = 0, high = text.length;
+    while (low < high) { const mid = (low + high + 1) >> 1; if (context.measureText(`${text.slice(0, mid).trimEnd()}…`).width <= room) low = mid; else high = mid - 1; }
+    text = `${text.slice(0, low).trimEnd()}…`;
+  }
+  const width = Math.min(Math.max(diameter * .9, 120 * labelScale), context.measureText(text).width + fontSize * 2);
+  // Keep the pill inside the canvas while any of its island is on screen.
+  const margin = 8 * (options.labelScale || 1) / transform.scale;
+  const left = -transform.x / transform.scale, top = -transform.y / transform.scale;
+  const right = left + context.canvas.width / transform.scale, bottom = top + context.canvas.height / transform.scale;
+  const onScreen = x + size >= left && x - size <= right && y + size >= top && y - size <= bottom;
+  const fit = (value, low, high) => (onScreen && low <= high ? clamp(value, low, high) : value);
+  const pillHeight = fontSize * 1.8;
+  const cx = fit(x, left + margin + width / 2, right - margin - width / 2);
+  const labelY = fit(y + size * .62, top + margin + fontSize * 1.1, bottom - margin - pillHeight + fontSize * 1.1);
   context.fillStyle = 'rgba(7,14,34,.9)';
   context.beginPath();
-  context.roundRect(x - width / 2, labelY - fontSize * 1.1, width, fontSize * 1.8, fontSize * .5);
+  context.roundRect(cx - width / 2, labelY - fontSize * 1.1, width, pillHeight, fontSize * .5);
   context.fill();
   context.strokeStyle = project.builderPalette ? hexAlpha(project.builderPalette[0][0], .8) : project.agent === 'claude' ? 'rgba(220,129,80,.72)' : 'rgba(69,163,141,.72)';
   context.lineWidth = 1;
@@ -809,14 +827,14 @@ function drawIslandLabel(context, item, options = {}) {
   if (project.builderPalette) {
     // Who built it: one coloured segment per builder, sized by their share.
     const stripWidth = width - fontSize * 1.4, stripHeight = Math.max(2, fontSize * .2);
-    let left = x - stripWidth / 2;
-    const top = labelY + fontSize * .48;
+    let stripLeft = cx - stripWidth / 2;
+    const stripTop = labelY + fontSize * .48;
     project.builderPalette.forEach(([color, share]) => {
-      context.fillStyle = color; context.fillRect(left, top, stripWidth * share, stripHeight); left += stripWidth * share;
+      context.fillStyle = color; context.fillRect(stripLeft, stripTop, stripWidth * share, stripHeight); stripLeft += stripWidth * share;
     });
   }
   context.fillStyle = '#f8f1df';
-  context.fillText(nameOf(project), x, labelY + fontSize * .28, width - fontSize);
+  context.fillText(text, cx, labelY + fontSize * .28, width - fontSize);
   context.restore();
 }
 
@@ -841,27 +859,51 @@ function teamAnchor(project, placed, aspect) {
 function packIslands(projects, aspect, factors = null) {
   // Deterministic golden-spiral packing. The biggest island sits at the heart; an island with a bridge
   // to one already placed searches outward from that neighbour, so related worlds end up side by side.
+  // Collisions are checked against a uniform spatial hash: a cell is as wide as the largest possible clearance,
+  // so only the 3×3 cells around a candidate can hold an island it would overlap. Same test, same spiral order.
   const ordered = [...projects].sort((a, b) => (b.activity || 0) - (a.activity || 0));
-  const placed = [];
-  ordered.forEach((project, index) => {
+  const sized = ordered.map((project) => {
     const factor = factors?.get(project.id) ?? 1;
     const base = islandMetrics(project);
-    const metrics = { ...base, unit: base.unit * factor, left: base.left * factor, right: base.right * factor, up: base.up * factor, down: base.down * factor };
+    return { project, factor, metrics: { ...base, unit: base.unit * factor, left: base.left * factor, right: base.right * factor, up: base.up * factor, down: base.down * factor } };
+  });
+  const largest = Math.max(1e-6, ...sized.map((entry) => entry.metrics.unit));
+  const cellX = 2.24 * largest, cellY = 2.24 * largest * .66;
+  const cells = new Map();
+  const cellKey = (i, j) => i * 1048576 + j;
+  const placed = [];
+  sized.forEach(({ project, factor, metrics }, index) => {
     const unit = metrics.unit;
     const twist = seeded(project.seed)() * Math.PI * 2;
     const relatives = linksOf(project).map((link) => placed.find((item) => item.project.id === link.other.id)).filter(Boolean);
     const anchor = relatives.sort((a, b) => b.project.activity - a.project.activity)[0] || teamAnchor(project, placed, aspect) || { x: 0, y: 0 };
     let spot = { x: anchor.x, y: anchor.y };
+    const free = (x, y) => {
+      const ci = Math.floor(x / cellX), cj = Math.floor(y / cellY);
+      for (let i = ci - 1; i <= ci + 1; i += 1) {
+        for (let j = cj - 1; j <= cj + 1; j += 1) {
+          const bucket = cells.get(cellKey(i, j));
+          if (bucket && !bucket.every((other) => Math.hypot((x - other.x) / (unit + other.unit), (y - other.y) / ((unit + other.unit) * .66)) >= 1.12)) return false;
+        }
+      }
+      return true;
+    };
     if (index) {
-      for (let step = 1; step < 9000; step += 1) {
+      // The golden spiral keeps widening until it finds open water; it never falls back onto the anchor.
+      let found = false;
+      for (let step = 1; step < 4e6 && !found; step += 1) {
         const angle = step * 2.39996 + twist;
         const radius = .05 * Math.sqrt(step);
         const x = anchor.x + Math.cos(angle) * radius, y = anchor.y + Math.sin(angle) * radius * aspect;
-        const free = placed.every((other) => Math.hypot((x - other.x) / (unit + other.unit), (y - other.y) / ((unit + other.unit) * .66)) >= 1.12);
-        if (free) { spot = { x, y }; break; }
+        if (free(x, y)) { spot = { x, y }; found = true; }
       }
+      if (!found) spot = { x: Math.max(...placed.map((other) => other.x + other.unit)) + unit * 2.3, y: anchor.y };
     }
-    placed.push({ project, unit, metrics, factor, ...spot });
+    const item = { project, unit, metrics, factor, ...spot };
+    placed.push(item);
+    const key = cellKey(Math.floor(item.x / cellX), Math.floor(item.y / cellY));
+    if (!cells.has(key)) cells.set(key, []);
+    cells.get(key).push(item);
   });
   return placed;
 }
@@ -920,14 +962,19 @@ function zoomTo(scale, point = { x: world.width / 2, y: world.height / 2 }, anim
   const next = clamp(scale, .45, 12);
   const panX = point.x - (point.x - state.panX) * next / state.scale;
   const panY = point.y - (point.y - state.panY) * next / state.scale;
-  if (animated) animateView(panX, panY, next); else { state.panX = panX; state.panY = panY; state.scale = next; drawWorld(); }
+  if (animated) animateView(panX, panY, next); else { viewAnimation += 1; state.panX = panX; state.panY = panY; state.scale = next; requestDraw(); }
 }
+// Pointer moves and wheel ticks ask for a frame; at most one redraw happens per display frame.
+let drawQueued = 0;
+function requestDraw() { if (!drawQueued) drawQueued = requestAnimationFrame(() => { drawQueued = 0; drawWorld(); }); }
+// Backing-store density: phones get up to 3x so the pixel art stays crisp, larger screens stay at 2x.
+function worldRatio() { return Math.min(innerWidth <= 680 ? 3 : 2, window.devicePixelRatio || 1); }
 function zoomStep(direction) { zoomTo(state.scale * (direction > 0 ? 1.4 : 1 / 1.4)); }
 
 function resizeWorld() {
   const previousWidth = state.viewWidth;
   const bounds = world.getBoundingClientRect();
-  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const ratio = worldRatio();
   world.width = Math.max(1, Math.floor(bounds.width * ratio));
   world.height = Math.max(1, Math.floor(bounds.height * ratio));
   if (previousWidth && Math.abs(previousWidth - world.width) > 20) {
@@ -946,7 +993,7 @@ function visibleProjects() {
 
 // The map is laid out from the islands currently shown, so filtering by agent re-forms a tight archipelago.
 function worldLayout() {
-  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const ratio = worldRatio();
   const projects = visibleProjects();
   if (world.height > world.width) {
     // Phones: lay the archipelago out as a panorama wider than the screen and start on the capital.
@@ -978,7 +1025,7 @@ function drawConnections(context, items, transform, time, pixel, layer = 'all') 
   const block = (x, y, w, h, color, alpha = 1) => { context.globalAlpha = alpha; context.fillStyle = color; context.fillRect(Math.round(x), Math.round(y), w, h); };
 
   // The route: islands in the order you founded them.
-  const route = [...items].sort((a, b) => new Date(a.project.firstActive) - new Date(b.project.firstActive)).map((item) => islandScreen(item, transform));
+  const route = [...items].sort((a, b) => (Date.parse(a.project.firstActive || '') || 0) - (Date.parse(b.project.firstActive || '') || 0)).map((item) => islandScreen(item, transform));
   if (route.length > 1 && layer !== 'bridges') {
     const samples = [];
     route.slice(1).forEach((point, index) => {
@@ -1087,7 +1134,7 @@ const TIERS = [
 function sceneTiers(projects) {
   const n = projects.length;
   const tiers = [[], [], []];
-  const byRecency = [...projects].sort((a, b) => new Date(b.lastActive) - new Date(a.lastActive));
+  const byRecency = [...projects].sort((a, b) => (Date.parse(b.lastActive || '') || 0) - (Date.parse(a.lastActive || '') || 0));
   const near = n <= 3 ? n : Math.ceil(n * (n > 12 ? .3 : .42));
   const mid = n <= 3 ? 0 : Math.ceil((n - near) * .5);
   byRecency.forEach((project, index) => tiers[index < near ? 0 : index < near + mid ? 1 : 2].push(project));
@@ -1216,8 +1263,11 @@ function drawCloudBank(context, y, width, seed, alpha, transform, thickness) {
 function drawWorld() {
   drawOcean(worldContext, world.width, world.height);
   drawCloudSea(worldContext, world.width, world.height, performance.now());
-  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const ratio = worldRatio();
   state.items = worldLayout();
+  // Phones show the reset button only once the map has been moved or zoomed.
+  const moved = Math.abs(state.panX) > 1 || Math.abs(state.panY) > 1 || Math.abs(state.scale - 1) > .01;
+  if (moved !== state.viewMoved) { state.viewMoved = moved; $('.map-controls').classList.toggle('moved', moved); }
   const view = { x: state.panX, y: state.panY, scale: state.scale };
   const now = performance.now();
   const capital = [...PROJECTS].sort((a, b) => b.activity - a.activity)[0];
@@ -1300,12 +1350,15 @@ function showRelicCard(hit, clientX, clientY) {
 }
 function hideRelicCard() { $('#relicPop').hidden = true; }
 
+let viewAnimation = 0;
 function animateView(targetX, targetY, targetScale) {
+  const token = viewAnimation += 1;
   const start = { x: state.panX, y: state.panY, scale: state.scale };
   const startTime = performance.now();
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const duration = reduced ? 1 : 420;
   function frame(now) {
+    if (token !== viewAnimation) return;
     const progress = clamp((now - startTime) / duration, 0, 1);
     const eased = 1 - Math.pow(1 - progress, 4);
     state.panX = start.x + (targetX - start.x) * eased;
@@ -1553,7 +1606,14 @@ function focusProject(project, openSheet = true) {
   fillSheet(project);
   if (openSheet) $('#islandSheet').classList.add('open');
   updateCardSelection();
+  announce(`${nameOf(project) || kindOf(project)} selected. ${recencyText(project)}, ${plural(project.sessions, 'session')}.`);
 }
+function announce(text) {
+  const node = $('#srAnnounce');
+  node.textContent = '';
+  setTimeout(() => { node.textContent = text; }, 60);
+}
+function closeSheet() { $('#islandSheet').classList.remove('open'); state.selected = null; updateCardSelection(); drawWorld(); }
 
 function fillSheet(project) {
   const category = CATEGORIES[project.category] || CATEGORIES.other;
@@ -1611,11 +1671,18 @@ function fillSheet(project) {
     });
     linkBox.append(title, list);
   }
-  const canvas = $('#detailCanvas');
-  canvas.width = 430; canvas.height = 220;
+  drawDetail(project);
+}
+function drawDetail(project) {
+  // Drawn at the preview's real device size so every art pixel stays square; skipped while the preview is hidden.
+  const canvas = $('#detailCanvas'), box = canvas.getBoundingClientRect();
+  if (!project || !box.width || !box.height) return;
+  const ratio = Math.min(3, window.devicePixelRatio || 1);
+  canvas.width = Math.round(box.width * ratio); canvas.height = Math.round(box.height * ratio);
+  const width = canvas.width, height = canvas.height;
   const context = canvas.getContext('2d');
-  drawOcean(context, canvas.width, canvas.height, project.seed);
-  drawIslandFit(context, project, 20, 8, canvas.width - 40, canvas.height - 8, { crop: .5 });
+  drawOcean(context, width, height, project.seed);
+  drawIslandFit(context, project, width * .047, height * .036, width * .906, height * .964, { crop: .5 });
 }
 
 function updateCardSelection() {
@@ -1623,10 +1690,18 @@ function updateCardSelection() {
 }
 
 function renderThumbnail(canvas, project) {
-  canvas.width = 88; canvas.height = 82;
+  // A square backing store at the thumbnail's device size: one canvas pixel per screen pixel.
+  const css = canvas.getBoundingClientRect().width;
+  if (!css) return;
+  const size = Math.round(css * Math.min(3, window.devicePixelRatio || 1));
+  if (canvas.width === size && canvas.height === size) return;
+  canvas.width = size; canvas.height = size;
   const context = canvas.getContext('2d');
-  drawOcean(context, canvas.width, canvas.height, project.seed);
-  drawIslandFit(context, project, 4, 4, canvas.width - 8, canvas.height - 6, { crop: .45, glow: false, animate: false });
+  drawOcean(context, size, size, project.seed);
+  drawIslandFit(context, project, size * .05, size * .05, size * .9, size * .93, { crop: .45, glow: false, animate: false });
+}
+function refreshThumbnails() {
+  $$('.island-card:not([hidden])').forEach((card) => renderThumbnail(card.querySelector('canvas'), PROJECTS.find((project) => project.id === card.dataset.project)));
 }
 
 function updateSummary() {
@@ -1636,8 +1711,18 @@ function updateSummary() {
   const sessions = shown.reduce((sum, project) => sum + (builder ? project.work?.[builder]?.sessions || 0 : project.sessions), 0);
   const tokens = shown.reduce((sum, project) => sum + (builder ? project.work?.[builder]?.tokens || 0 : totalTokens(project)), 0);
   const who = state.filter === 'all' ? '' : `<span>${state.filter.startsWith('builder:') ? escapeHtml(state.filter.slice(8)) : state.filter === 'claude' ? 'Claude Code' : 'Codex'}</span><i></i>`;
-  const crew = TEAM ? `<span>${plural(TEAM.members.length, 'builder')}</span><i></i>` : '';
-  $('#worldSummary').innerHTML = `${crew}${who}<span>${plural(shown.length, 'island')}</span><i></i><span>${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i></i><span>since ${sinceLabel()}</span>` : ''}`;
+  const crew = TEAM ? `<span class="sum-builders">${plural(TEAM.members.length, 'builder')}</span><i class="sum-builders"></i>` : '';
+  $('#worldSummary').innerHTML = `${crew}${who}<span>${plural(shown.length, 'island')}</span><i class="sum-sessions"></i><span class="sum-sessions">${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i class="sum-since"></i><span class="sum-since">since ${sinceLabel()}</span>` : ''}`;
+  fitSummary();
+}
+function fitSummary() {
+  // The masthead never wraps: when the summary runs out of room it drops its least useful parts first.
+  const summary = $('#worldSummary');
+  summary.querySelectorAll('.dropped').forEach((node) => node.classList.remove('dropped'));
+  for (const part of ['sum-since', 'sum-builders', 'sum-sessions']) {
+    if (summary.scrollWidth <= summary.clientWidth) break;
+    summary.querySelectorAll(`.${part}`).forEach((node) => node.classList.add('dropped'));
+  }
 }
 
 const GET_YOURS = `https://${REPO_URL}#-get-yours-in-one-prompt`;
@@ -1678,7 +1763,8 @@ function markTeam() {
     button.append(dot, document.createTextNode(member.name)); filters.append(button);
   });
 }
-function islandMeta(project) { return state.hideNames ? crewLabel(project) : `${crewLabel(project)} · ${kindOf(project)}`; }
+// The card's second line: its kind, or its crew when names are hidden (the first line already shows the kind).
+function islandMeta(project) { return state.hideNames ? crewLabel(project) : kindOf(project); }
 function buildInterface() {
   $('#personaTitle').textContent = PERSONA.title;
   document.title = `${PERSONA.title} · My Pelago`;
@@ -1695,56 +1781,115 @@ function buildInterface() {
     const canvas = document.createElement('canvas'); canvas.className = 'card-island'; canvas.setAttribute('aria-hidden', 'true');
     const copy = document.createElement('span');
     const name = document.createElement('strong'); name.className = 'island-name'; name.textContent = nameOf(project) || kindOf(project);
-    const meta = document.createElement('small'); meta.className = 'island-meta'; meta.textContent = islandMeta(project);
+    const meta = document.createElement('small'); meta.className = 'island-meta';
+    const crew = element('span', 'crew-dots'); crew.setAttribute('role', 'img'); crew.setAttribute('aria-label', crewLabel(project)); crew.title = crewLabel(project);
+    Object.entries(crewsOf(project)).filter(([, share]) => share >= .1).forEach(([agent]) => crew.append(element('i', `agent-dot ${agent === 'claude' ? 'claude' : 'codex'}`)));
+    meta.append(crew, element('span', 'meta-text', islandMeta(project)));
     copy.append(name, meta); button.append(canvas, copy); button.addEventListener('click', () => focusProject(project));
     track.appendChild(button); renderThumbnail(canvas, project);
   });
 }
 
+// Pointers: one finger or the mouse pans, two fingers pinch-zoom around their midpoint, a tap opens what it lands on.
+// On touch a single tap waits a moment so a double tap can zoom instead.
+const pointers = new Map();
+const coarsePointer = matchMedia('(pointer: coarse)');
+const gesture = { pinch: null, multi: false, double: false, lastTap: null, tapTimer: 0 };
+function startPinch() {
+  const [a, b] = [...pointers.values()];
+  gesture.pinch = { distance: Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, scale: state.scale, panX: state.panX, panY: state.panY };
+}
+function movePinch() {
+  const [a, b] = [...pointers.values()], start = gesture.pinch;
+  const scale = clamp(start.scale * Math.hypot(b.x - a.x, b.y - a.y) / start.distance, .45, 12);
+  state.panX = (a.x + b.x) / 2 - (start.x - start.panX) * scale / start.scale;
+  state.panY = (a.y + b.y) / 2 - (start.y - start.panY) * scale / start.scale;
+  state.scale = scale;
+}
+function tapAt(point, clientX, clientY) {
+  const relicHit = hitRelic(point);
+  if (relicHit) { showRelicCard(relicHit, clientX, clientY); return; }
+  hideRelicCard();
+  const found = hitIsland(point); if (found) focusProject(found.project);
+}
 world.addEventListener('pointerdown', (event) => {
+  if (event.pointerType === 'mouse' && event.button !== 0) return;
   const point = worldPoint(event);
-  state.dragging = true; state.moved = false; state.startX = state.pointerX = point.x; state.startY = state.pointerY = point.y;
-  world.setPointerCapture(event.pointerId);
+  pointers.set(event.pointerId, point);
+  try { world.setPointerCapture(event.pointerId); } catch { /* the pointer is already gone */ }
+  viewAnimation += 1; world.style.cursor = '';
+  if (pointers.size === 1) {
+    state.dragging = true; state.moved = false; gesture.multi = false;
+    state.startX = state.pointerX = point.x; state.startY = state.pointerY = point.y;
+    const last = gesture.lastTap;
+    gesture.double = Boolean(last && event.timeStamp - last.time < 300 && Math.hypot(event.clientX - last.x, event.clientY - last.y) < 24);
+    if (gesture.double) clearTimeout(gesture.tapTimer);
+    return;
+  }
+  // A second finger turns the drag into a pinch; a pinch never counts as a tap.
+  state.moved = true; gesture.multi = true; gesture.double = false; clearTimeout(gesture.tapTimer);
+  $('#hoverLabel').classList.remove('visible');
+  startPinch();
 });
 world.addEventListener('pointermove', (event) => {
   const point = worldPoint(event);
-  if (state.dragging) {
-    const dx = point.x - state.pointerX, dy = point.y - state.pointerY;
-    if (Math.abs(point.x - state.startX) + Math.abs(point.y - state.startY) > 5) state.moved = true;
-    state.panX += dx; state.panY += dy; state.pointerX = point.x; state.pointerY = point.y; drawWorld(); return;
+  if (pointers.has(event.pointerId)) {
+    pointers.set(event.pointerId, point);
+    if (pointers.size > 1) { movePinch(); requestDraw(); return; }
+    if (Math.abs(point.x - state.startX) + Math.abs(point.y - state.startY) > (event.pointerType === 'mouse' ? 5 : 10 * worldRatio())) state.moved = true;
+    state.panX += point.x - state.pointerX; state.panY += point.y - state.pointerY; state.pointerX = point.x; state.pointerY = point.y;
+    requestDraw(); return;
   }
+  if (event.pointerType === 'touch') return;
   const relicHit = hitRelic(point);
-  world.style.cursor = relicHit ? 'pointer' : '';
+  const label = $('#hoverLabel');
+  const bounds = world.getBoundingClientRect();
   if (relicHit) {
-    const label = $('#hoverLabel');
+    world.style.cursor = 'pointer';
     label.innerHTML = '';
     const small = document.createElement('small'); small.textContent = `${RARITY[relicHit.relic.rarity].label} relic · click to see why`;
     label.append(document.createTextNode(relicHit.relic.name), small); label.classList.add('visible');
-    const bounds = world.getBoundingClientRect(); label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
+    label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
     return;
   }
   const found = hitIsland(point);
+  world.style.cursor = found ? 'pointer' : '';
   const next = found?.project.id || null;
-  if (next !== state.hovered) { state.hovered = next; drawWorld(); }
-  const label = $('#hoverLabel');
+  if (next !== state.hovered) { state.hovered = next; requestDraw(); }
   if (found) {
     label.innerHTML = '';
     const title = document.createTextNode(nameOf(found.project) || kindOf(found.project));
     const recipe = islandRecipe(found.project);
     const small = document.createElement('small'); small.textContent = `${plural(recipe.buildings.count, 'building')} · ${plural(recipe.trees.count, 'tree')} · ${plural(recipe.waterfalls, 'waterfall')} — ${recencyText(found.project)}`;
     label.append(title, small); label.classList.add('visible');
-    const bounds = world.getBoundingClientRect(); label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
+    label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
   } else label.classList.remove('visible');
 });
-world.addEventListener('pointerleave', () => { if (!state.dragging) { state.hovered = null; $('#hoverLabel').classList.remove('visible'); drawWorld(); } });
-world.addEventListener('pointerup', (event) => {
-  const point = worldPoint(event); state.dragging = false;
-  if (state.moved) return;
-  const relicHit = hitRelic(point);
-  if (relicHit) { showRelicCard(relicHit, event.clientX, event.clientY); return; }
-  hideRelicCard();
-  const found = hitIsland(point); if (found) focusProject(found.project);
-});
+world.addEventListener('pointerleave', () => { if (!state.dragging) { state.hovered = null; $('#hoverLabel').classList.remove('visible'); requestDraw(); } });
+function endPointer(event) {
+  if (!pointers.has(event.pointerId)) return;
+  const point = worldPoint(event);
+  pointers.delete(event.pointerId);
+  if (pointers.size > 1) { startPinch(); return; }
+  if (pointers.size === 1) { const [rest] = pointers.values(); state.pointerX = rest.x; state.pointerY = rest.y; return; }
+  state.dragging = false;
+  const double = gesture.double;
+  gesture.double = false;
+  // A cancelled pointer (the browser took the gesture) only ends the drag.
+  if (event.type === 'pointercancel' || state.moved || gesture.multi) return;
+  if (!(event.pointerType === 'touch' || coarsePointer.matches)) { tapAt(point, event.clientX, event.clientY); return; }
+  if (double) {
+    gesture.lastTap = null;
+    if (state.scale >= 11.99) animateView(0, 0, 1); else zoomTo(state.scale * 2, point);
+    return;
+  }
+  const { clientX, clientY } = event;
+  gesture.lastTap = { time: event.timeStamp, x: clientX, y: clientY };
+  clearTimeout(gesture.tapTimer);
+  gesture.tapTimer = setTimeout(() => tapAt(point, clientX, clientY), 220);
+}
+world.addEventListener('pointerup', endPointer);
+world.addEventListener('pointercancel', endPointer);
 world.addEventListener('wheel', (event) => {
   event.preventDefault();
   const point = worldPoint(event);
@@ -1764,7 +1909,7 @@ $('#enterWorld').addEventListener('click', enterWorld);
 $('#openGuide').addEventListener('click', showGuide);
 $('#guideButton').addEventListener('click', showGuide);
 $('#closeGuide').addEventListener('click', hideGuide);
-$('#closeSheet').addEventListener('click', () => { $('#islandSheet').classList.remove('open'); state.selected = null; updateCardSelection(); drawWorld(); });
+$('#closeSheet').addEventListener('click', closeSheet);
 $('#zoomIn').addEventListener('click', () => zoomStep(1));
 $('#zoomOut').addEventListener('click', () => zoomStep(-1));
 $('#resetView').addEventListener('click', resetView);
@@ -1777,7 +1922,7 @@ function setHideNames(hide) {
   button.setAttribute('aria-label', hide ? 'Show project names' : 'Hide project names');
   button.title = hide ? 'Show project names' : 'Hide project names';
   $('#includeNames').checked = !hide;
-  $$('.island-card').forEach((card) => { const project = PROJECTS.find((item) => item.id === card.dataset.project); card.querySelector('.island-name').textContent = nameOf(project) || kindOf(project); card.querySelector('.island-meta').textContent = islandMeta(project); });
+  $$('.island-card').forEach((card) => { const project = PROJECTS.find((item) => item.id === card.dataset.project); card.querySelector('.island-name').textContent = nameOf(project) || kindOf(project); card.querySelector('.meta-text').textContent = islandMeta(project); });
   const open = PROJECTS.find((project) => project.id === state.selected);
   if (open) fillSheet(open);
   buildGuide();
@@ -1801,6 +1946,7 @@ $('.agent-filters').addEventListener('click', (event) => {
   $$('.agent-filter').forEach((item) => item.classList.remove('active')); button.classList.add('active'); state.filter = button.dataset.filter;
   const shown = new Set(visibleProjects().map((project) => project.id));
   $$('.island-card').forEach((card) => { card.hidden = !shown.has(card.dataset.project); });
+  refreshThumbnails();
   $('#indexCount').textContent = String(visibleProjects().length).padStart(2, '0');
   updateSummary();
   hideRelicCard();
@@ -1814,7 +1960,13 @@ $$('.format-option').forEach((button) => button.addEventListener('click', () => 
 }));
 $('[data-close-dialog]').addEventListener('click', () => $('#shareDialog').close());
 $('#relicPopClose').addEventListener('click', hideRelicCard);
-document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideRelicCard(); });
+// Escape closes the topmost layer only: a relic card, then the island sheet, then the field guide. The story and the export dialog handle their own.
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || !$('#story').hidden || $('#shareDialog').open) return;
+  if (!$('#relicPop').hidden) hideRelicCard();
+  else if ($('#islandSheet').classList.contains('open')) closeSheet();
+  else if ($('#mapKey').classList.contains('open')) hideGuide();
+});
 $('#cardTitle').addEventListener('input', renderExport);
 $('#includeNames').addEventListener('change', (event) => { state.showNames = event.target.checked; renderExport(); });
 $('#downloadCard').addEventListener('click', downloadCard);
@@ -1822,7 +1974,7 @@ $('#downloadVideo').addEventListener('click', downloadVideo);
 $('#copyCard').addEventListener('click', copyCard);
 $('#postCard').addEventListener('click', postToX);
 $('#nativeShare').addEventListener('click', nativeShare);
-window.addEventListener('resize', () => { resizeWorld(); if (!$('#story').hidden) { sizeStoryScene(); const build = story.slides[story.index]; if (build?.camera) setStoryCamera(build.camera); } });
+window.addEventListener('resize', () => { resizeWorld(); fitSummary(); refreshThumbnails(); drawDetail(PROJECTS.find((project) => project.id === state.selected)); if (!$('#story').hidden) { sizeStoryScene(); const build = story.slides[story.index]; if (build?.camera) setStoryCamera(build.camera); } });
 
 /* ---------- Story: a Wrapped-style recap that ends on the share card ---------- */
 const STORY_SECONDS = 5.6;
@@ -1830,8 +1982,12 @@ const story = { index: 0, timer: null, started: 0, paused: false, slides: [] };
 
 function capital() { return [...PROJECTS].sort((a, b) => b.activity - a.activity)[0]; }
 function capitalShare() {
-  const total = PROJECTS.reduce((sum, project) => sum + project.activity, 0) || 1;
-  return Math.max(1, Math.round((capital()?.activity || 0) / total * 100));
+  // Activity first; worlds without it fall back to sessions, then to an even split.
+  for (const key of ['activity', 'sessions']) {
+    const total = PROJECTS.reduce((sum, project) => sum + (project[key] || 0), 0);
+    if (total > 0) return Math.max(1, Math.round((capital()?.[key] || 0) / total * 100));
+  }
+  return Math.round(100 / Math.max(1, PROJECTS.length));
 }
 function element(tag, className, text) {
   const node = document.createElement(tag);

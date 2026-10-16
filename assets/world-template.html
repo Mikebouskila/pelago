@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#081126">
   <meta name="description" content="A personal archipelago built from local Claude Code and Codex history.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' shape-rendering='crispEdges'%3E%3Crect width='64' height='64' rx='12' fill='%23143247'/%3E%3Cpath fill='%236EC9CE' d='M8 38h48v14H8z'/%3E%3Cpath fill='%23F3EAD5' d='M14 34h36v10H14zM20 28h24v8H20z'/%3E%3Cpath fill='%238FC979' d='M18 30h28v8H18zM24 24h16v8H24z'/%3E%3Cpath fill='%23F26C5B' d='M30 10h6v18h-6zM36 10h14v10H36z'/%3E%3Cpath fill='%23FFF4AD' d='M12 14h6v6h-6z'/%3E%3C/svg%3E">
   <title>My Pelago · The world I built with AI</title>
   <style>__PELAGO_CSS__</style>
 </head>
@@ -19,8 +20,8 @@
       </div>
       <div class="world-summary" id="worldSummary" aria-live="polite"></div>
       <nav class="mast-actions" aria-label="Atlas actions">
-        <button class="quiet-action" id="guideButton"><span class="action-icon">?</span><span>Field guide</span></button>
-        <button class="quiet-action story-action" data-play-story><span class="action-icon play" aria-hidden="true">▶</span><span>Your story</span></button>
+        <button class="quiet-action" id="guideButton" aria-label="Field guide" title="Field guide"><span class="action-icon" aria-hidden="true">?</span><span>Field guide</span></button>
+        <button class="quiet-action story-action" data-play-story aria-label="Your story" title="Your story"><span class="action-icon play" aria-hidden="true">▶</span><span>Your story</span></button>
         <button class="share-action" id="shareButton"><span>Share atlas</span><span aria-hidden="true">↗</span></button>
       </nav>
     </header>
@@ -55,7 +56,7 @@
         <div class="guide-body" id="guideRelics" role="tabpanel" hidden></div>
       </section>
 
-      <aside class="island-sheet" id="islandSheet" aria-live="polite" aria-labelledby="selectedName">
+      <aside class="island-sheet" id="islandSheet" aria-labelledby="selectedName">
         <button class="sheet-close" id="closeSheet" aria-label="Close island details">×</button>
         <div class="sheet-preview"><canvas id="detailCanvas"></canvas><span class="agent-stamp" id="selectedAgent"></span></div>
         <div class="sheet-content">
@@ -150,6 +151,7 @@
   </section>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="sr-only" id="srAnnounce" aria-live="polite"></div>
   <script id="pelago-data" type="application/json">__PELAGO_DATA__</script>
   <script>__PELAGO_JS__</script>
 </body>

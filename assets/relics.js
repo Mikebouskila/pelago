@@ -487,9 +487,9 @@ const RELICS = [
     progress: (p) => [activeSpan(p), 60, 'days'],
     test: (p) => (activeSpan(p) >= 60 ? `It has grown for ${activeSpan(p)} days.` : null) },
   { id: 'seedling', sprite: 'seedling', name: 'Seedling of Light', rarity: 'common', group: 'Time', hint: 'Start something new this week.',
-    test: (p) => (daysSince(p.firstActive) <= 7 ? 'Founded in the last seven days.' : null) },
+    test: (p) => (daysSince(p.firstActive) !== null && daysSince(p.firstActive) <= 7 ? 'Founded in the last seven days.' : null) },
   { id: 'snowman', sprite: 'snowman', name: 'Sleeping Snowman', rarity: 'common', group: 'Time', hint: 'Let a project rest for two months.',
-    test: (p) => (daysSince(p.lastActive) > 60 ? `Resting for ${Math.round(daysSince(p.lastActive) / 30)} months.` : null) },
+    test: (p) => (daysSince(p.lastActive) !== null && daysSince(p.lastActive) > 60 ? `Resting for ${Math.round(daysSince(p.lastActive) / 30)} months.` : null) },
 ];
 const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
 

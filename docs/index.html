@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#081126">
   <meta name="description" content="A personal archipelago built from local Claude Code and Codex history.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' shape-rendering='crispEdges'%3E%3Crect width='64' height='64' rx='12' fill='%23143247'/%3E%3Cpath fill='%236EC9CE' d='M8 38h48v14H8z'/%3E%3Cpath fill='%23F3EAD5' d='M14 34h36v10H14zM20 28h24v8H20z'/%3E%3Cpath fill='%238FC979' d='M18 30h28v8H18zM24 24h16v8H24z'/%3E%3Cpath fill='%23F26C5B' d='M30 10h6v18h-6zM36 10h14v10H36z'/%3E%3Cpath fill='%23FFF4AD' d='M12 14h6v6h-6z'/%3E%3C/svg%3E">
   <meta property="og:title" content="Pelago: your AI coding history as a pixel-art world">
   <meta property="og:description" content="Every project becomes an island built from your Claude Code and Codex sessions, tokens and tools. Explore a sample world.">
   <meta property="og:image" content="https://mikebouskila.github.io/pelago/hero.jpg">
@@ -36,6 +37,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
+html { touch-action: manipulation; }
 body { overflow: hidden; background: #050b1d; }
 button, input { font: inherit; color: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
@@ -44,17 +46,18 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .skip-link:focus { top: 12px; }
 
 .app { height: 100%; display: grid; grid-template-rows: 66px 1fr; }
-.masthead { position: relative; z-index: 20; display: grid; grid-template-columns: minmax(230px, 1fr) auto minmax(230px, 1fr); align-items: center; gap: 18px; padding: 0 18px 0 24px; border-bottom: 1px solid var(--line); background: rgba(7,13,30,.94); box-shadow: 0 10px 40px rgba(0,0,0,.18); backdrop-filter: blur(18px); }
-.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.masthead { position: relative; z-index: 20; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 0 18px 0 24px; border-bottom: 1px solid var(--line); background: rgba(7,13,30,.94); box-shadow: 0 10px 40px rgba(0,0,0,.18); backdrop-filter: blur(18px); }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; white-space: nowrap; }
 .brand-glyph { position: relative; display: block; width: 32px; height: 30px; flex: 0 0 auto; }
 .brand-glyph::before { content: ""; position: absolute; left: 2px; top: 11px; width: 27px; height: 10px; background: var(--coral); box-shadow: 4px -4px 0 var(--coral), 4px 4px 0 var(--coral); }
 .brand-glyph::after { content: ""; position: absolute; left: 7px; top: 13px; width: 5px; height: 5px; background: #fff8e8; box-shadow: 13px 0 0 #fff8e8; }
 .brand-glyph i { position: absolute; z-index: 1; left: 13px; top: 5px; width: 5px; height: 5px; background: var(--sun); box-shadow: 0 20px 0 var(--sea-deep); }
 .brand-word { font-size: 17px; font-weight: 950; letter-spacing: .17em; }
 .brand-edition { margin-left: 5px; padding-left: 14px; border-left: 1px solid var(--line); color: var(--muted); font-size: 10.5px; font-weight: 850; letter-spacing: .15em; white-space: nowrap; }
-.world-summary { display: flex; align-items: center; justify-content: center; gap: 9px; color: var(--ink-2); font-size: 12px; font-weight: 760; letter-spacing: .02em; white-space: nowrap; }
+.world-summary { display: flex; align-items: center; justify-content: center; gap: 9px; color: var(--ink-2); font-size: 12px; font-weight: 760; letter-spacing: .02em; white-space: nowrap; min-width: 0; overflow: hidden; }
 .world-summary i { width: 3px; height: 3px; background: var(--coral); }
-.mast-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.mast-actions { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 8px; }
+.mast-actions button span { white-space: nowrap; }
 .quiet-action, .share-action, .primary-action, .text-action, .sheet-share, .download-action { border: 0; cursor: pointer; transition: transform .16s cubic-bezier(.22,1,.36,1), background .16s, color .16s, box-shadow .16s; }
 .quiet-action { min-height: 42px; padding: 0 13px; border: 1px solid var(--line); border-radius: 4px; background: transparent; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; }
 .quiet-action:hover { background: var(--paper-2); transform: translateY(-1px); }
@@ -69,16 +72,16 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .welcome:not(.dismissed) ~ .ocean-vignette { background: radial-gradient(ellipse at 50% 45%, transparent 0 55%, rgba(1,4,16,.32) 100%), linear-gradient(90deg, rgba(1,4,16,.55), transparent 40%); }
 
 .overline { margin: 0; color: var(--coral-deep); font-size: 11.5px; font-weight: 900; letter-spacing: .17em; text-transform: uppercase; }
-.welcome { position: absolute; z-index: 4; left: clamp(30px, 5vw, 78px); top: 50%; width: min(520px, 44vw); transform: translateY(-55%); transition: opacity .28s cubic-bezier(.22,1,.36,1), transform .28s cubic-bezier(.22,1,.36,1), visibility .28s; }
-.welcome.dismissed { opacity: 0; visibility: hidden; transform: translate(-22px, -55%); pointer-events: none; }
+.welcome { position: absolute; z-index: 4; left: clamp(30px, 5vw, 78px); top: 90px; bottom: 108px; width: min(440px, 34vw); height: fit-content; max-height: calc(100% - 198px); margin: auto 0; overflow: auto; transition: opacity .28s cubic-bezier(.22,1,.36,1), transform .28s cubic-bezier(.22,1,.36,1), visibility .28s; }
+.welcome.dismissed { opacity: 0; visibility: hidden; transform: translateX(-22px); pointer-events: none; }
 .welcome .overline { color: oklch(96% 0.035 184); text-shadow: 0 1px oklch(30% 0.06 210 / .25); }
-.welcome h1 { margin: 13px 0 17px; max-width: 520px; color: var(--paper); font-family: Georgia, "Times New Roman", serif; font-size: clamp(49px, 5.4vw, 80px); font-weight: 700; line-height: .9; letter-spacing: -.055em; text-shadow: 0 4px 0 oklch(35% 0.06 208 / .16); }
+.welcome h1 { margin: 13px 0 17px; max-width: 520px; color: var(--paper); font-family: Georgia, "Times New Roman", serif; font-size: clamp(40px, min(5.4vw, 8.6vh), 76px); font-weight: 700; line-height: .9; letter-spacing: -.055em; text-shadow: 0 4px 0 oklch(35% 0.06 208 / .16); }
 .welcome h1 em { color: var(--sun); font-weight: 400; }
 .welcome-copy { max-width: 470px; margin: 0; color: oklch(97% 0.02 180 / .92); font-size: 14px; font-weight: 590; line-height: 1.65; text-shadow: 0 1px oklch(30% 0.06 210 / .28); }
 .welcome-actions { display: flex; align-items: center; gap: 18px; margin-top: 25px; }
 .primary-action { min-height: 49px; padding: 0 18px; border-radius: 4px; background: var(--coral); color: var(--paper); display: inline-flex; align-items: center; gap: 22px; font-size: 12.5px; font-weight: 900; box-shadow: 0 3px 0 var(--coral-deep); }
-.text-action { min-height: 44px; padding: 0; background: transparent; color: var(--paper); font-size: 12.5px; font-weight: 820; text-decoration: underline; text-decoration-color: oklch(96% 0.03 180 / .36); text-underline-offset: 5px; }
-.text-action:hover { color: var(--sun); }
+.text-action { min-height: 44px; padding: 0; background: transparent; color: #dce8f6; font-size: 12.5px; font-weight: 820; text-decoration: underline; text-decoration-color: rgba(220,232,246,.38); text-decoration-thickness: 1px; text-underline-offset: 5px; }
+.text-action:hover { color: var(--sun); text-decoration-color: currentColor; }
 .privacy { display: flex; align-items: center; gap: 8px; margin: 19px 0 0; color: oklch(94% 0.025 180 / .75); font-size: 11.5px; font-weight: 760; }
 
 .map-key { position: absolute; z-index: 9; top: 18px; left: 18px; width: min(620px, calc(100vw - 36px)); max-height: calc(100% - 150px); overflow: auto; padding: 24px; border: 1px solid oklch(92% 0.025 89 / .9); border-radius: 6px; background: var(--paper); box-shadow: var(--shadow); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: .22s cubic-bezier(.22,1,.36,1); }
@@ -112,11 +115,12 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .island-sheet.open { opacity: 1; visibility: visible; transform: none; }
 .sheet-close { position: absolute; z-index: 2; top: 10px; right: 10px; background: oklch(98% 0.015 90 / .9); }
 .sheet-preview { position: relative; height: 176px; background: var(--sea); overflow: hidden; }
-.sheet-preview canvas { width: 100%; height: 100%; image-rendering: auto; }
+.sheet-preview canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
 .agent-stamp { position: absolute; left: 13px; top: 13px; min-height: 25px; padding: 0 8px; border-radius: 3px; background: var(--paper); display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-size: 10.5px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .agent-stamp::before { content: ""; width: 7px; height: 7px; background: var(--agent-color); }
 .sheet-content { padding: 20px; }
 .island-sheet h2 { font-size: 28px; }
+#selectedName { overflow-wrap: anywhere; }
 .island-story { margin: 10px 0 0; color: var(--ink-2); font-size: 12.5px; line-height: 1.55; }
 .island-facts { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 17px; padding: 13px 0; border-block: 1px solid var(--line); }
 .fact { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
@@ -151,10 +155,13 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .island-card { min-width: 196px; max-width: 196px; height: 70px; padding: 7px; border: 1px solid transparent; border-radius: 4px; background: transparent; display: grid; grid-template-columns: 52px 1fr; gap: 8px; align-items: center; text-align: left; cursor: pointer; transition: .15s cubic-bezier(.22,1,.36,1); }
 .island-card:hover { background: var(--paper-2); transform: translateY(-2px); }.island-card.selected { border-color: var(--coral); background: oklch(96% 0.035 52); }
 .island-card[hidden] { display: none; }
-.card-island { width: 56px; height: 54px; background: var(--sea); image-rendering: auto; }
-.island-card strong { display: block; overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }.island-card small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; font-weight: 760; text-transform: capitalize; }
+.card-island { width: 56px; height: 54px; background: var(--sea); image-rendering: pixelated; }
+.island-card strong { display: block; overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }.island-card small { display: flex; align-items: center; gap: 5px; min-width: 0; margin-top: 4px; color: var(--muted); font-size: 10px; font-weight: 760; text-transform: capitalize; }
+.island-card > span { min-width: 0; }
+.island-card .meta-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crew-dots { display: inline-flex; flex: 0 0 auto; gap: 2px; }
 
-.share-dialog { width: min(900px, calc(100vw - 28px)); max-height: calc(100vh - 28px); padding: 0; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink); box-shadow: 0 28px 90px oklch(20% 0.05 220 / .38); overflow: auto; }
+.share-dialog { width: min(900px, calc(100vw - 28px)); max-height: calc(100vh - 28px); max-height: calc(100dvh - 28px); padding: 0; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink); box-shadow: 0 28px 90px oklch(20% 0.05 220 / .38); overflow: auto; }
 .share-dialog::backdrop { background: oklch(20% 0.05 220 / .68); backdrop-filter: blur(5px); }
 .share-dialog[open] { animation: dialog-in .2s cubic-bezier(.22,1,.36,1); }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(10px) scale(.985); } }
@@ -421,7 +428,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .card-island { width: 40px; height: 40px; }
   .island-card small { display: none; }
   .island-card strong { font-size: 12px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .map-controls { display: grid; padding: 3px; }.map-controls button:not(#toggleNames) { display: none; }
+  .map-controls { display: grid; padding: 3px; }.map-controls #zoomIn, .map-controls #zoomOut, .map-controls:not(.moved) #resetView { display: none; }.map-controls button { width: 44px; height: 44px; }
   .mast-actions { gap: 6px; }
 }
 
@@ -530,6 +537,31 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .map-controls #toggleNames .names-icon { position: relative; font-family: Georgia, serif; font-size: 15px; font-weight: 700; }
 .map-controls #toggleNames[aria-pressed="true"] { background: rgba(255,214,111,.16); color: #ffd66f; }
 .map-controls #toggleNames[aria-pressed="true"] .names-icon::after { content: ""; position: absolute; left: -3px; right: -3px; top: 50%; height: 2px; background: currentColor; transform: rotate(-20deg); }
+
+/* Polish: a masthead that never wraps, a welcome card that clears it, phones */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+.world-summary { justify-self: center; max-width: 100%; }
+.world-summary .dropped { display: none; }
+@media (max-width: 1499px) { .world-summary .sum-since { display: none; } }
+@media (min-width: 681px) and (max-width: 1180px) {
+  .quiet-action { position: relative; width: 42px; padding: 0; justify-content: center; }
+  .quiet-action > span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media (min-width: 681px) and (max-height: 900px) {
+  .welcome { padding: 16px 22px 15px; }
+  .welcome h1 { margin: 7px 0 10px; line-height: .88; }
+  .welcome-copy { font-size: 13px; line-height: 1.46; }
+  .persona-chip { margin-top: 11px; padding: 7px 13px; }
+  .welcome-actions { margin-top: 12px; gap: 4px 12px; }
+  .welcome-actions .primary-action, .welcome-actions .ghost-action { min-height: 44px; }
+  .welcome .text-action { min-height: 36px; }
+  .privacy { margin-top: 8px; }
+}
+.toast { bottom: 108px; }
+@media (max-width: 680px) {
+  .welcome { height: auto; margin: 0; }
+  .toast { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
+}
 </style>
 </head>
 <body>
@@ -543,8 +575,8 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
       </div>
       <div class="world-summary" id="worldSummary" aria-live="polite"></div>
       <nav class="mast-actions" aria-label="Atlas actions">
-        <button class="quiet-action" id="guideButton"><span class="action-icon">?</span><span>Field guide</span></button>
-        <button class="quiet-action story-action" data-play-story><span class="action-icon play" aria-hidden="true">▶</span><span>Your story</span></button>
+        <button class="quiet-action" id="guideButton" aria-label="Field guide" title="Field guide"><span class="action-icon" aria-hidden="true">?</span><span>Field guide</span></button>
+        <button class="quiet-action story-action" data-play-story aria-label="Your story" title="Your story"><span class="action-icon play" aria-hidden="true">▶</span><span>Your story</span></button>
         <button class="share-action" id="shareButton"><span>Share atlas</span><span aria-hidden="true">↗</span></button>
       </nav>
     </header>
@@ -579,7 +611,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
         <div class="guide-body" id="guideRelics" role="tabpanel" hidden></div>
       </section>
 
-      <aside class="island-sheet" id="islandSheet" aria-live="polite" aria-labelledby="selectedName">
+      <aside class="island-sheet" id="islandSheet" aria-labelledby="selectedName">
         <button class="sheet-close" id="closeSheet" aria-label="Close island details">×</button>
         <div class="sheet-preview"><canvas id="detailCanvas"></canvas><span class="agent-stamp" id="selectedAgent"></span></div>
         <div class="sheet-content">
@@ -674,7 +706,8 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   </section>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-15T23:46:07.152964+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-17T23:46:07.152964+00:00","lastActive":"2026-10-15T23:46:07.152964+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-06-30T23:46:07.152964+00:00","lastActive":"2026-10-13T23:46:07.152964+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-13T23:46:07.152964+00:00","lastActive":"2026-10-09T23:46:07.152964+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-27T23:46:07.152964+00:00","lastActive":"2026-10-04T23:46:07.152964+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-10T23:46:07.152964+00:00","lastActive":"2026-08-01T23:46:07.152964+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-23T23:46:07.152964+00:00","lastActive":"2026-09-26T23:46:07.152964+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-06T23:46:07.152964+00:00","lastActive":"2026-06-07T23:46:07.152964+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-20T23:46:07.152964+00:00","lastActive":"2026-09-19T23:46:07.152964+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-03T23:46:07.152964+00:00","lastActive":"2026-10-12T23:46:07.152964+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-14T23:46:07.152964+00:00","lastActive":"2026-10-06T23:46:07.152964+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-28T23:46:07.152964+00:00","lastActive":"2026-10-14T23:46:07.152964+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-11T23:46:07.152964+00:00","lastActive":"2026-09-05T23:46:07.152964+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-25T23:46:07.152964+00:00","lastActive":"2026-08-06T23:46:07.152964+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-08T23:46:07.152964+00:00","lastActive":"2026-10-13T23:46:07.152964+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22}}</script>
+  <div class="sr-only" id="srAnnounce" aria-live="polite"></div>
+  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-16T12:41:03.929616+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-18T12:41:03.929616+00:00","lastActive":"2026-10-16T12:41:03.929616+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-07-01T12:41:03.929616+00:00","lastActive":"2026-10-14T12:41:03.929616+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-14T12:41:03.929616+00:00","lastActive":"2026-10-10T12:41:03.929616+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-28T12:41:03.929616+00:00","lastActive":"2026-10-05T12:41:03.929616+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-11T12:41:03.929616+00:00","lastActive":"2026-08-02T12:41:03.929616+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-24T12:41:03.929616+00:00","lastActive":"2026-09-27T12:41:03.929616+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-07T12:41:03.929616+00:00","lastActive":"2026-06-08T12:41:03.929616+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-21T12:41:03.929616+00:00","lastActive":"2026-09-20T12:41:03.929616+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-04T12:41:03.929616+00:00","lastActive":"2026-10-13T12:41:03.929616+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-15T12:41:03.929616+00:00","lastActive":"2026-10-07T12:41:03.929616+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-29T12:41:03.929616+00:00","lastActive":"2026-10-15T12:41:03.929616+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-12T12:41:03.929616+00:00","lastActive":"2026-09-06T12:41:03.929616+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-26T12:41:03.929616+00:00","lastActive":"2026-08-07T12:41:03.929616+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-09T12:41:03.929616+00:00","lastActive":"2026-10-14T12:41:03.929616+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22}}</script>
   <script>/* ---------- Procedural islands: every island is built from its own work ---------- */
 // Isometric pixel art, painted pixel by pixel into a buffer with one light source (upper left),
 // warm highlights, cool shadows, dithered materials and a dark silhouette outline.
@@ -758,17 +791,17 @@ function islandRecipe(project) {
   const biome = BIOMES[project.category] || BIOMES.other;
   const buildings = buildingPlan(project);
   const trees = treePlan(project);
-  const days = daysSince(project.lastActive);
+  const days = daysSince(project.lastActive), known = days !== null;
   return {
     biome, buildings, trees, days,
     grid: gridSize(project),
     waterfalls: waterfallCount(project),
     decor: clamp(Math.round((project.messages || 0) / 60), 4, 70),
     lanterns: clamp(Math.round(Math.log2(Math.max(1, (project.tokens?.output || project.messages * 120) / 4000))), 0, 24),
-    lit: clamp(.3 + Math.log10(Math.max(1, project.tokens?.output || project.messages * 120)) / 9, .3, .95) * (days < 30 ? 1 : days < 120 ? .6 : .25),
-    snow: days > 60,
-    smoke: days < 14,
-    beacon: days < 21,
+    lit: clamp(.3 + Math.log10(Math.max(1, project.tokens?.output || project.messages * 120)) / 9, .3, .95) * (!known ? .6 : days < 30 ? 1 : days < 120 ? .6 : .25),
+    snow: known && days > 60,
+    smoke: known && days < 14,
+    beacon: known && days < 21,
   };
 }
 
@@ -1031,7 +1064,7 @@ function renderIslandArt(project) {
         put(gx, y, tone(color, faceShade));
       }
       // Hanging vines and roots from the grass lip.
-      if (!water[i][j] && !coast && hash2(seed, gx, j * 7 + i) > (recipe.days < 60 ? .8 : .93)) {
+      if (!water[i][j] && !coast && hash2(seed, gx, j * 7 + i) > (recipe.days !== null && recipe.days < 60 ? .8 : .93)) {
         const length = 4 + Math.floor(hash2(seed, gx, i * 5) * 16);
         for (let y = 0; y < length && edgeY + lip + y < bottomY; y += 1) {
           const leaf = biome.leaves[(y + gx) % 3 === 0 ? 2 : 1];
@@ -1596,7 +1629,7 @@ function renderIslandArt(project) {
   for (let ship = 0; ship < ships; ship += 1) {
     anim({ type: 'airship', x: centreX, y: centreTop - 40 - ship * 18, rx: size * TILE_W * (.75 + ship * .12), ry: size * TILE_H * .55, phase: hash2(seed, ship, 61) * Math.PI * 2, speed: .07 + ship * .02, color: crewColors[ship % crewColors.length] || hexRgb('#e0784a') });
   }
-  if (recipe.days < 30) anim({ type: 'fireflies', x: centreX, y: centreTop + size * TILE_H * .6, rx: size * TILE_W * .7, ry: size * TILE_H * .6, count: clamp(Math.round(size * 1.2), 6, 30) });
+  if (recipe.days !== null && recipe.days < 30) anim({ type: 'fireflies', x: centreX, y: centreTop + size * TILE_H * .6, rx: size * TILE_W * .7, ry: size * TILE_H * .6, count: clamp(Math.round(size * 1.2), 6, 30) });
 
   function floatingRelics() { floating.forEach((entry) => {
     const wx = originX + landLeft - 46, wy = originY + size * TILE_H * .2;
@@ -2387,9 +2420,9 @@ const RELICS = [
     progress: (p) => [activeSpan(p), 60, 'days'],
     test: (p) => (activeSpan(p) >= 60 ? `It has grown for ${activeSpan(p)} days.` : null) },
   { id: 'seedling', sprite: 'seedling', name: 'Seedling of Light', rarity: 'common', group: 'Time', hint: 'Start something new this week.',
-    test: (p) => (daysSince(p.firstActive) <= 7 ? 'Founded in the last seven days.' : null) },
+    test: (p) => (daysSince(p.firstActive) !== null && daysSince(p.firstActive) <= 7 ? 'Founded in the last seven days.' : null) },
   { id: 'snowman', sprite: 'snowman', name: 'Sleeping Snowman', rarity: 'common', group: 'Time', hint: 'Let a project rest for two months.',
-    test: (p) => (daysSince(p.lastActive) > 60 ? `Resting for ${Math.round(daysSince(p.lastActive) / 30)} months.` : null) },
+    test: (p) => (daysSince(p.lastActive) !== null && daysSince(p.lastActive) > 60 ? `Resting for ${Math.round(daysSince(p.lastActive) / 30)} months.` : null) },
 ];
 const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
 
@@ -2484,6 +2517,8 @@ Object.assign(RELIC_SPRITES, {
 
 const DATA = JSON.parse(document.getElementById('pelago-data').textContent);
 const PROJECTS = Array.isArray(DATA.projects) ? DATA.projects : [];
+// A world is a snapshot: recency is measured from when it was generated, so a shared page never ages.
+const NOW = Date.parse(DATA.generatedAt) || Date.now();
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
@@ -2681,7 +2716,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   const scale = tall || square ? width / 1080 : height / 900;
   const pad = (wide ? 60 : 68) * scale;
   const copy = cardCopy(selected);
-  const year = new Date(DATA.generatedAt).getFullYear();
+  const year = new Date(NOW).getFullYear();
   const time = options.time ?? 2400;
   const zoom = options.zoom || 1;
 
@@ -2976,8 +3011,8 @@ function compact(value) {
 function escapeHtml(text) { return String(text).replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`); }
 function plural(value, word) { return `${value} ${word}${value === 1 ? '' : 's'}`; }
 function daysSince(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? 9999 : Math.max(0, Math.floor((Date.now() - date.valueOf()) / 86400000));
+  const time = value ? Date.parse(value) : NaN;
+  return Number.isNaN(time) ? null : Math.max(0, Math.floor((NOW - time) / 86400000));
 }
 function crewsOf(project) { return project.crews || { [project.agent || 'claude']: 1 }; }
 function hasCrew(project, agent) { return (crewsOf(project)[agent] || 0) > 0; }
@@ -2985,13 +3020,13 @@ function crewLabel(project) {
   return Object.entries(crewsOf(project)).filter(([, share]) => share >= .1).map(([agent]) => (agent === 'claude' ? 'Claude Code' : 'Codex')).join(' + ');
 }
 function activeSpan(project) {
-  const first = new Date(project.firstActive || project.lastActive);
-  const last = new Date(project.lastActive);
-  if (Number.isNaN(first.valueOf()) || Number.isNaN(last.valueOf())) return 1;
+  const first = Date.parse(project.firstActive || project.lastActive || ''), last = Date.parse(project.lastActive || '');
+  if (Number.isNaN(first) || Number.isNaN(last)) return 1;
   return Math.max(1, Math.round((last - first) / 86400000));
 }
 function recencyText(project) {
   const days = daysSince(project.lastActive);
+  if (days === null) return 'Date unknown';
   if (days === 0) return 'Active today';
   if (days === 1) return 'Active yesterday';
   if (days < 30) return `Active ${days} days ago`;
@@ -3277,15 +3312,31 @@ function drawIslandLabel(context, item, options = {}) {
   context.save();
   context.translate(transform.x, transform.y);
   context.scale(transform.scale, transform.scale);
-  const labelY = y + size * .62;
   const labelScale = (options.labelScale || 1) / transform.scale;
   const fontSize = clamp(size * .085, 10 * labelScale, 15 * labelScale);
   context.textAlign = 'center';
   context.font = `800 ${fontSize}px ui-sans-serif, system-ui`;
-  const width = Math.min(Math.max(diameter * .9, 120 * labelScale), context.measureText(nameOf(project)).width + fontSize * 2);
+  // Long names are cut with an ellipsis; the full name stays in the hover label and the sheet.
+  let text = nameOf(project);
+  const room = Math.max(size * 2.2, 120 * labelScale) - fontSize * 2;
+  if (context.measureText(text).width > room) {
+    let low = 0, high = text.length;
+    while (low < high) { const mid = (low + high + 1) >> 1; if (context.measureText(`${text.slice(0, mid).trimEnd()}…`).width <= room) low = mid; else high = mid - 1; }
+    text = `${text.slice(0, low).trimEnd()}…`;
+  }
+  const width = Math.min(Math.max(diameter * .9, 120 * labelScale), context.measureText(text).width + fontSize * 2);
+  // Keep the pill inside the canvas while any of its island is on screen.
+  const margin = 8 * (options.labelScale || 1) / transform.scale;
+  const left = -transform.x / transform.scale, top = -transform.y / transform.scale;
+  const right = left + context.canvas.width / transform.scale, bottom = top + context.canvas.height / transform.scale;
+  const onScreen = x + size >= left && x - size <= right && y + size >= top && y - size <= bottom;
+  const fit = (value, low, high) => (onScreen && low <= high ? clamp(value, low, high) : value);
+  const pillHeight = fontSize * 1.8;
+  const cx = fit(x, left + margin + width / 2, right - margin - width / 2);
+  const labelY = fit(y + size * .62, top + margin + fontSize * 1.1, bottom - margin - pillHeight + fontSize * 1.1);
   context.fillStyle = 'rgba(7,14,34,.9)';
   context.beginPath();
-  context.roundRect(x - width / 2, labelY - fontSize * 1.1, width, fontSize * 1.8, fontSize * .5);
+  context.roundRect(cx - width / 2, labelY - fontSize * 1.1, width, pillHeight, fontSize * .5);
   context.fill();
   context.strokeStyle = project.builderPalette ? hexAlpha(project.builderPalette[0][0], .8) : project.agent === 'claude' ? 'rgba(220,129,80,.72)' : 'rgba(69,163,141,.72)';
   context.lineWidth = 1;
@@ -3293,14 +3344,14 @@ function drawIslandLabel(context, item, options = {}) {
   if (project.builderPalette) {
     // Who built it: one coloured segment per builder, sized by their share.
     const stripWidth = width - fontSize * 1.4, stripHeight = Math.max(2, fontSize * .2);
-    let left = x - stripWidth / 2;
-    const top = labelY + fontSize * .48;
+    let stripLeft = cx - stripWidth / 2;
+    const stripTop = labelY + fontSize * .48;
     project.builderPalette.forEach(([color, share]) => {
-      context.fillStyle = color; context.fillRect(left, top, stripWidth * share, stripHeight); left += stripWidth * share;
+      context.fillStyle = color; context.fillRect(stripLeft, stripTop, stripWidth * share, stripHeight); stripLeft += stripWidth * share;
     });
   }
   context.fillStyle = '#f8f1df';
-  context.fillText(nameOf(project), x, labelY + fontSize * .28, width - fontSize);
+  context.fillText(text, cx, labelY + fontSize * .28, width - fontSize);
   context.restore();
 }
 
@@ -3325,27 +3376,51 @@ function teamAnchor(project, placed, aspect) {
 function packIslands(projects, aspect, factors = null) {
   // Deterministic golden-spiral packing. The biggest island sits at the heart; an island with a bridge
   // to one already placed searches outward from that neighbour, so related worlds end up side by side.
+  // Collisions are checked against a uniform spatial hash: a cell is as wide as the largest possible clearance,
+  // so only the 3×3 cells around a candidate can hold an island it would overlap. Same test, same spiral order.
   const ordered = [...projects].sort((a, b) => (b.activity || 0) - (a.activity || 0));
-  const placed = [];
-  ordered.forEach((project, index) => {
+  const sized = ordered.map((project) => {
     const factor = factors?.get(project.id) ?? 1;
     const base = islandMetrics(project);
-    const metrics = { ...base, unit: base.unit * factor, left: base.left * factor, right: base.right * factor, up: base.up * factor, down: base.down * factor };
+    return { project, factor, metrics: { ...base, unit: base.unit * factor, left: base.left * factor, right: base.right * factor, up: base.up * factor, down: base.down * factor } };
+  });
+  const largest = Math.max(1e-6, ...sized.map((entry) => entry.metrics.unit));
+  const cellX = 2.24 * largest, cellY = 2.24 * largest * .66;
+  const cells = new Map();
+  const cellKey = (i, j) => i * 1048576 + j;
+  const placed = [];
+  sized.forEach(({ project, factor, metrics }, index) => {
     const unit = metrics.unit;
     const twist = seeded(project.seed)() * Math.PI * 2;
     const relatives = linksOf(project).map((link) => placed.find((item) => item.project.id === link.other.id)).filter(Boolean);
     const anchor = relatives.sort((a, b) => b.project.activity - a.project.activity)[0] || teamAnchor(project, placed, aspect) || { x: 0, y: 0 };
     let spot = { x: anchor.x, y: anchor.y };
+    const free = (x, y) => {
+      const ci = Math.floor(x / cellX), cj = Math.floor(y / cellY);
+      for (let i = ci - 1; i <= ci + 1; i += 1) {
+        for (let j = cj - 1; j <= cj + 1; j += 1) {
+          const bucket = cells.get(cellKey(i, j));
+          if (bucket && !bucket.every((other) => Math.hypot((x - other.x) / (unit + other.unit), (y - other.y) / ((unit + other.unit) * .66)) >= 1.12)) return false;
+        }
+      }
+      return true;
+    };
     if (index) {
-      for (let step = 1; step < 9000; step += 1) {
+      // The golden spiral keeps widening until it finds open water; it never falls back onto the anchor.
+      let found = false;
+      for (let step = 1; step < 4e6 && !found; step += 1) {
         const angle = step * 2.39996 + twist;
         const radius = .05 * Math.sqrt(step);
         const x = anchor.x + Math.cos(angle) * radius, y = anchor.y + Math.sin(angle) * radius * aspect;
-        const free = placed.every((other) => Math.hypot((x - other.x) / (unit + other.unit), (y - other.y) / ((unit + other.unit) * .66)) >= 1.12);
-        if (free) { spot = { x, y }; break; }
+        if (free(x, y)) { spot = { x, y }; found = true; }
       }
+      if (!found) spot = { x: Math.max(...placed.map((other) => other.x + other.unit)) + unit * 2.3, y: anchor.y };
     }
-    placed.push({ project, unit, metrics, factor, ...spot });
+    const item = { project, unit, metrics, factor, ...spot };
+    placed.push(item);
+    const key = cellKey(Math.floor(item.x / cellX), Math.floor(item.y / cellY));
+    if (!cells.has(key)) cells.set(key, []);
+    cells.get(key).push(item);
   });
   return placed;
 }
@@ -3404,14 +3479,19 @@ function zoomTo(scale, point = { x: world.width / 2, y: world.height / 2 }, anim
   const next = clamp(scale, .45, 12);
   const panX = point.x - (point.x - state.panX) * next / state.scale;
   const panY = point.y - (point.y - state.panY) * next / state.scale;
-  if (animated) animateView(panX, panY, next); else { state.panX = panX; state.panY = panY; state.scale = next; drawWorld(); }
+  if (animated) animateView(panX, panY, next); else { viewAnimation += 1; state.panX = panX; state.panY = panY; state.scale = next; requestDraw(); }
 }
+// Pointer moves and wheel ticks ask for a frame; at most one redraw happens per display frame.
+let drawQueued = 0;
+function requestDraw() { if (!drawQueued) drawQueued = requestAnimationFrame(() => { drawQueued = 0; drawWorld(); }); }
+// Backing-store density: phones get up to 3x so the pixel art stays crisp, larger screens stay at 2x.
+function worldRatio() { return Math.min(innerWidth <= 680 ? 3 : 2, window.devicePixelRatio || 1); }
 function zoomStep(direction) { zoomTo(state.scale * (direction > 0 ? 1.4 : 1 / 1.4)); }
 
 function resizeWorld() {
   const previousWidth = state.viewWidth;
   const bounds = world.getBoundingClientRect();
-  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const ratio = worldRatio();
   world.width = Math.max(1, Math.floor(bounds.width * ratio));
   world.height = Math.max(1, Math.floor(bounds.height * ratio));
   if (previousWidth && Math.abs(previousWidth - world.width) > 20) {
@@ -3430,7 +3510,7 @@ function visibleProjects() {
 
 // The map is laid out from the islands currently shown, so filtering by agent re-forms a tight archipelago.
 function worldLayout() {
-  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const ratio = worldRatio();
   const projects = visibleProjects();
   if (world.height > world.width) {
     // Phones: lay the archipelago out as a panorama wider than the screen and start on the capital.
@@ -3462,7 +3542,7 @@ function drawConnections(context, items, transform, time, pixel, layer = 'all') 
   const block = (x, y, w, h, color, alpha = 1) => { context.globalAlpha = alpha; context.fillStyle = color; context.fillRect(Math.round(x), Math.round(y), w, h); };
 
   // The route: islands in the order you founded them.
-  const route = [...items].sort((a, b) => new Date(a.project.firstActive) - new Date(b.project.firstActive)).map((item) => islandScreen(item, transform));
+  const route = [...items].sort((a, b) => (Date.parse(a.project.firstActive || '') || 0) - (Date.parse(b.project.firstActive || '') || 0)).map((item) => islandScreen(item, transform));
   if (route.length > 1 && layer !== 'bridges') {
     const samples = [];
     route.slice(1).forEach((point, index) => {
@@ -3571,7 +3651,7 @@ const TIERS = [
 function sceneTiers(projects) {
   const n = projects.length;
   const tiers = [[], [], []];
-  const byRecency = [...projects].sort((a, b) => new Date(b.lastActive) - new Date(a.lastActive));
+  const byRecency = [...projects].sort((a, b) => (Date.parse(b.lastActive || '') || 0) - (Date.parse(a.lastActive || '') || 0));
   const near = n <= 3 ? n : Math.ceil(n * (n > 12 ? .3 : .42));
   const mid = n <= 3 ? 0 : Math.ceil((n - near) * .5);
   byRecency.forEach((project, index) => tiers[index < near ? 0 : index < near + mid ? 1 : 2].push(project));
@@ -3700,8 +3780,11 @@ function drawCloudBank(context, y, width, seed, alpha, transform, thickness) {
 function drawWorld() {
   drawOcean(worldContext, world.width, world.height);
   drawCloudSea(worldContext, world.width, world.height, performance.now());
-  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const ratio = worldRatio();
   state.items = worldLayout();
+  // Phones show the reset button only once the map has been moved or zoomed.
+  const moved = Math.abs(state.panX) > 1 || Math.abs(state.panY) > 1 || Math.abs(state.scale - 1) > .01;
+  if (moved !== state.viewMoved) { state.viewMoved = moved; $('.map-controls').classList.toggle('moved', moved); }
   const view = { x: state.panX, y: state.panY, scale: state.scale };
   const now = performance.now();
   const capital = [...PROJECTS].sort((a, b) => b.activity - a.activity)[0];
@@ -3784,12 +3867,15 @@ function showRelicCard(hit, clientX, clientY) {
 }
 function hideRelicCard() { $('#relicPop').hidden = true; }
 
+let viewAnimation = 0;
 function animateView(targetX, targetY, targetScale) {
+  const token = viewAnimation += 1;
   const start = { x: state.panX, y: state.panY, scale: state.scale };
   const startTime = performance.now();
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const duration = reduced ? 1 : 420;
   function frame(now) {
+    if (token !== viewAnimation) return;
     const progress = clamp((now - startTime) / duration, 0, 1);
     const eased = 1 - Math.pow(1 - progress, 4);
     state.panX = start.x + (targetX - start.x) * eased;
@@ -4037,7 +4123,14 @@ function focusProject(project, openSheet = true) {
   fillSheet(project);
   if (openSheet) $('#islandSheet').classList.add('open');
   updateCardSelection();
+  announce(`${nameOf(project) || kindOf(project)} selected. ${recencyText(project)}, ${plural(project.sessions, 'session')}.`);
 }
+function announce(text) {
+  const node = $('#srAnnounce');
+  node.textContent = '';
+  setTimeout(() => { node.textContent = text; }, 60);
+}
+function closeSheet() { $('#islandSheet').classList.remove('open'); state.selected = null; updateCardSelection(); drawWorld(); }
 
 function fillSheet(project) {
   const category = CATEGORIES[project.category] || CATEGORIES.other;
@@ -4095,11 +4188,18 @@ function fillSheet(project) {
     });
     linkBox.append(title, list);
   }
-  const canvas = $('#detailCanvas');
-  canvas.width = 430; canvas.height = 220;
+  drawDetail(project);
+}
+function drawDetail(project) {
+  // Drawn at the preview's real device size so every art pixel stays square; skipped while the preview is hidden.
+  const canvas = $('#detailCanvas'), box = canvas.getBoundingClientRect();
+  if (!project || !box.width || !box.height) return;
+  const ratio = Math.min(3, window.devicePixelRatio || 1);
+  canvas.width = Math.round(box.width * ratio); canvas.height = Math.round(box.height * ratio);
+  const width = canvas.width, height = canvas.height;
   const context = canvas.getContext('2d');
-  drawOcean(context, canvas.width, canvas.height, project.seed);
-  drawIslandFit(context, project, 20, 8, canvas.width - 40, canvas.height - 8, { crop: .5 });
+  drawOcean(context, width, height, project.seed);
+  drawIslandFit(context, project, width * .047, height * .036, width * .906, height * .964, { crop: .5 });
 }
 
 function updateCardSelection() {
@@ -4107,10 +4207,18 @@ function updateCardSelection() {
 }
 
 function renderThumbnail(canvas, project) {
-  canvas.width = 88; canvas.height = 82;
+  // A square backing store at the thumbnail's device size: one canvas pixel per screen pixel.
+  const css = canvas.getBoundingClientRect().width;
+  if (!css) return;
+  const size = Math.round(css * Math.min(3, window.devicePixelRatio || 1));
+  if (canvas.width === size && canvas.height === size) return;
+  canvas.width = size; canvas.height = size;
   const context = canvas.getContext('2d');
-  drawOcean(context, canvas.width, canvas.height, project.seed);
-  drawIslandFit(context, project, 4, 4, canvas.width - 8, canvas.height - 6, { crop: .45, glow: false, animate: false });
+  drawOcean(context, size, size, project.seed);
+  drawIslandFit(context, project, size * .05, size * .05, size * .9, size * .93, { crop: .45, glow: false, animate: false });
+}
+function refreshThumbnails() {
+  $$('.island-card:not([hidden])').forEach((card) => renderThumbnail(card.querySelector('canvas'), PROJECTS.find((project) => project.id === card.dataset.project)));
 }
 
 function updateSummary() {
@@ -4120,8 +4228,18 @@ function updateSummary() {
   const sessions = shown.reduce((sum, project) => sum + (builder ? project.work?.[builder]?.sessions || 0 : project.sessions), 0);
   const tokens = shown.reduce((sum, project) => sum + (builder ? project.work?.[builder]?.tokens || 0 : totalTokens(project)), 0);
   const who = state.filter === 'all' ? '' : `<span>${state.filter.startsWith('builder:') ? escapeHtml(state.filter.slice(8)) : state.filter === 'claude' ? 'Claude Code' : 'Codex'}</span><i></i>`;
-  const crew = TEAM ? `<span>${plural(TEAM.members.length, 'builder')}</span><i></i>` : '';
-  $('#worldSummary').innerHTML = `${crew}${who}<span>${plural(shown.length, 'island')}</span><i></i><span>${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i></i><span>since ${sinceLabel()}</span>` : ''}`;
+  const crew = TEAM ? `<span class="sum-builders">${plural(TEAM.members.length, 'builder')}</span><i class="sum-builders"></i>` : '';
+  $('#worldSummary').innerHTML = `${crew}${who}<span>${plural(shown.length, 'island')}</span><i class="sum-sessions"></i><span class="sum-sessions">${compact(sessions)} sessions</span><i></i><span>${compact(tokens)} tokens</span>${sinceLabel() ? `<i class="sum-since"></i><span class="sum-since">since ${sinceLabel()}</span>` : ''}`;
+  fitSummary();
+}
+function fitSummary() {
+  // The masthead never wraps: when the summary runs out of room it drops its least useful parts first.
+  const summary = $('#worldSummary');
+  summary.querySelectorAll('.dropped').forEach((node) => node.classList.remove('dropped'));
+  for (const part of ['sum-since', 'sum-builders', 'sum-sessions']) {
+    if (summary.scrollWidth <= summary.clientWidth) break;
+    summary.querySelectorAll(`.${part}`).forEach((node) => node.classList.add('dropped'));
+  }
 }
 
 const GET_YOURS = `https://${REPO_URL}#-get-yours-in-one-prompt`;
@@ -4162,7 +4280,8 @@ function markTeam() {
     button.append(dot, document.createTextNode(member.name)); filters.append(button);
   });
 }
-function islandMeta(project) { return state.hideNames ? crewLabel(project) : `${crewLabel(project)} · ${kindOf(project)}`; }
+// The card's second line: its kind, or its crew when names are hidden (the first line already shows the kind).
+function islandMeta(project) { return state.hideNames ? crewLabel(project) : kindOf(project); }
 function buildInterface() {
   $('#personaTitle').textContent = PERSONA.title;
   document.title = `${PERSONA.title} · My Pelago`;
@@ -4179,56 +4298,115 @@ function buildInterface() {
     const canvas = document.createElement('canvas'); canvas.className = 'card-island'; canvas.setAttribute('aria-hidden', 'true');
     const copy = document.createElement('span');
     const name = document.createElement('strong'); name.className = 'island-name'; name.textContent = nameOf(project) || kindOf(project);
-    const meta = document.createElement('small'); meta.className = 'island-meta'; meta.textContent = islandMeta(project);
+    const meta = document.createElement('small'); meta.className = 'island-meta';
+    const crew = element('span', 'crew-dots'); crew.setAttribute('role', 'img'); crew.setAttribute('aria-label', crewLabel(project)); crew.title = crewLabel(project);
+    Object.entries(crewsOf(project)).filter(([, share]) => share >= .1).forEach(([agent]) => crew.append(element('i', `agent-dot ${agent === 'claude' ? 'claude' : 'codex'}`)));
+    meta.append(crew, element('span', 'meta-text', islandMeta(project)));
     copy.append(name, meta); button.append(canvas, copy); button.addEventListener('click', () => focusProject(project));
     track.appendChild(button); renderThumbnail(canvas, project);
   });
 }
 
+// Pointers: one finger or the mouse pans, two fingers pinch-zoom around their midpoint, a tap opens what it lands on.
+// On touch a single tap waits a moment so a double tap can zoom instead.
+const pointers = new Map();
+const coarsePointer = matchMedia('(pointer: coarse)');
+const gesture = { pinch: null, multi: false, double: false, lastTap: null, tapTimer: 0 };
+function startPinch() {
+  const [a, b] = [...pointers.values()];
+  gesture.pinch = { distance: Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, scale: state.scale, panX: state.panX, panY: state.panY };
+}
+function movePinch() {
+  const [a, b] = [...pointers.values()], start = gesture.pinch;
+  const scale = clamp(start.scale * Math.hypot(b.x - a.x, b.y - a.y) / start.distance, .45, 12);
+  state.panX = (a.x + b.x) / 2 - (start.x - start.panX) * scale / start.scale;
+  state.panY = (a.y + b.y) / 2 - (start.y - start.panY) * scale / start.scale;
+  state.scale = scale;
+}
+function tapAt(point, clientX, clientY) {
+  const relicHit = hitRelic(point);
+  if (relicHit) { showRelicCard(relicHit, clientX, clientY); return; }
+  hideRelicCard();
+  const found = hitIsland(point); if (found) focusProject(found.project);
+}
 world.addEventListener('pointerdown', (event) => {
+  if (event.pointerType === 'mouse' && event.button !== 0) return;
   const point = worldPoint(event);
-  state.dragging = true; state.moved = false; state.startX = state.pointerX = point.x; state.startY = state.pointerY = point.y;
-  world.setPointerCapture(event.pointerId);
+  pointers.set(event.pointerId, point);
+  try { world.setPointerCapture(event.pointerId); } catch { /* the pointer is already gone */ }
+  viewAnimation += 1; world.style.cursor = '';
+  if (pointers.size === 1) {
+    state.dragging = true; state.moved = false; gesture.multi = false;
+    state.startX = state.pointerX = point.x; state.startY = state.pointerY = point.y;
+    const last = gesture.lastTap;
+    gesture.double = Boolean(last && event.timeStamp - last.time < 300 && Math.hypot(event.clientX - last.x, event.clientY - last.y) < 24);
+    if (gesture.double) clearTimeout(gesture.tapTimer);
+    return;
+  }
+  // A second finger turns the drag into a pinch; a pinch never counts as a tap.
+  state.moved = true; gesture.multi = true; gesture.double = false; clearTimeout(gesture.tapTimer);
+  $('#hoverLabel').classList.remove('visible');
+  startPinch();
 });
 world.addEventListener('pointermove', (event) => {
   const point = worldPoint(event);
-  if (state.dragging) {
-    const dx = point.x - state.pointerX, dy = point.y - state.pointerY;
-    if (Math.abs(point.x - state.startX) + Math.abs(point.y - state.startY) > 5) state.moved = true;
-    state.panX += dx; state.panY += dy; state.pointerX = point.x; state.pointerY = point.y; drawWorld(); return;
+  if (pointers.has(event.pointerId)) {
+    pointers.set(event.pointerId, point);
+    if (pointers.size > 1) { movePinch(); requestDraw(); return; }
+    if (Math.abs(point.x - state.startX) + Math.abs(point.y - state.startY) > (event.pointerType === 'mouse' ? 5 : 10 * worldRatio())) state.moved = true;
+    state.panX += point.x - state.pointerX; state.panY += point.y - state.pointerY; state.pointerX = point.x; state.pointerY = point.y;
+    requestDraw(); return;
   }
+  if (event.pointerType === 'touch') return;
   const relicHit = hitRelic(point);
-  world.style.cursor = relicHit ? 'pointer' : '';
+  const label = $('#hoverLabel');
+  const bounds = world.getBoundingClientRect();
   if (relicHit) {
-    const label = $('#hoverLabel');
+    world.style.cursor = 'pointer';
     label.innerHTML = '';
     const small = document.createElement('small'); small.textContent = `${RARITY[relicHit.relic.rarity].label} relic · click to see why`;
     label.append(document.createTextNode(relicHit.relic.name), small); label.classList.add('visible');
-    const bounds = world.getBoundingClientRect(); label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
+    label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
     return;
   }
   const found = hitIsland(point);
+  world.style.cursor = found ? 'pointer' : '';
   const next = found?.project.id || null;
-  if (next !== state.hovered) { state.hovered = next; drawWorld(); }
-  const label = $('#hoverLabel');
+  if (next !== state.hovered) { state.hovered = next; requestDraw(); }
   if (found) {
     label.innerHTML = '';
     const title = document.createTextNode(nameOf(found.project) || kindOf(found.project));
     const recipe = islandRecipe(found.project);
     const small = document.createElement('small'); small.textContent = `${plural(recipe.buildings.count, 'building')} · ${plural(recipe.trees.count, 'tree')} · ${plural(recipe.waterfalls, 'waterfall')} — ${recencyText(found.project)}`;
     label.append(title, small); label.classList.add('visible');
-    const bounds = world.getBoundingClientRect(); label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
+    label.style.left = `${event.clientX - bounds.left}px`; label.style.top = `${event.clientY - bounds.top}px`;
   } else label.classList.remove('visible');
 });
-world.addEventListener('pointerleave', () => { if (!state.dragging) { state.hovered = null; $('#hoverLabel').classList.remove('visible'); drawWorld(); } });
-world.addEventListener('pointerup', (event) => {
-  const point = worldPoint(event); state.dragging = false;
-  if (state.moved) return;
-  const relicHit = hitRelic(point);
-  if (relicHit) { showRelicCard(relicHit, event.clientX, event.clientY); return; }
-  hideRelicCard();
-  const found = hitIsland(point); if (found) focusProject(found.project);
-});
+world.addEventListener('pointerleave', () => { if (!state.dragging) { state.hovered = null; $('#hoverLabel').classList.remove('visible'); requestDraw(); } });
+function endPointer(event) {
+  if (!pointers.has(event.pointerId)) return;
+  const point = worldPoint(event);
+  pointers.delete(event.pointerId);
+  if (pointers.size > 1) { startPinch(); return; }
+  if (pointers.size === 1) { const [rest] = pointers.values(); state.pointerX = rest.x; state.pointerY = rest.y; return; }
+  state.dragging = false;
+  const double = gesture.double;
+  gesture.double = false;
+  // A cancelled pointer (the browser took the gesture) only ends the drag.
+  if (event.type === 'pointercancel' || state.moved || gesture.multi) return;
+  if (!(event.pointerType === 'touch' || coarsePointer.matches)) { tapAt(point, event.clientX, event.clientY); return; }
+  if (double) {
+    gesture.lastTap = null;
+    if (state.scale >= 11.99) animateView(0, 0, 1); else zoomTo(state.scale * 2, point);
+    return;
+  }
+  const { clientX, clientY } = event;
+  gesture.lastTap = { time: event.timeStamp, x: clientX, y: clientY };
+  clearTimeout(gesture.tapTimer);
+  gesture.tapTimer = setTimeout(() => tapAt(point, clientX, clientY), 220);
+}
+world.addEventListener('pointerup', endPointer);
+world.addEventListener('pointercancel', endPointer);
 world.addEventListener('wheel', (event) => {
   event.preventDefault();
   const point = worldPoint(event);
@@ -4248,7 +4426,7 @@ $('#enterWorld').addEventListener('click', enterWorld);
 $('#openGuide').addEventListener('click', showGuide);
 $('#guideButton').addEventListener('click', showGuide);
 $('#closeGuide').addEventListener('click', hideGuide);
-$('#closeSheet').addEventListener('click', () => { $('#islandSheet').classList.remove('open'); state.selected = null; updateCardSelection(); drawWorld(); });
+$('#closeSheet').addEventListener('click', closeSheet);
 $('#zoomIn').addEventListener('click', () => zoomStep(1));
 $('#zoomOut').addEventListener('click', () => zoomStep(-1));
 $('#resetView').addEventListener('click', resetView);
@@ -4261,7 +4439,7 @@ function setHideNames(hide) {
   button.setAttribute('aria-label', hide ? 'Show project names' : 'Hide project names');
   button.title = hide ? 'Show project names' : 'Hide project names';
   $('#includeNames').checked = !hide;
-  $$('.island-card').forEach((card) => { const project = PROJECTS.find((item) => item.id === card.dataset.project); card.querySelector('.island-name').textContent = nameOf(project) || kindOf(project); card.querySelector('.island-meta').textContent = islandMeta(project); });
+  $$('.island-card').forEach((card) => { const project = PROJECTS.find((item) => item.id === card.dataset.project); card.querySelector('.island-name').textContent = nameOf(project) || kindOf(project); card.querySelector('.meta-text').textContent = islandMeta(project); });
   const open = PROJECTS.find((project) => project.id === state.selected);
   if (open) fillSheet(open);
   buildGuide();
@@ -4285,6 +4463,7 @@ $('.agent-filters').addEventListener('click', (event) => {
   $$('.agent-filter').forEach((item) => item.classList.remove('active')); button.classList.add('active'); state.filter = button.dataset.filter;
   const shown = new Set(visibleProjects().map((project) => project.id));
   $$('.island-card').forEach((card) => { card.hidden = !shown.has(card.dataset.project); });
+  refreshThumbnails();
   $('#indexCount').textContent = String(visibleProjects().length).padStart(2, '0');
   updateSummary();
   hideRelicCard();
@@ -4298,7 +4477,13 @@ $$('.format-option').forEach((button) => button.addEventListener('click', () => 
 }));
 $('[data-close-dialog]').addEventListener('click', () => $('#shareDialog').close());
 $('#relicPopClose').addEventListener('click', hideRelicCard);
-document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideRelicCard(); });
+// Escape closes the topmost layer only: a relic card, then the island sheet, then the field guide. The story and the export dialog handle their own.
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || !$('#story').hidden || $('#shareDialog').open) return;
+  if (!$('#relicPop').hidden) hideRelicCard();
+  else if ($('#islandSheet').classList.contains('open')) closeSheet();
+  else if ($('#mapKey').classList.contains('open')) hideGuide();
+});
 $('#cardTitle').addEventListener('input', renderExport);
 $('#includeNames').addEventListener('change', (event) => { state.showNames = event.target.checked; renderExport(); });
 $('#downloadCard').addEventListener('click', downloadCard);
@@ -4306,7 +4491,7 @@ $('#downloadVideo').addEventListener('click', downloadVideo);
 $('#copyCard').addEventListener('click', copyCard);
 $('#postCard').addEventListener('click', postToX);
 $('#nativeShare').addEventListener('click', nativeShare);
-window.addEventListener('resize', () => { resizeWorld(); if (!$('#story').hidden) { sizeStoryScene(); const build = story.slides[story.index]; if (build?.camera) setStoryCamera(build.camera); } });
+window.addEventListener('resize', () => { resizeWorld(); fitSummary(); refreshThumbnails(); drawDetail(PROJECTS.find((project) => project.id === state.selected)); if (!$('#story').hidden) { sizeStoryScene(); const build = story.slides[story.index]; if (build?.camera) setStoryCamera(build.camera); } });
 
 /* ---------- Story: a Wrapped-style recap that ends on the share card ---------- */
 const STORY_SECONDS = 5.6;
@@ -4314,8 +4499,12 @@ const story = { index: 0, timer: null, started: 0, paused: false, slides: [] };
 
 function capital() { return [...PROJECTS].sort((a, b) => b.activity - a.activity)[0]; }
 function capitalShare() {
-  const total = PROJECTS.reduce((sum, project) => sum + project.activity, 0) || 1;
-  return Math.max(1, Math.round((capital()?.activity || 0) / total * 100));
+  // Activity first; worlds without it fall back to sessions, then to an even split.
+  for (const key of ['activity', 'sessions']) {
+    const total = PROJECTS.reduce((sum, project) => sum + (project[key] || 0), 0);
+    if (total > 0) return Math.max(1, Math.round((capital()?.[key] || 0) / total * 100));
+  }
+  return Math.round(100 / Math.max(1, PROJECTS.length));
 }
 function element(tag, className, text) {
   const node = document.createElement(tag);

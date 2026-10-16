@@ -84,6 +84,23 @@ class PelagoTests(unittest.TestCase):
             self.assertEqual(len(result["projects"]), 1)
             self.assertEqual(result["projects"][0]["category"], "cli")
 
+    def test_undated_projects_emit_null_and_names_drop_bidi_marks(self):
+        public = pelago.Project(key="k", name="Dateless", agent="codex").public()
+        self.assertIsNone(public["firstActive"])
+        self.assertIsNone(public["lastActive"])
+        self.assertEqual(pelago.clean_name("/work/‮evil‬‏-app", "x"), "evil app")
+
+    def test_scan_sorts_undated_projects_beside_dated_ones(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            undated = [codex_meta("/work/undated-tool", "t1"), codex_user("a cli with argparse"), codex_reply("ok")]
+            write(home / ".codex" / "sessions" / "a.jsonl", [{k: v for k, v in row.items() if k != "timestamp"} for row in undated])
+            write(home / ".codex" / "sessions" / "b.jsonl", [codex_meta("/work/dated-tool", "t2"), codex_user("a cli with argparse"), codex_reply("ok")])
+            projects = {project["name"]: project for project in pelago.scan(home)["projects"]}
+            self.assertIsNone(projects["undated tool"]["lastActive"])
+            self.assertIsNone(projects["undated tool"]["firstActive"])
+            self.assertEqual(projects["dated tool"]["lastActive"][:10], "2026-03-01")
+
     def test_demo_renders_self_contained_html(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "world.html"
