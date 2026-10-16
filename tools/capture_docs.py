@@ -27,8 +27,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "scripts" / "pelago.py"
-OUTPUTS = ("hero.gif", "hero.jpg", "og.jpg", "social-preview.png", "card-story.jpg", "card-square.jpg", "card-social.jpg",
-           "card-team.jpg", "story.gif", "archetypes.png", "mobile.jpg", "island.gif", "relic.jpg", "guide.jpg")
+OUTPUTS = ("hero.gif", "hero.jpg", "og.jpg", "social-preview.png", "card-story.jpg", "card-square.jpg", "card-social.jpg", "card-receipts.jpg",
+           "card-team.jpg", "story.gif", "archetypes.png", "gallery.jpg", "mobile.jpg", "island.gif", "relic.jpg", "guide.jpg",
+           "button-demo.svg", "button-get.svg")
 CHROMES = ("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/Applications/Chromium.app/Contents/MacOS/Chromium",
            "google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome")
 GIF_LIMIT = 3 * 1024 * 1024
@@ -45,7 +46,39 @@ window.__docs = (() => {
   const realms = { harbor: 'web apps', garden: 'mobile apps', wilds: 'off the map', observatory: 'AI and agents', forge: 'CLIs and tools', archive: 'data', citadel: 'games', atlas: 'a bit of everything' };
   function card(format) {
     state.exportSelected = null;
-    return jpeg(renderCard(document.createElement('canvas'), format, null, true));
+    return jpeg(renderCard(document.createElement('canvas'), format, null, true), .86);
+  }
+  function moment(kind, format) {
+    state.exportSelected = null;
+    return jpeg(renderMomentCard(document.createElement('canvas'), kind, format, { kind }), .86);
+  }
+  function gallery() {
+    // The eight biggest islands, each captioned with the numbers it was built from, big enough to read in the README.
+    const width = 1600, height = 1000, columns = 4, cellW = width / columns, cellH = height / 2, foot = 196, canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const c = canvas.getContext('2d'), count = (value) => Number(value || 0).toLocaleString('en-US');
+    drawOcean(c, width, height, 73, 2400);
+    [...PROJECTS].sort((a, b) => b.activity - a.activity).slice(0, 8).forEach((project, index) => {
+      const x = (index % columns) * cellW, y = Math.floor(index / columns) * cellH, mid = x + cellW / 2, recipe = islandRecipe(project), band = y + cellH - foot;
+      // Each island kept to its own tile, its rock fading into the caption.
+      c.save(); c.beginPath(); c.rect(x, y, cellW, cellH); c.clip();
+      drawIslandFit(c, project, x + 20, y + 12, cellW - 40, cellH - foot - 6, { crop: .66, time: 2400 });
+      const fade = c.createLinearGradient(0, band - 60, 0, band + 8);
+      fade.addColorStop(0, 'rgba(6,12,30,0)'); fade.addColorStop(1, 'rgba(6,12,30,.94)');
+      c.fillStyle = fade; c.fillRect(x, band - 60, cellW, 68); c.fillStyle = 'rgba(6,12,30,.94)'; c.fillRect(x, band + 8, cellW, foot - 8);
+      c.restore();
+      c.textAlign = 'center'; c.fillStyle = COLORS.paper; c.font = `700 42px ${SERIF}`; c.fillText(nameOf(project), mid, band + 34, cellW - 24);
+      c.font = `900 16px ${SANS}`;
+      if ('letterSpacing' in c) c.letterSpacing = '3px';
+      const kind = kindOf(project).toUpperCase(), kindW = c.measureText(kind).width;
+      c.fillStyle = (CATEGORIES[project.category] || CATEGORIES.other).color; c.fillRect(Math.round(mid - kindW / 2 - 10), band + 52, 10, 10);
+      c.fillStyle = '#9fbad4'; c.fillText(kind, mid + 10, band + 63);
+      if ('letterSpacing' in c) c.letterSpacing = '0px';
+      c.fillStyle = '#d6e2f0'; c.font = `600 22px ${SANS}`;
+      [`${count(project.sessions)} sessions → ${count(recipe.buildings.count)} buildings`, `${count(recipe.trees.prompts)} requests → ${count(recipe.trees.count)} trees`,
+        `${compact(totalTokens(project))} tokens → ${plural(recipe.waterfalls, 'waterfall')}`].forEach((line, row) => c.fillText(line, mid, band + 104 + row * 30, cellW - 24));
+    });
+    return jpeg(canvas, .86);
   }
   function promo(width, height, type) {
     // The link preview: the archipelago from the cards, with one big line that reads at thumbnail size.
@@ -147,9 +180,10 @@ window.__docs = (() => {
   function storyTo(kind) {
     if ($('#story').hidden) { enterWorld(); openStory(); document.activeElement?.blur(); }
     story.paused = true; clearTimeout(story.timer);
-    const index = kind === 'reveal' ? story.slides.findIndex((slide) => slide.camera?.reveal) : kind === 'capital' ? story.slides.findIndex((slide) => slide.camera?.mode === 'island') : 0;
+    const index = kind === 'reveal' ? story.slides.findIndex((slide) => slide.camera?.reveal) : kind === 'capital' ? story.slides.findIndex((slide) => slide.camera?.mode === 'island')
+      : kind === 'receipts' ? story.slides.findIndex((slide) => slide.camera?.mode === 'island' && slide().classList.contains('slide-receipts')) : 0;
     story.index = Math.max(0, index); renderStorySlide();
-    return story.index;
+    return index;
   }
   async function compose(urls, width, height, gap, background) {
     const images = await Promise.all(urls.map((url) => { const image = new Image(); image.src = url; return image.decode().then(() => image); }));
@@ -164,9 +198,9 @@ window.__docs = (() => {
       const x = gap + index * (panel + gap) + (panel - w) / 2, y = (height - h) / 2;
       c.save(); c.beginPath(); c.roundRect(x, y, w, h, 26); c.clip(); c.drawImage(image, x, y, w, h); c.restore();
     });
-    return jpeg(canvas, .88);
+    return jpeg(canvas, .84);
   }
-  return { card, promo, archetypes, islandFrame, focusCapital, openRelic, storyTo, compose };
+  return { card, moment, gallery, promo, archetypes, islandFrame, focusCapital, openRelic, storyTo, compose };
 })();
 true;
 """
@@ -299,12 +333,12 @@ def record(page: Page, seconds: float, fps: float) -> list[bytes]:
     return frames
 
 
-def encode_gif(frames: list[bytes], fps: float, path: Path, ffmpeg: str, width: int | None = None) -> int:
+def encode_gif(frames: list[bytes], fps: float, path: Path, ffmpeg: str, width: int | None = None, colors: int = 256) -> int:
     with tempfile.TemporaryDirectory() as folder:
         for index, frame in enumerate(frames):
             (Path(folder) / f"f{index:04d}.png").write_bytes(frame)
         scale = f"scale={width}:-1:flags=area," if width else ""
-        graph = f"{scale}split[a][b];[a]palettegen=max_colors=256:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle"
+        graph = f"{scale}split[a][b];[a]palettegen=max_colors={colors}:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
         subprocess.run([ffmpeg, "-v", "error", "-y", "-framerate", f"{fps:g}", "-i", f"{folder}/f%04d.png", "-vf", graph, "-loop", "0", str(path)], check=True)
     return path.stat().st_size
 
@@ -319,7 +353,46 @@ def palette_png(data: bytes, ffmpeg: str) -> bytes:
         return target.read_bytes()
 
 
+# The README's two buttons, as SVG in whole pixels: a 5×7 font, stepped corners and a pressed-in bottom edge.
+GLYPHS = {
+    "L": "#....|#....|#....|#....|#....|#....|#####", "I": "###|.#.|.#.|.#.|.#.|.#.|###", "V": "#...#|#...#|#...#|#...#|.#.#.|.#.#.|..#..",
+    "E": "#####|#....|#....|####.|#....|#....|#####", "D": "####.|#...#|#...#|#...#|#...#|#...#|####.", "M": "#...#|##.##|#.#.#|#.#.#|#...#|#...#|#...#",
+    "O": ".###.|#...#|#...#|#...#|#...#|#...#|.###.", "G": ".###.|#...#|#....|#.###|#...#|#...#|.###.", "T": "#####|..#..|..#..|..#..|..#..|..#..|..#..",
+    "Y": "#...#|#...#|.#.#.|..#..|..#..|..#..|..#..", "U": "#...#|#...#|#...#|#...#|#...#|#...#|.###.", "R": "####.|#...#|#...#|####.|#.#..|#..#.|#...#",
+    "S": ".####|#....|#....|.###.|....#|....#|####.", " ": "..|..|..|..|..|..|..",
+    "play": "#....|##...|###..|####.|###..|##...|#....", "bolt": "..###|.###.|.##..|#####|..##.|.##..|.#...",
+}
+BUTTONS = {"button-demo.svg": ("play", "LIVE DEMO", "#eb6f5c", "#7a2a26", "#bd4b42", "#fffaf0"),
+           "button-get.svg": ("bolt", "GET YOURS", "#13213f", "#ffe68c", "#0a1328", "#ffe68c")}
+
+
+def pixel_button(icon: str, label: str, body: str, edge: str, shade: str, ink: str, cell: int = 3) -> bytes:
+    rows = [""] * 7
+    for index, name in enumerate([icon, *label]):
+        rows = [row + ("..." if index == 1 else "." if index else "") + line for row, line in zip(rows, GLYPHS[name].split("|"))]
+    width, height = len(rows[0]) + 12, 18
+    grid = {(x, y): edge if x in (0, width - 1) or y in (0, height - 1) else shade if y >= height - 3 else body
+            for y in range(height) for x in range(width) if not (x in (0, width - 1) and y in (0, height - 1))}
+    letters = [(x + 6, y + 4) for y, row in enumerate(rows) for x, on in enumerate(row) if on == "#"]
+    grid.update({(x, y + 1): shade for x, y in letters})
+    grid.update({point: ink for point in letters})
+    # One path per colour, each row of same-coloured cells merged into a single run.
+    runs: dict[str, list[list[int]]] = {}
+    for (x, y), colour in sorted(grid.items(), key=lambda item: item[0][::-1]):
+        spans = runs.setdefault(colour, [])
+        if spans and spans[-1][1] == y and spans[-1][0] + spans[-1][2] == x:
+            spans[-1][2] += 1
+        else:
+            spans.append([x, y, 1])
+    paths = "".join(f'<path fill="{colour}" d="{"".join(f"M{x * cell} {y * cell}h{w * cell}v{cell}h-{w * cell}z" for x, y, w in spans)}"/>' for colour, spans in runs.items())
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width * cell}" height="{height * cell}" viewBox="0 0 {width * cell} {height * cell}" '
+            f'shape-rendering="crispEdges" role="img" aria-label="{label.title()}">{paths}</svg>\n').encode()
+
+
 def dimensions(data: bytes) -> tuple[int, int]:
+    if data[:4] == b"<svg":
+        width, height = (int(data.split(f' {key}="'.encode(), 1)[1].split(b'"', 1)[0]) for key in ("width", "height"))
+        return width, height
     if data[:8] == b"\x89PNG\r\n\x1a\n":
         return struct.unpack(">II", data[16:24])
     if data[:6] in (b"GIF87a", b"GIF89a"):
@@ -385,18 +458,19 @@ def capture(browser: Browser, worlds: dict[str, Path], wanted: set[str], out: Pa
         save("hero.gif", (out / "hero.gif").read_bytes())
 
     def hero_jpg() -> None:
-        # The poster: the GIF's first frame, at twice the pixels.
-        page = browser.page(solo, *hero, scale=2, clock=True)
+        # The poster for reduced motion: the GIF's first frame, at one and a half times the pixels.
+        page = browser.page(solo, *hero, scale=1.5, clock=True)
         page.eval("enterWorld(); __hold(40000); true")
         time.sleep(1.2)
         page.eval("__hold(40000); drawWorld(); true")
-        save("hero.jpg", page.shot("jpeg", 86))
+        save("hero.jpg", page.shot("jpeg", 84))
         page.close()
 
     def canvases() -> None:
         page = browser.page(solo, 1280, 800)
         for name, expression in (("og.jpg", "__docs.promo(1200, 630, 'jpeg')"), ("card-story.jpg", "__docs.card('story')"),
-                                 ("card-square.jpg", "__docs.card('square')"), ("card-social.jpg", "__docs.card('social')")):
+                                 ("card-square.jpg", "__docs.card('square')"), ("card-social.jpg", "__docs.card('social')"),
+                                 ("card-receipts.jpg", "__docs.moment('receipts', 'square')"), ("gallery.jpg", "__docs.gallery()")):
             if name in wanted:
                 save(name, page.data_url(expression))
         if "social-preview.png" in wanted:
@@ -409,7 +483,7 @@ def capture(browser: Browser, worlds: dict[str, Path], wanted: set[str], out: Pa
         if "archetypes.png" in wanted:
             data = page.data_url("__docs.archetypes()")
             if data:
-                save("archetypes.png", data)
+                save("archetypes.png", palette_png(data, ffmpeg) if ffmpeg else data)
             else:
                 notes.append("archetypes.png: skipped, this build has no keeper sprites (keeperFor)")
         if gif("island.gif"):
@@ -418,22 +492,30 @@ def capture(browser: Browser, worlds: dict[str, Path], wanted: set[str], out: Pa
             save("island.gif", (out / "island.gif").read_bytes())
         page.close()
 
+    def buttons() -> None:
+        for name, spec in BUTTONS.items():
+            if name in wanted:
+                save(name, pixel_button(*spec))
+
     def team_card() -> None:
         page = browser.page(team, 1280, 800)
         save("card-team.jpg", page.data_url("__docs.card('social')"))
         page.close()
 
     def story_gif() -> None:
-        # The phone story in real time: the opening count, the capital, then the archetype reveal.
+        # The phone story in real time: the opening count once it has faded in, the receipts (or the capital), then the reveal.
         page = browser.page(solo, 360, 640, scale=1.5, phone=True)
         frames = []
-        for kind, seconds in (("intro", 2.6), ("capital", 2.2), ("reveal", 4.4)):
-            page.eval(f"__docs.storyTo('{kind}')")
+        for kind, lead, seconds in (("intro", .5, 2.0), ("receipts", .4, 2.4), ("reveal", 0, 4.2)):
+            if page.eval(f"__docs.storyTo('{kind}')") < 0:
+                page.eval("__docs.storyTo('capital')")
+            time.sleep(lead)
             frames += record(page, seconds, 10)
         page.close()
-        for width in (None, 450, 400, 360):
-            if encode_gif(frames, 10, out / "story.gif", ffmpeg, width) <= GIF_LIMIT:
-                break
+        # Shown about 300 pixels wide in the README: 360 and 128 colours look the same there at two thirds the bytes.
+        size = encode_gif(frames, 10, out / "story.gif", ffmpeg, 360, 128)
+        if size > GIF_LIMIT:
+            notes.append(f"story.gif: {size / 1048576:.1f} MB is over {GIF_LIMIT // 1048576} MB")
         save("story.gif", (out / "story.gif").read_bytes())
 
     def mobile() -> None:
@@ -459,18 +541,19 @@ def capture(browser: Browser, worlds: dict[str, Path], wanted: set[str], out: Pa
         if not page.eval("__docs.openRelic()"):
             notes.append("relic.jpg: no relic found on the capital")
         time.sleep(.5)
-        save("relic.jpg", page.shot("jpeg", 88))
+        save("relic.jpg", page.shot("jpeg", 84))
         page.close()
 
     def guide() -> None:
         page = browser.page(solo, 1600, 1000)
         page.eval("showGuide('relics'); true")
         time.sleep(.9)
-        save("guide.jpg", page.shot("jpeg", 88))
+        save("guide.jpg", page.shot("jpeg", 84))
         page.close()
 
     steps = ((hero_gif, gif("hero.gif")), (hero_jpg, "hero.jpg" in wanted),
-             (canvases, bool(wanted & {"og.jpg", "social-preview.png", "card-story.jpg", "card-square.jpg", "card-social.jpg", "archetypes.png", "island.gif"})),
+             (canvases, bool(wanted & {"og.jpg", "social-preview.png", "card-story.jpg", "card-square.jpg", "card-social.jpg", "card-receipts.jpg", "gallery.jpg", "archetypes.png", "island.gif"})),
+             (buttons, bool(wanted & set(BUTTONS))),
              (team_card, "card-team.jpg" in wanted), (story_gif, gif("story.gif")), (mobile, "mobile.jpg" in wanted),
              (relic, "relic.jpg" in wanted), (guide, "guide.jpg" in wanted))
     for step, needed in steps:
