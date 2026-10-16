@@ -59,6 +59,7 @@ const RHYTHM = DATA.rhythm || { hours: Array(24).fill(0), weekdays: Array(7).fil
 const TOTAL_SESSIONS = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
 const TOTAL_TOKENS = PROJECTS.reduce((sum, project) => sum + (project.tokens?.total || 0), 0);
 const TOTAL_PROMPTS = PROJECTS.reduce((sum, project) => sum + (project.prompts || 0), 0);
+const HABITS = DATA.habits || {};
 function sinceLabel() {
   return RHYTHM.firstDay ? new Date(`${RHYTHM.firstDay}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
 }
@@ -1429,7 +1430,20 @@ function buildGuide() {
   });
   landmarks.append(chips);
   read.append(landmarks);
+  if (receiptLines().length) {
+    const section = element('section', 'guide-section');
+    section.append(element('h3', 'guide-heading', 'Receipts'));
+    section.append(element('p', 'guide-copy', 'Your story keeps a few receipts: how often you stopped your agent mid-reply, how many requests said please or thank you, how many were just a one-word go-ahead like “continue”, and the longest stretch in one session with no pause of 20 minutes or more. Only these counts are kept. The words never leave the transcript.'));
+    read.append(section);
+  }
   read.append(element('p', 'key-note', `Everything here is counted from the transcripts Claude Code and Codex keep on this computer${sinceLabel() ? `, which go back to ${sinceLabel()}` : ''}. Sessions on other machines, or ones the tools have already cleaned up, are not included.`));
+  if (DATA.historyTip) {
+    // Pelago only suggests the setting; it never edits it.
+    const tip = element('p', 'key-note key-tip');
+    tip.append(element('strong', '', 'Keep more history. '), 'Claude Code keeps 30 days of history by default. Add ', element('code', '', '"cleanupPeriodDays": 365'),
+      ' to ', element('code', '', '~/.claude/settings.json'), ' and your islands keep growing.');
+    read.append(tip);
+  }
   read.append(element('p', 'key-note', 'Small does not mean worse. Pelago maps the shape of your attention, never the quality of your work.'));
 
   const found = earnedRelics();
@@ -1883,6 +1897,61 @@ function countUp(node, target, format = (value) => value.toLocaleString('en-US')
   requestAnimationFrame(step);
 }
 
+// ---------- Receipts: a 5×7 pixel font for the big numbers, drawn on whole device pixels so it stays crisp ----------
+const PIXEL_GLYPHS = {
+  0: '.###. #...# #...# #...# #...# #...# .###.', 1: '..#.. .##.. ..#.. ..#.. ..#.. ..#.. .###.', 2: '.###. #...# ....# ...#. ..#.. .#... #####',
+  3: '##### ...#. ..#.. ...#. ....# #...# .###.', 4: '...#. ..##. .#.#. #..#. ##### ...#. ...#.', 5: '##### #.... ####. ....# ....# #...# .###.',
+  6: '..##. .#... #.... ####. #...# #...# .###.', 7: '##### ....# ...#. ..#.. .#... .#... .#...', 8: '.###. #...# #...# .###. #...# #...# .###.',
+  9: '.###. #...# #...# .#### ....# ...#. .##..', h: '#.... #.... #.##. ##..# #...# #...# #...#', m: '..... ..... ##.#. #.#.# #.#.# #...# #...#',
+  '×': '..... #...# .#.#. ..#.. .#.#. #...# .....', ',': '.. .. .. .. .. .# #.', ' ': '... ... ... ... ... ... ...',
+};
+function pixelNumber(text, cell = 6) {
+  const dpr = window.devicePixelRatio || 1;
+  const unit = Math.max(1, Math.round(cell * dpr));
+  const glyphs = [...text].map((char) => (PIXEL_GLYPHS[char] || PIXEL_GLYPHS[' ']).split(' '));
+  const columns = glyphs.reduce((sum, rows) => sum + rows[0].length + 1, -1);
+  const canvas = document.createElement('canvas');
+  // One extra column and row for the pixel drop shadow.
+  canvas.width = (columns + 1) * unit; canvas.height = 8 * unit;
+  canvas.style.width = `${canvas.width / dpr}px`; canvas.style.height = `${canvas.height / dpr}px`;
+  canvas.className = 'pixel-number';
+  canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', text);
+  const context = canvas.getContext('2d');
+  const shades = ['#fff6dc', '#fff6dc', '#fff0c4', '#ffe7a3', '#ffdf89', '#ffd66f', '#ffd66f'];
+  [['#b9473a', 1], [null, 0]].forEach(([shadow, offset]) => {
+    let left = 0;
+    glyphs.forEach((rows) => {
+      rows.forEach((line, row) => [...line].forEach((pixel, column) => {
+        if (pixel !== '#') return;
+        context.fillStyle = shadow || shades[row];
+        context.fillRect((left + column + offset) * unit, (row + offset) * unit, unit, unit);
+      }));
+      left += rows[0].length + 1;
+    });
+  });
+  return canvas;
+}
+function stretchLabel(minutes) {
+  const hours = Math.floor(minutes / 60), rest = minutes % 60;
+  return hours ? `${hours}h${rest ? ` ${rest}m` : ''}` : `${rest}m`;
+}
+// Up to four honest lines, only from what was actually counted.
+function receiptLines() {
+  const lines = [];
+  const count = (value) => Number(value || 0);
+  const [stops, please, thanks, nudges, stretch] = ['interrupts', 'please', 'thanks', 'nudges', 'longestStretch'].map((key) => count(HABITS[key]));
+  if (stops) lines.push([stops.toLocaleString('en-US'), `${stops === 1 ? 'time' : 'times'} you hit stop on your agent.`]);
+  if (please) lines.push([please.toLocaleString('en-US'), thanks ? `${please === 1 ? 'please' : 'pleases'}. And ${thanks.toLocaleString('en-US')} thank-you${thanks === 1 ? '' : 's'}.` : `${please === 1 ? 'time' : 'times'} you said please.`]);
+  else if (thanks) lines.push([thanks.toLocaleString('en-US'), `${thanks === 1 ? 'time' : 'times'} you said thank you.`]);
+  if (nudges) lines.push([`×${nudges.toLocaleString('en-US')}`, HABITS.nudgeWord ? `one-word go-aheads. Favourite: “${HABITS.nudgeWord}”.` : 'one-word go-aheads.']);
+  if (stretch) lines.push([stretchLabel(stretch), 'longest stretch without a break.']);
+  return lines.slice(0, 4);
+}
+function habitWeight(project) {
+  const habits = project.habits || {};
+  return ['interrupts', 'please', 'thanks', 'nudges'].reduce((sum, key) => sum + Number(habits[key] || 0), 0);
+}
+
 function buildSlides() {
   const top = capital();
   const at = (camera, build) => Object.assign(build, { camera });
@@ -1937,6 +2006,22 @@ function buildSlides() {
     const fresh = TOTAL_TOKENS - cached;
     slide.append(element('p', 'story-copy', `That's ${tokenComparison(TOTAL_TOKENS)}. ${cached > TOTAL_TOKENS * .5 ? `${Math.round(cached / TOTAL_TOKENS * 100)}% were your agents re-reading context they already had; ${compact(fresh)} were brand new.` : ''}`));
     if (TOTAL_PROMPTS) slide.append(element('p', 'story-copy', `You typed ${TOTAL_PROMPTS.toLocaleString('en-US')} requests. Each one planted part of a forest.`));
+    return slide;
+  }));
+
+  const receipts = receiptLines();
+  if (receipts.length) slides.push(at({ mode: 'island', project: [...PROJECTS].sort((a, b) => habitWeight(b) - habitWeight(a) || b.activity - a.activity)[0], shade: .5 }, () => {
+    const slide = element('div', 'slide slide-receipts');
+    slide.append(element('p', 'story-over', 'THE RECEIPTS'));
+    const list = element('div', 'receipt-list');
+    receipts.forEach(([number, line], index) => {
+      const row = element('div', 'receipt-row');
+      row.style.setProperty('--delay', `${.12 + index * .1}s`);
+      row.append(pixelNumber(number, 5), element('p', 'receipt-line', line));
+      list.append(row);
+    });
+    slide.append(list);
+    slide.append(element('p', 'story-note', TEAM ? 'Counted on each builder’s own computer. Only the numbers were shared, never anyone’s words.' : 'Counted on this computer. Only the numbers were kept, never your words.'));
     return slide;
   }));
 

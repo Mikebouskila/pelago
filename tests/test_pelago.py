@@ -1,8 +1,10 @@
 import importlib.util
+import io
 import json
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 MODULE_PATH = Path(__file__).parents[1] / "scripts" / "pelago.py"
@@ -391,6 +393,114 @@ class PelagoTests(unittest.TestCase):
             result = pelago.scan(home)
             self.assertEqual(result["projects"][0]["sessions"], 1)
             self.assertNotIn("secret title", json.dumps(result))
+
+    def test_receipts_count_claude_habits_without_keeping_words(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            cwd = "/work/app"
+            stamp = lambda minute: f"2026-03-01T{10 + minute // 60:02d}:{minute % 60:02d}:00Z"
+            interrupted = {"type": "user", "cwd": cwd, "timestamp": stamp(3), "message": {"role": "user", "content": [{"type": "text", "text": "[Request interrupted by user for tool use]"}]}}
+            write(home / ".claude" / "projects" / "-work-app" / "s1.jsonl", [
+                claude_user(cwd, "Please add the secret login page", ts=stamp(0)),
+                claude_reply(cwd, "m1", ts=stamp(1)),
+                claude_user(cwd, "[Request interrupted by user]", ts=stamp(2)),
+                interrupted,
+                claude_user(cwd, "Continue.", ts=stamp(15)),
+                claude_user(cwd, "thanks, ship it", ts=stamp(30)),
+                claude_user(cwd, "thank you!", ts=stamp(45)),
+                claude_user(cwd, "  ok ", ts=stamp(50)),
+                claude_user(cwd, "continue", ts=stamp(55)),
+                claude_user(cwd, "continue with the tests", ts=stamp(56)),
+                claude_user(cwd, "pleased with it, typo fix", ts=stamp(57)),
+                # A 25-minute pause ends the stretch: 0 → 57 is the longest run.
+                claude_user(cwd, "go on", ts=stamp(82)),
+                claude_reply(cwd, "m2", ts=stamp(90)),
+            ])
+            # Each running subagent gets its own copy of the notice; only the main thread counts.
+            write(home / ".claude" / "projects" / "-work-app" / "s1" / "subagents" / "agent-a.jsonl", [
+                claude_user(cwd, "[Request interrupted by user]", ts=stamp(2), isSidechain=True),
+                claude_user(cwd, "please review", ts=stamp(2), isSidechain=True),
+            ])
+
+            result = pelago.scan(home)
+
+            project = result["projects"][0]
+            self.assertEqual(project["habits"], {"interrupts": 2, "please": 1, "thanks": 2, "nudges": 4, "nudgeWord": "continue", "longestStretch": 57})
+            self.assertEqual(project["prompts"], 9, "interrupted notices are still not requests the person typed")
+            self.assertEqual(result["habits"]["interrupts"], 2)
+            serialized = json.dumps(result)
+            self.assertNotIn("secret login", serialized)
+            self.assertNotIn("ship it", serialized)
+
+    def test_receipts_count_codex_interrupts_and_nudges(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            write(home / ".codex" / "sessions" / "2026" / "rollout-a.jsonl", [
+                codex_meta("/work/relay", "t1"),
+                codex_user("thx, now the relay", ts="2026-03-01T10:00:00Z"),
+                {"type": "event_msg", "timestamp": "2026-03-01T10:01:00Z", "payload": {"type": "turn_aborted", "reason": "interrupted"}},
+                codex_user("<turn_aborted>\nThe user interrupted the previous turn.\n</turn_aborted>", ts="2026-03-01T10:01:00Z"),
+                {"type": "event_msg", "timestamp": "2026-03-01T10:02:00Z", "payload": {"type": "turn_aborted", "reason": "replaced"}},
+                codex_user("yes", ts="2026-03-01T10:03:00Z"),
+                codex_reply("done", ts="2026-03-01T10:40:00Z"),
+            ])
+            write(home / ".codex" / "sessions" / "2026" / "rollout-b.jsonl", [
+                codex_meta("/work/relay", "sub", parent="t1"),
+                {"type": "event_msg", "timestamp": "2026-03-01T10:01:00Z", "payload": {"type": "turn_aborted", "reason": "interrupted"}},
+                # The subagent was busy through the gap, so the session never paused for 20 minutes.
+                codex_reply("checked", ts="2026-03-01T10:21:00Z"),
+            ])
+
+            project = pelago.scan(home)["projects"][0]
+
+            self.assertEqual(project["prompts"], 2)
+            self.assertEqual(project["habits"], {"interrupts": 1, "please": 0, "thanks": 1, "nudges": 1, "nudgeWord": "yes", "longestStretch": 40})
+
+    def test_world_receipts_follow_only_and_team_merges(self):
+        data = pelago.demo_data()
+        self.assertTrue(all(data["habits"][name] > 0 for name in ("interrupts", "please", "thanks", "nudges", "longestStretch")))
+        picked, _ = pelago.select_projects(data, ["Tiny Quest", "Signal CLI"])
+        mine = [p["habits"] for p in data["projects"] if p["name"] in ("Tiny Quest", "Signal CLI")]
+        self.assertEqual(picked["habits"]["interrupts"], sum(h["interrupts"] for h in mine))
+        self.assertEqual(picked["habits"]["longestStretch"], max(h["longestStretch"] for h in mine))
+
+        def export(projects):
+            return {"projects": projects, "rhythm": {}, "links": []}
+
+        def project(pid, name, habits):
+            return {"id": pid, "name": name, "category": "web", "activity": 10, "sessions": 1, "habits": habits}
+
+        team = pelago.merge_team([
+            ("Maya", export([project("a", "Pelago", {"interrupts": 3, "please": 1, "thanks": 0, "nudges": 5, "nudgeWord": "continue", "longestStretch": 90})])),
+            ("Noam", export([project("b", "pelago", {"interrupts": 2, "please": 0, "thanks": 4, "nudges": 1, "nudgeWord": "ok", "longestStretch": 200}),
+                             project("c", "Old", {})])),
+        ], "Crew")
+        shared = next(p for p in team["projects"] if p["name"] == "Pelago")
+        self.assertEqual(shared["habits"], {"interrupts": 5, "please": 1, "thanks": 4, "nudges": 6, "nudgeWord": "continue", "longestStretch": 200})
+        self.assertNotIn("parts", shared, "each builder's raw export never rides along")
+        self.assertEqual(team["habits"]["nudges"], 6)
+        self.assertEqual(next(p for p in team["projects"] if p["name"] == "Old")["habits"]["longestStretch"], 0)
+
+    def test_history_tip_only_when_claude_history_looks_cut_short(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            recent = (pelago.datetime.now(pelago.timezone.utc) - pelago.timedelta(days=20)).isoformat()
+            write(home / ".claude" / "projects" / "-work-app" / "s.jsonl", [claude_user("/work/app", "hello", ts=recent), claude_reply("/work/app", "m1", ts=recent)])
+            data = pelago.scan(home)
+            self.assertTrue(data["historyTip"])
+            self.assertFalse(pelago.scan(home, since_days=30)["historyTip"], "a window the person chose is not lost history")
+            output = Path(directory) / "world.html"
+            with unittest.mock.patch("sys.stdout", new_callable=io.StringIO) as printed:
+                pelago.print_summary(data, output)
+            self.assertIn('Add "cleanupPeriodDays": 365 to ~/.claude/settings.json', printed.getvalue())
+            (home / ".claude" / "settings.json").write_text(json.dumps({"cleanupPeriodDays": 365}), encoding="utf-8")
+            self.assertFalse(pelago.scan(home)["historyTip"])
+            self.assertEqual(json.loads((home / ".claude" / "settings.json").read_text(encoding="utf-8")), {"cleanupPeriodDays": 365})
+        self.assertFalse(pelago.demo_data()["historyTip"])
+        codex_only = pelago.demo_data()
+        codex_only.pop("demo")
+        codex_only["projects"] = [dict(p, firstActive=codex_only["generatedAt"]) for p in codex_only["projects"] if p["crews"] == {"codex": 1.0}]
+        self.assertFalse(pelago.enrich(codex_only)["historyTip"], "only Claude Code cleans up after 30 days")
 
     def test_split_replies_use_their_fullest_usage(self):
         with tempfile.TemporaryDirectory() as directory:
