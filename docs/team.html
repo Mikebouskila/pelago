@@ -628,6 +628,35 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .welcome { height: auto; margin: 0; }
   .toast { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ---------- Archetype reveal and keepers ---------- */
+.slide-persona { --accent: #ffd66f; }
+.slide-persona > .keeper-portrait { animation: none; image-rendering: pixelated; margin-bottom: 2px; filter: drop-shadow(0 6px 22px color-mix(in srgb, var(--accent) 40%, transparent)); }
+.story-persona.reels { position: relative; align-self: stretch; line-height: 1.08; }
+.reel-line { display: block; white-space: nowrap; }
+.reel { display: inline-block; height: 1.08em; overflow: hidden; vertical-align: top; text-shadow: none; }
+.story-persona em.reel { display: block; text-shadow: none; }
+.reel-line { filter: drop-shadow(0 2px 10px rgba(0,0,0,.55)); }
+.reel-strip { display: flex; flex-direction: column; transition: transform 1.3s cubic-bezier(.12,.62,.22,1); }
+.reel-word { display: block; height: 1.08em; line-height: 1.08; white-space: nowrap; }
+.reel.locked { animation: reel-flash .7s steps(5, end); }
+@keyframes reel-flash { 0% { color: #fffbea; filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 14px #ffd66f) drop-shadow(0 0 30px rgba(255,190,80,.8)); } }
+.reel-spark { position: absolute; width: 4px; height: 4px; background: #fff8d6; box-shadow: 4px 0 #ffd66f, -4px 0 #ffd66f, 0 4px #ffd66f, 0 -4px #ffd66f; pointer-events: none; transform: scale(0); animation: reel-spark .7s steps(1, end) both; }
+@keyframes reel-spark { 0% { transform: scale(1); } 30% { transform: scale(2); } 65% { transform: scale(1); } 100% { transform: scale(0); } }
+.clue-chips { display: grid; gap: 6px; width: 100%; margin-top: 4px; }
+.clue-chip { display: flex; align-items: baseline; gap: 9px; margin: 0; padding: 8px 12px; border: 2px solid var(--accent); background: rgba(5,11,28,.8); color: rgba(232,240,252,.94); font-size: 13.5px; font-weight: 700; line-height: 1.35; text-shadow: none; visibility: hidden;
+  clip-path: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)); }
+.clue-chip strong { flex: none; color: var(--accent); font-size: 10.5px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.clue-chips.shown .clue-chip { visibility: visible; animation: chip-in .3s steps(3, end) both; }
+.clue-chips.shown .clue-chip:nth-child(2) { animation-delay: .25s; }
+@keyframes chip-in { from { visibility: hidden; transform: translateX(-12px); } 1% { visibility: visible; } }
+@media (prefers-reduced-motion: reduce) { .clue-chips .clue-chip, .reel.locked, .reel-spark { animation: none !important; } .reel-spark { display: none; } }
+.keeper-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.keeper-tile { display: grid; justify-items: center; align-content: start; gap: 6px; margin: 0; padding: 10px 4px 8px; border: 1px solid rgba(167,198,236,.1); border-radius: 12px; background: radial-gradient(circle at 50% 55%, #1b3763, #0a1530); }
+.keeper-tile.mine { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.keeper-tile .relic-icon { max-width: none; max-height: none; }
+.keeper-tile figcaption { color: rgba(220,232,248,.82); font-size: 11px; font-weight: 800; line-height: 1.2; text-align: center; }
+.keeper-tile.mine figcaption { color: var(--accent); }
 </style>
 </head>
 <body>
@@ -777,7 +806,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="sr-only" id="srAnnounce" aria-live="polite"></div>
-  <script id="pelago-data" type="application/json">{"version":2,"generatedAt":"2026-10-16T13:02:34.802802+00:00","projects":[{"id":"ed1b1983fc5f","name":"Atlas Studio","seed":1433732516,"category":"web","sessions":40,"messages":2860,"activity":9200,"prompts":640,"techSample":3,"firstActive":"2026-07-18T13:02:34.794529+00:00","lastActive":"2026-10-16T13:02:34.794529+00:00","tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"tech":{"react":1260,"typescript":1140,"payments":120},"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"agent":"claude","crews":{"claude":0.62,"codex":0.38},"models":["Opus","Sonnet"],"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"builders":{"Maya":0.62,"Noam":0.28,"Dana":0.1},"work":{"Maya":{"sessions":25,"prompts":397,"tokens":112840000},"Noam":{"sessions":11,"prompts":179,"tokens":50960000},"Dana":{"sessions":4,"prompts":64,"tokens":18200000}}},{"id":"48c6b16f7399","name":"Orbit Agent","seed":1003285965,"category":"ai","sessions":29,"messages":1940,"activity":6100,"prompts":410,"techSample":3,"firstActive":"2026-07-01T13:02:34.794529+00:00","lastActive":"2026-10-14T13:02:34.794529+00:00","tools":{"shell":1500,"build":700,"crew":300,"read":200},"tech":{"llm":900,"python":780,"docker":90},"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"agent":"codex","crews":{"codex":0.7,"claude":0.3},"models":["GPT"],"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"builders":{"Noam":0.62,"Dana":0.28,"Maya":0.1},"work":{"Noam":{"sessions":18,"prompts":254,"tokens":59520000},"Dana":{"sessions":8,"prompts":115,"tokens":26880000},"Maya":{"sessions":3,"prompts":41,"tokens":9600000}}},{"id":"7c62a9fc4018","name":"Tiny Quest","seed":2881286978,"category":"game","sessions":22,"messages":1210,"activity":4400,"prompts":300,"techSample":3,"firstActive":"2026-06-14T13:02:34.794529+00:00","lastActive":"2026-10-10T13:02:34.794529+00:00","tools":{"build":900,"shell":500,"read":300,"web":120},"tech":{"gamedev":630,"typescript":150},"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"builders":{"Dana":0.62,"Maya":0.28,"Noam":0.1},"work":{"Dana":{"sessions":14,"prompts":186,"tokens":25420000},"Maya":{"sessions":6,"prompts":84,"tokens":11480000},"Noam":{"sessions":2,"prompts":30,"tokens":4100000}}},{"id":"64be3273d422","name":"Northstar","seed":1086415890,"category":"data","sessions":18,"messages":980,"activity":3500,"prompts":220,"techSample":3,"firstActive":"2026-05-28T13:02:34.794529+00:00","lastActive":"2026-10-05T13:02:34.794529+00:00","tools":{"shell":800,"read":400,"build":250},"tech":{"pandas":420,"python":330},"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"builders":{"Maya":0.62,"Noam":0.28,"Dana":0.1},"work":{"Maya":{"sessions":11,"prompts":136,"tokens":14260000},"Noam":{"sessions":5,"prompts":62,"tokens":6440000},"Dana":{"sessions":2,"prompts":22,"tokens":2300000}}},{"id":"db43d5a93914","name":"Lumen Docs","seed":444661380,"category":"web","sessions":16,"messages":820,"activity":2600,"prompts":170,"techSample":1,"firstActive":"2026-03-04T13:02:34.794529+00:00","lastActive":"2026-10-13T13:02:34.794529+00:00","tools":{"build":500,"read":300,"web":90},"tech":{"react":140,"tailwind":120},"sessionSizes":[100,89,55,32,21],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"builders":{"Dana":1.0},"work":{"Dana":{"sessions":16,"prompts":170,"tokens":12400000}}},{"id":"5c9904e3b132","name":"Kestrel","seed":2392665233,"category":"ai","sessions":13,"messages":700,"activity":2200,"prompts":140,"techSample":1,"firstActive":"2026-01-29T13:02:34.794529+00:00","lastActive":"2026-10-15T13:02:34.794529+00:00","tools":{"shell":400,"build":200,"crew":60},"tech":{"llm":160,"mcp":50},"sessionSizes":[81,64,40,28],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"builders":{"Noam":1.0},"work":{"Noam":{"sessions":13,"prompts":140,"tokens":9800000}}},{"id":"1eb7f1436f8a","name":"Signal CLI","seed":594667278,"category":"cli","sessions":14,"messages":620,"activity":2100,"prompts":150,"techSample":3,"firstActive":"2026-05-11T13:02:34.794529+00:00","lastActive":"2026-08-02T13:02:34.794529+00:00","tools":{"shell":600,"build":300,"read":120},"tech":{"rust":270},"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"builders":{"Noam":0.62,"Dana":0.28,"Maya":0.1},"work":{"Noam":{"sessions":9,"prompts":93,"tokens":5332000},"Dana":{"sessions":4,"prompts":42,"tokens":2408000},"Maya":{"sessions":1,"prompts":15,"tokens":860000}}},{"id":"14e8e1c9ffd5","name":"Pocket Notes","seed":3937183879,"category":"mobile","sessions":12,"messages":540,"activity":1800,"prompts":120,"techSample":1,"firstActive":"2026-04-24T13:02:34.794529+00:00","lastActive":"2026-09-27T13:02:34.794529+00:00","tools":{"build":380,"shell":200,"web":60},"tech":{"swift":120},"sessionSizes":[53,33,23,13],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"builders":{"Dana":1.0},"work":{"Dana":{"sessions":12,"prompts":120,"tokens":6200000}}},{"id":"4b649a94f66a","name":"Tidepool","seed":1782675737,"category":"data","sessions":11,"messages":560,"activity":1700,"prompts":110,"techSample":1,"firstActive":"2026-02-15T13:02:34.794529+00:00","lastActive":"2026-10-07T13:02:34.794529+00:00","tools":{"shell":300,"read":140},"tech":{},"sessionSizes":[94,66,49,26],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"builders":{"Maya":1.0},"work":{"Maya":{"sessions":11,"prompts":110,"tokens":5100000}}},{"id":"2e4414c7c6ef","name":"Pixel Forge","seed":2413805198,"category":"game","sessions":9,"messages":430,"activity":1300,"prompts":90,"techSample":1,"firstActive":"2026-01-12T13:02:34.794529+00:00","lastActive":"2026-09-06T13:02:34.794529+00:00","tools":{"build":260,"shell":120},"tech":{"gamedev":90,"threejs":40},"sessionSizes":[83,51,19],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"builders":{"Dana":1.0},"work":{"Dana":{"sessions":9,"prompts":90,"tokens":3900000}}},{"id":"9688c8707e83","name":"Paper Trail","seed":4033931543,"category":"web","sessions":8,"messages":300,"activity":900,"prompts":70,"techSample":1,"firstActive":"2026-04-07T13:02:34.794529+00:00","lastActive":"2026-06-08T13:02:34.794529+00:00","tools":{"build":160,"shell":120,"read":40},"tech":{},"sessionSizes":[57,32,19],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"builders":{"Maya":1.0},"work":{"Maya":{"sessions":8,"prompts":70,"tokens":2400000}}},{"id":"2813f4493a4a","name":"Harbor API","seed":357709118,"category":"web","sessions":7,"messages":260,"activity":800,"prompts":55,"techSample":1,"firstActive":"2025-12-26T13:02:34.794529+00:00","lastActive":"2026-08-07T13:02:34.794529+00:00","tools":{"shell":160,"build":80},"tech":{},"sessionSizes":[73,48,23],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"builders":{"Maya":1.0},"work":{"Maya":{"sessions":7,"prompts":55,"tokens":1900000}}},{"id":"cd53ead0598a","name":"Night Owl","seed":1327911178,"category":"cli","sessions":6,"messages":190,"activity":560,"prompts":40,"techSample":1,"firstActive":"2025-12-09T13:02:34.794529+00:00","lastActive":"2026-10-14T13:02:34.794529+00:00","tools":{"shell":120,"build":40},"tech":{},"sessionSizes":[37,13],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"builders":{"Noam":1.0},"work":{"Noam":{"sessions":6,"prompts":40,"tokens":1100000}}},{"id":"da26657bf907","name":"Sunday Lab","seed":1462424568,"category":"other","sessions":5,"messages":140,"activity":420,"prompts":30,"techSample":1,"firstActive":"2026-03-21T13:02:34.794529+00:00","lastActive":"2026-09-20T13:02:34.794529+00:00","tools":{"shell":50,"web":30,"crew":10},"tech":{},"sessionSizes":[55,33],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"builders":{"Noam":1.0},"work":{"Noam":{"sessions":5,"prompts":30,"tokens":700000}}}],"links":[{"a":"ed1b1983fc5f","b":"9688c8707e83","kind":"nest","word":""},{"a":"48c6b16f7399","b":"1eb7f1436f8a","kind":"name","word":"orbit"},{"a":"64be3273d422","b":"4b649a94f66a","kind":"name","word":"tide"},{"a":"64be3273d422","b":"da26657bf907","kind":"nest","word":""},{"a":"ed1b1983fc5f","b":"14e8e1c9ffd5","kind":"name","word":"atlas"},{"a":"ed1b1983fc5f","b":"db43d5a93914","kind":"nest","word":""},{"a":"7c62a9fc4018","b":"2e4414c7c6ef","kind":"nest","word":""}],"rhythm":{"hours":[38,29,19,19,23,27,26,22,28,40,51,56,58,57,57,56,54,54,48,44,42,42,47,44],"weekdays":[123,138,132,117,105,156,144],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":81,"2026-03-22":30,"2026-03-24":120,"2026-03-25":30,"2026-03-26":42,"2026-03-27":69,"2026-03-29":39,"2026-03-30":42,"2026-03-31":75,"2026-04-02":81,"2026-04-03":33,"2026-04-04":63,"2026-04-05":36,"2026-04-07":18,"2026-04-08":36,"2026-04-09":90,"2026-04-14":84,"2026-04-16":54,"2026-04-17":132,"2026-04-18":45,"2026-04-20":84,"2026-04-21":111,"2026-04-22":15,"2026-04-23":21,"2026-04-25":66,"2026-04-26":54,"2026-04-27":9,"2026-04-29":9,"2026-04-30":84,"2026-05-01":18,"2026-05-02":57,"2026-05-04":90,"2026-05-05":27,"2026-05-06":15,"2026-05-08":78,"2026-05-09":30,"2026-05-10":48,"2026-05-15":123,"2026-05-17":9,"2026-05-18":111,"2026-05-19":87,"2026-05-20":33,"2026-05-22":111,"2026-05-23":36,"2026-05-24":57,"2026-05-26":84,"2026-05-27":39,"2026-05-28":69,"2026-05-29":48,"2026-05-31":90,"2026-06-01":63,"2026-06-02":45,"2026-06-04":120,"2026-06-05":45,"2026-06-06":30,"2026-06-07":81,"2026-06-09":18,"2026-06-10":9,"2026-06-15":126,"2026-06-16":57,"2026-06-18":60,"2026-06-19":108,"2026-06-20":12,"2026-06-22":72,"2026-06-23":66,"2026-06-24":63,"2026-06-25":39,"2026-06-27":9,"2026-06-28":99,"2026-06-29":27,"2026-07-01":63,"2026-07-02":111,"2026-07-03":12,"2026-07-04":18,"2026-07-06":99,"2026-07-07":18,"2026-07-08":36,"2026-07-10":69,"2026-07-11":27,"2026-07-16":90,"2026-07-17":90,"2026-07-19":18,"2026-07-20":93,"2026-07-21":39,"2026-07-22":72,"2026-07-24":75,"2026-07-25":39,"2026-07-26":90,"2026-07-28":36,"2026-07-29":90,"2026-07-30":87,"2026-07-31":30,"2026-08-02":126,"2026-08-03":69,"2026-08-04":27,"2026-08-06":132,"2026-08-07":36,"2026-08-08":18,"2026-08-09":102,"2026-08-11":18,"2026-08-16":30,"2026-08-17":99,"2026-08-18":9,"2026-08-20":45,"2026-08-21":63,"2026-08-22":66,"2026-08-24":48,"2026-08-25":12,"2026-08-26":108,"2026-08-27":57,"2026-08-29":57,"2026-08-30":126,"2026-08-31":33,"2026-09-02":102,"2026-09-03":114,"2026-09-04":9,"2026-09-05":21,"2026-09-07":81,"2026-09-08":30,"2026-09-09":48,"2026-09-11":30,"2026-09-16":45,"2026-09-17":72,"2026-09-18":39,"2026-09-20":36,"2026-09-21":60,"2026-09-22":36,"2026-09-23":108,"2026-09-24":21,"2026-09-25":33,"2026-09-26":90,"2026-09-27":108,"2026-09-28":12,"2026-09-29":18,"2026-09-30":123,"2026-10-01":87,"2026-10-02":24,"2026-10-03":54,"2026-10-04":132,"2026-10-05":48,"2026-10-06":27,"2026-10-07":81,"2026-10-08":111,"2026-10-09":15,"2026-10-10":24,"2026-10-11":93,"2026-10-12":66,"2026-10-13":57,"2026-10-14":15,"2026-10-15":84,"2026-10-16":9},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[],"team":{"name":"Lighthouse Labs","members":[{"name":"Maya","title":"The Midnight Harbormaster","islands":8,"sessions":72,"tokens":158440000,"activity":13326,"shared":5},{"name":"Noam","title":"The Two-Tide Stargazer","islands":8,"sessions":69,"tokens":137952000,"activity":12260,"shared":5},{"name":"Dana","title":"The Sunlit Cartographer","islands":8,"sessions":69,"tokens":97708000,"activity":11994,"shared":5}]},"persona":{"title":"The Two-Tide Harbormaster","realm":"harbor","line":"You sail with two crews and know when to call each.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":12},"archetypes":{"prefixes":["Midnight","Dawn","Weekend","Two-Tide","Unbroken","Hive","Wandering","Morning","Sunlit","Twilight","Steady"],"titles":["Harbormaster","Gardener","Wayfinder","Stargazer","Toolsmith","Archivist","Castle Builder","Cartographer"]},"demo":true}</script>
+  <script id="pelago-data" type="application/json">{"version":2,"generatedAt":"2026-10-16T13:37:43.954991+00:00","projects":[{"id":"ed1b1983fc5f","name":"Atlas Studio","seed":1433732516,"category":"web","sessions":40,"messages":2860,"activity":9200,"prompts":640,"techSample":3,"firstActive":"2026-07-18T13:37:43.943025+00:00","lastActive":"2026-10-16T13:37:43.943025+00:00","tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"tech":{"react":1260,"typescript":1140,"payments":120},"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"agent":"claude","crews":{"claude":0.62,"codex":0.38},"models":["Opus","Sonnet"],"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"builders":{"Maya":0.62,"Noam":0.28,"Dana":0.1},"work":{"Maya":{"sessions":25,"prompts":397,"tokens":112840000},"Noam":{"sessions":11,"prompts":179,"tokens":50960000},"Dana":{"sessions":4,"prompts":64,"tokens":18200000}}},{"id":"48c6b16f7399","name":"Orbit Agent","seed":1003285965,"category":"ai","sessions":29,"messages":1940,"activity":6100,"prompts":410,"techSample":3,"firstActive":"2026-07-01T13:37:43.943025+00:00","lastActive":"2026-10-14T13:37:43.943025+00:00","tools":{"shell":1500,"build":700,"crew":300,"read":200},"tech":{"llm":900,"python":780,"docker":90},"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"agent":"codex","crews":{"codex":0.7,"claude":0.3},"models":["GPT"],"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"builders":{"Noam":0.62,"Dana":0.28,"Maya":0.1},"work":{"Noam":{"sessions":18,"prompts":254,"tokens":59520000},"Dana":{"sessions":8,"prompts":115,"tokens":26880000},"Maya":{"sessions":3,"prompts":41,"tokens":9600000}}},{"id":"7c62a9fc4018","name":"Tiny Quest","seed":2881286978,"category":"game","sessions":22,"messages":1210,"activity":4400,"prompts":300,"techSample":3,"firstActive":"2026-06-14T13:37:43.943025+00:00","lastActive":"2026-10-10T13:37:43.943025+00:00","tools":{"build":900,"shell":500,"read":300,"web":120},"tech":{"gamedev":630,"typescript":150},"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"builders":{"Dana":0.62,"Maya":0.28,"Noam":0.1},"work":{"Dana":{"sessions":14,"prompts":186,"tokens":25420000},"Maya":{"sessions":6,"prompts":84,"tokens":11480000},"Noam":{"sessions":2,"prompts":30,"tokens":4100000}}},{"id":"64be3273d422","name":"Northstar","seed":1086415890,"category":"data","sessions":18,"messages":980,"activity":3500,"prompts":220,"techSample":3,"firstActive":"2026-05-28T13:37:43.943025+00:00","lastActive":"2026-10-05T13:37:43.943025+00:00","tools":{"shell":800,"read":400,"build":250},"tech":{"pandas":420,"python":330},"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"builders":{"Maya":0.62,"Noam":0.28,"Dana":0.1},"work":{"Maya":{"sessions":11,"prompts":136,"tokens":14260000},"Noam":{"sessions":5,"prompts":62,"tokens":6440000},"Dana":{"sessions":2,"prompts":22,"tokens":2300000}}},{"id":"db43d5a93914","name":"Lumen Docs","seed":444661380,"category":"web","sessions":16,"messages":820,"activity":2600,"prompts":170,"techSample":1,"firstActive":"2026-03-04T13:37:43.943025+00:00","lastActive":"2026-10-13T13:37:43.943025+00:00","tools":{"build":500,"read":300,"web":90},"tech":{"react":140,"tailwind":120},"sessionSizes":[100,89,55,32,21],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"builders":{"Dana":1.0},"work":{"Dana":{"sessions":16,"prompts":170,"tokens":12400000}}},{"id":"5c9904e3b132","name":"Kestrel","seed":2392665233,"category":"ai","sessions":13,"messages":700,"activity":2200,"prompts":140,"techSample":1,"firstActive":"2026-01-29T13:37:43.943025+00:00","lastActive":"2026-10-15T13:37:43.943025+00:00","tools":{"shell":400,"build":200,"crew":60},"tech":{"llm":160,"mcp":50},"sessionSizes":[81,64,40,28],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"builders":{"Noam":1.0},"work":{"Noam":{"sessions":13,"prompts":140,"tokens":9800000}}},{"id":"1eb7f1436f8a","name":"Signal CLI","seed":594667278,"category":"cli","sessions":14,"messages":620,"activity":2100,"prompts":150,"techSample":3,"firstActive":"2026-05-11T13:37:43.943025+00:00","lastActive":"2026-08-02T13:37:43.943025+00:00","tools":{"shell":600,"build":300,"read":120},"tech":{"rust":270},"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"builders":{"Noam":0.62,"Dana":0.28,"Maya":0.1},"work":{"Noam":{"sessions":9,"prompts":93,"tokens":5332000},"Dana":{"sessions":4,"prompts":42,"tokens":2408000},"Maya":{"sessions":1,"prompts":15,"tokens":860000}}},{"id":"14e8e1c9ffd5","name":"Pocket Notes","seed":3937183879,"category":"mobile","sessions":12,"messages":540,"activity":1800,"prompts":120,"techSample":1,"firstActive":"2026-04-24T13:37:43.943025+00:00","lastActive":"2026-09-27T13:37:43.943025+00:00","tools":{"build":380,"shell":200,"web":60},"tech":{"swift":120},"sessionSizes":[53,33,23,13],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"builders":{"Dana":1.0},"work":{"Dana":{"sessions":12,"prompts":120,"tokens":6200000}}},{"id":"4b649a94f66a","name":"Tidepool","seed":1782675737,"category":"data","sessions":11,"messages":560,"activity":1700,"prompts":110,"techSample":1,"firstActive":"2026-02-15T13:37:43.943025+00:00","lastActive":"2026-10-07T13:37:43.943025+00:00","tools":{"shell":300,"read":140},"tech":{},"sessionSizes":[94,66,49,26],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"builders":{"Maya":1.0},"work":{"Maya":{"sessions":11,"prompts":110,"tokens":5100000}}},{"id":"2e4414c7c6ef","name":"Pixel Forge","seed":2413805198,"category":"game","sessions":9,"messages":430,"activity":1300,"prompts":90,"techSample":1,"firstActive":"2026-01-12T13:37:43.943025+00:00","lastActive":"2026-09-06T13:37:43.943025+00:00","tools":{"build":260,"shell":120},"tech":{"gamedev":90,"threejs":40},"sessionSizes":[83,51,19],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"builders":{"Dana":1.0},"work":{"Dana":{"sessions":9,"prompts":90,"tokens":3900000}}},{"id":"9688c8707e83","name":"Paper Trail","seed":4033931543,"category":"web","sessions":8,"messages":300,"activity":900,"prompts":70,"techSample":1,"firstActive":"2026-04-07T13:37:43.943025+00:00","lastActive":"2026-06-08T13:37:43.943025+00:00","tools":{"build":160,"shell":120,"read":40},"tech":{},"sessionSizes":[57,32,19],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"builders":{"Maya":1.0},"work":{"Maya":{"sessions":8,"prompts":70,"tokens":2400000}}},{"id":"2813f4493a4a","name":"Harbor API","seed":357709118,"category":"web","sessions":7,"messages":260,"activity":800,"prompts":55,"techSample":1,"firstActive":"2025-12-26T13:37:43.943025+00:00","lastActive":"2026-08-07T13:37:43.943025+00:00","tools":{"shell":160,"build":80},"tech":{},"sessionSizes":[73,48,23],"agent":"codex","crews":{"codex":1.0},"models":["GPT"],"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"builders":{"Maya":1.0},"work":{"Maya":{"sessions":7,"prompts":55,"tokens":1900000}}},{"id":"cd53ead0598a","name":"Night Owl","seed":1327911178,"category":"cli","sessions":6,"messages":190,"activity":560,"prompts":40,"techSample":1,"firstActive":"2025-12-09T13:37:43.943025+00:00","lastActive":"2026-10-14T13:37:43.943025+00:00","tools":{"shell":120,"build":40},"tech":{},"sessionSizes":[37,13],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"builders":{"Noam":1.0},"work":{"Noam":{"sessions":6,"prompts":40,"tokens":1100000}}},{"id":"da26657bf907","name":"Sunday Lab","seed":1462424568,"category":"other","sessions":5,"messages":140,"activity":420,"prompts":30,"techSample":1,"firstActive":"2026-03-21T13:37:43.943025+00:00","lastActive":"2026-09-20T13:37:43.943025+00:00","tools":{"shell":50,"web":30,"crew":10},"tech":{},"sessionSizes":[55,33],"agent":"claude","crews":{"claude":1.0},"models":["Opus","Sonnet"],"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"builders":{"Noam":1.0},"work":{"Noam":{"sessions":5,"prompts":30,"tokens":700000}}}],"links":[{"a":"ed1b1983fc5f","b":"9688c8707e83","kind":"nest","word":""},{"a":"48c6b16f7399","b":"1eb7f1436f8a","kind":"name","word":"orbit"},{"a":"64be3273d422","b":"4b649a94f66a","kind":"name","word":"tide"},{"a":"64be3273d422","b":"da26657bf907","kind":"nest","word":""},{"a":"ed1b1983fc5f","b":"14e8e1c9ffd5","kind":"name","word":"atlas"},{"a":"ed1b1983fc5f","b":"db43d5a93914","kind":"nest","word":""},{"a":"7c62a9fc4018","b":"2e4414c7c6ef","kind":"nest","word":""}],"rhythm":{"hours":[38,29,19,19,23,27,26,22,28,40,51,56,58,57,57,56,54,54,48,44,42,42,47,44],"weekdays":[123,138,132,117,105,156,144],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":81,"2026-03-22":30,"2026-03-24":120,"2026-03-25":30,"2026-03-26":42,"2026-03-27":69,"2026-03-29":39,"2026-03-30":42,"2026-03-31":75,"2026-04-02":81,"2026-04-03":33,"2026-04-04":63,"2026-04-05":36,"2026-04-07":18,"2026-04-08":36,"2026-04-09":90,"2026-04-14":84,"2026-04-16":54,"2026-04-17":132,"2026-04-18":45,"2026-04-20":84,"2026-04-21":111,"2026-04-22":15,"2026-04-23":21,"2026-04-25":66,"2026-04-26":54,"2026-04-27":9,"2026-04-29":9,"2026-04-30":84,"2026-05-01":18,"2026-05-02":57,"2026-05-04":90,"2026-05-05":27,"2026-05-06":15,"2026-05-08":78,"2026-05-09":30,"2026-05-10":48,"2026-05-15":123,"2026-05-17":9,"2026-05-18":111,"2026-05-19":87,"2026-05-20":33,"2026-05-22":111,"2026-05-23":36,"2026-05-24":57,"2026-05-26":84,"2026-05-27":39,"2026-05-28":69,"2026-05-29":48,"2026-05-31":90,"2026-06-01":63,"2026-06-02":45,"2026-06-04":120,"2026-06-05":45,"2026-06-06":30,"2026-06-07":81,"2026-06-09":18,"2026-06-10":9,"2026-06-15":126,"2026-06-16":57,"2026-06-18":60,"2026-06-19":108,"2026-06-20":12,"2026-06-22":72,"2026-06-23":66,"2026-06-24":63,"2026-06-25":39,"2026-06-27":9,"2026-06-28":99,"2026-06-29":27,"2026-07-01":63,"2026-07-02":111,"2026-07-03":12,"2026-07-04":18,"2026-07-06":99,"2026-07-07":18,"2026-07-08":36,"2026-07-10":69,"2026-07-11":27,"2026-07-16":90,"2026-07-17":90,"2026-07-19":18,"2026-07-20":93,"2026-07-21":39,"2026-07-22":72,"2026-07-24":75,"2026-07-25":39,"2026-07-26":90,"2026-07-28":36,"2026-07-29":90,"2026-07-30":87,"2026-07-31":30,"2026-08-02":126,"2026-08-03":69,"2026-08-04":27,"2026-08-06":132,"2026-08-07":36,"2026-08-08":18,"2026-08-09":102,"2026-08-11":18,"2026-08-16":30,"2026-08-17":99,"2026-08-18":9,"2026-08-20":45,"2026-08-21":63,"2026-08-22":66,"2026-08-24":48,"2026-08-25":12,"2026-08-26":108,"2026-08-27":57,"2026-08-29":57,"2026-08-30":126,"2026-08-31":33,"2026-09-02":102,"2026-09-03":114,"2026-09-04":9,"2026-09-05":21,"2026-09-07":81,"2026-09-08":30,"2026-09-09":48,"2026-09-11":30,"2026-09-16":45,"2026-09-17":72,"2026-09-18":39,"2026-09-20":36,"2026-09-21":60,"2026-09-22":36,"2026-09-23":108,"2026-09-24":21,"2026-09-25":33,"2026-09-26":90,"2026-09-27":108,"2026-09-28":12,"2026-09-29":18,"2026-09-30":123,"2026-10-01":87,"2026-10-02":24,"2026-10-03":54,"2026-10-04":132,"2026-10-05":48,"2026-10-06":27,"2026-10-07":81,"2026-10-08":111,"2026-10-09":15,"2026-10-10":24,"2026-10-11":93,"2026-10-12":66,"2026-10-13":57,"2026-10-14":15,"2026-10-15":84,"2026-10-16":9},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[],"team":{"name":"Lighthouse Labs","members":[{"name":"Maya","title":"The Midnight Harbormaster","islands":8,"sessions":72,"tokens":158440000,"activity":13326,"shared":5},{"name":"Noam","title":"The Two-Tide Stargazer","islands":8,"sessions":69,"tokens":137952000,"activity":12260,"shared":5},{"name":"Dana","title":"The Sunlit Cartographer","islands":8,"sessions":69,"tokens":97708000,"activity":11994,"shared":5}]},"persona":{"title":"The Two-Tide Harbormaster","realm":"harbor","line":"You sail with two crews and know when to call each.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":12,"clues":[{"label":"Two-Tide","why":"Claude Code 55%, Codex 45%"},{"label":"Harbormaster","why":"36% of your work was web"}]},"archetypes":{"prefixes":["Midnight","Dawn","Weekend","Two-Tide","Unbroken","Hive","Wandering","Morning","Sunlit","Twilight","Steady"],"titles":["Harbormaster","Gardener","Wayfinder","Stargazer","Toolsmith","Archivist","Castle Builder","Cartographer"]},"demo":true}</script>
   <script>/* ---------- Procedural islands: every island is built from its own work ---------- */
 // Isometric pixel art, painted pixel by pixel into a buffer with one light source (upper left),
 // warm highlights, cool shadows, dithered materials and a dark silhouette outline.
@@ -2585,6 +2614,194 @@ Object.assign(RELIC_SPRITES, {
   ] },
 });
 
+/* ---------- Keepers: a pixel character for every archetype title ---------- */
+// Same format as the relics. Each keeper carries its title and the accent colour its cards wear.
+const KEEPER_SKIN = { k: '#241a30', s: '#f6cfa6', S: '#d9a07c', r: '#f08f8f' };
+const KEEPERS = {
+  harbor: { title: 'Harbormaster', accent: '#ff8a6b', palette: { ...KEEPER_SKIN, N: '#3a5ba8', n: '#253d78', B: '#18264e', y: '#ffd36b', w: '#f6f1e6', W: '#c9c6d6', m: '#6b5440', L: '#ffe9a0', o: '#ff9a3a', d: '#3a2a24' }, rows: [
+    '....kkkkkk......',
+    '...kNNNNNNk.....',
+    '...kNNyyNNk.....',
+    '..kBBBBBBBBk....',
+    '..kssssssssk....',
+    '..kssksskssk....',
+    '..ksrwwwwrsk....',
+    '..kwwwwwwwwk....',
+    '...kwWwwWwk.....',
+    '..kNNkwwkNNk.kk.',
+    '.kNNNNkkNNNNkssk',
+    '.kNnNNyNNNNNNssk',
+    '.kNnNNNNNNNkkmkk',
+    '.ksnNNyNNNkmLLLm',
+    '..knNNNNNNkLLoLk',
+    '..knNNyNNNkLooLk',
+    '..knNNNNNNkmLLmk',
+    '...kNNkkNNkkmmk.',
+    '...kddk.kddk....',
+    '..kkkkk.kkkkk...',
+  ] },
+  garden: { title: 'Gardener', accent: '#ff8fc8', palette: { ...KEEPER_SKIN, h: '#efcf72', H: '#b9923e', p: '#ff8fb8', P: '#e0507a', c: '#fff1d6', g: '#5aa65e', G: '#357544', t: '#7cc4d4', T: '#3f8aa0', b: '#bff1ff', d: '#6e4a32' }, rows: [
+    '.....kkkkk......',
+    '....khhhhhkpk...',
+    '...khhhhhhpPpk..',
+    '.kkHHHHHHHHkpkk.',
+    'khhhhhhhhhhhhhhk',
+    '.kkssssssssskk..',
+    '..kssksskssk....',
+    '..ksrssssrsk....',
+    '...kSssssSk.....',
+    '..kcgkcckgck....',
+    '.kccggggggcck...',
+    '.kcGggPpggGcsk..',
+    '.ksGggggggGk.k..',
+    '..kGggggggGkkkkT',
+    '..kGggggggGkk.kt',
+    '..kGggggggkktttt',
+    '...kggggggkktTtk',
+    '...kddkkddkkTTTk',
+    '...kddk.kddkkkk.',
+    '..kkkkk.kkkkk...',
+  ] },
+  wilds: { title: 'Wayfinder', accent: '#8ee07a', palette: { ...KEEPER_SKIN, f: '#4f9a6a', F: '#2f6a48', t: '#b98552', T: '#7a5230', y: '#ffd36b', Y: '#c9962a', c: '#fff6dc', d: '#5a3e2a' }, rows: [
+    '..y.............',
+    '.yty....kk......',
+    '..t....kffk.....',
+    '..t...kffffk....',
+    '..t..kffffffk...',
+    '..t.kffffffffk..',
+    '..tkfkssssssfk..',
+    '..tkfssksskssk..',
+    '..tkfsrssssrfk..',
+    '..tkffkSssSkfk..',
+    '.kskffffffffffk.',
+    '.kssfFffffffFfk.',
+    '..tkFfffffffYYk.',
+    '..tkFffffffYcyY.',
+    '..tkFfffffffYYk.',
+    '..tkFFffffffFFk.',
+    '..t.kFFFFFFFFk..',
+    '..t..kddkkddk...',
+    '..t..kddk.kddk..',
+    '.kTk.kkkk.kkkk..',
+  ] },
+  observatory: { title: 'Stargazer', accent: '#b98cff', palette: { ...KEEPER_SKIN, v: '#7b5cc8', V: '#4f3592', y: '#ffe68c', b: '#e0b25a', B: '#9a6a2a', c: '#9fe6ff', d: '#2e2140' }, rows: [
+    '......k.......y.',
+    '.....kvk.....yyy',
+    '.....kvyk.....y.',
+    '....kvvvk.......',
+    '...kvvyvvk......',
+    '..kvvvvvvvk.....',
+    '.kVVVVVVVVVk....',
+    '..kssssssssk..kc',
+    '..kssksskssk.kbc',
+    '..ksrssssrskkbBk',
+    '...kSssssSkkbBk.',
+    '..kvvkvvkkbBk...',
+    '.kvvvvyvsbBk....',
+    '.ksvvvvvvkk.....',
+    '..kvvvvvvvVk....',
+    '..kvVvvvyvVk....',
+    '..kvVvvvvvVk....',
+    '..kVVVVVVVVk....',
+    '...kddkkddk.....',
+    '..kkkkk.kkkkk...',
+  ] },
+  forge: { title: 'Toolsmith', accent: '#ffb347', palette: { ...KEEPER_SKIN, d: '#3a2a24', h: '#3a3448', a: '#8a5a3a', A: '#5e3a24', c: '#d8dce4', C: '#a8adbc', m: '#c3cad6', M: '#7a8494', t: '#b98552', o: '#ffb35a', O: '#ff7a3a', x: '#4a4458', X: '#2e2a38', R: '#e0604c' }, rows: [
+    '..........kkkk..',
+    '....kkkkk.kmmMk.',
+    '...kRRRRRkkmmMk.',
+    '..kRRRRRRRkkttk.',
+    '..kssssssskkttk.',
+    '..kssksskssktk..',
+    '..ksrssssrstk...',
+    '...kSssssSktk...',
+    '..kcckcckcsk.o..',
+    '.kccaaaaaaccc..O',
+    '.kccaaaaaacck.o.',
+    '.ksaaaAaaaak..O.',
+    '..kaaaaaaaak....',
+    '..kaAaaaaAak....',
+    '..kaaaaaaaakkkkk',
+    '..kAaaaaaaAkmmmm',
+    '...kccckcckkxxXk',
+    '...kddkkddk.kxk.',
+    '...kddk.kddkxxXk',
+    '..kkkkk.kkkkkkkk',
+  ] },
+  archive: { title: 'Archivist', accent: '#5ccfe6', palette: { ...KEEPER_SKIN, h: '#7a4a32', c: '#3fb0c4', C: '#23788c', g: '#b8862e', R: '#e0604c', b: '#5d9dff', y: '#ffd36b', G: '#5bd37a', w: '#efe9dd', W: '#c9c0b0', d: '#2e2a38' }, rows: [
+    '.....kkkk.......',
+    '....khhhhk......',
+    '...kkhhhhkk.....',
+    '..khhhhhhhhk....',
+    '..khsssssshk....',
+    '..kssgssgssk....',
+    '..ksgkggkgsk....',
+    '..ksrgssgrsk....',
+    '...kSssssSk.....',
+    '..kcckcckcck....',
+    '.kcckRRRRRRk....',
+    '.kcckbbbbbbk....',
+    '.kcsskyyyyyyk...',
+    '.kccsskGGGGGk...',
+    '..kcckwwwwwwk...',
+    '..kcCkWwWwWk....',
+    '..kCCCCCCCk.....',
+    '...kddkkddk.....',
+    '...kddk.kddk....',
+    '..kkkkk.kkkkk...',
+  ] },
+  citadel: { title: 'Castle Builder', accent: '#ffd84d', palette: { ...KEEPER_SKIN, y: '#ffd36b', Y: '#d9a514', j: '#ff5d6c', R: '#c43a4a', Q: '#8a2434', P: '#ff8fd0', p: '#c85aa0', t: '#b98552', w: '#f2e4c4', d: '#3a2a24', h: '#8a5a3a' }, rows: [
+    '.kPPPPk.........',
+    '.kPPPPPk........',
+    '.kPpPPPPk.......',
+    '.kPPPPk.k.k.k...',
+    '.kt.kk.kykykyk..',
+    '.kt...kyyjyyyk..',
+    '.kt...kYYYYYYk..',
+    '.kt...khhhhhhk..',
+    '.kt...kssssssk..',
+    '.kt...kskssksk..',
+    '.kt...krssssrk..',
+    '.kt....kSssSk...',
+    '.kssRRRRwwRRRk..',
+    '.kt.kQRRwywRRRk.',
+    '.kt.kQRRwwwRRRk.',
+    '.kt.kQRRwywRRRRk',
+    '.kt.kQRRwwwRRRRk',
+    '.kt.kQRRRRRRRRRk',
+    '.kt...kddkkddk..',
+    '.kk..kkkk..kkkk.',
+  ] },
+  atlas: { title: 'Cartographer', accent: '#7fa8ff', palette: { ...KEEPER_SKIN, h: '#7a5236', H: '#523422', f: '#e0604c', c: '#5c8fd6', C: '#3a64a8', w: '#f2dfae', W: '#d3ba7d', R: '#e0604c', b: '#7cc8e8', g: '#7fbd67', d: '#3a2a24' }, rows: [
+    '.........f......',
+    '....kkkkkff.....',
+    '...khhhhhhfk....',
+    '..khhhhhhhhk....',
+    '.kHHHHHHHHHHk...',
+    '..kssssssssk....',
+    '..kssksskssk....',
+    '..ksrssssrsk....',
+    '...kSssssSk.....',
+    '..kcckcckcck....',
+    '.kkkkkkkkkkkkkk.',
+    'kswwbbwwwgggwwsk',
+    'kwwbbwRwwggwwwwk',
+    'kwwbwwwRwwwgwwwk',
+    'kwbbwwwwRwwRwwwk',
+    'kWwwwgwwwRRwRwWk',
+    '.kkkkkkkkkkkkkk.',
+    '...kCCkkCCk.....',
+    '...kddk.kddk....',
+    '..kkkkk.kkkkk...',
+  ] },
+};
+Object.entries(KEEPERS).forEach(([realm, keeper]) => { RELIC_SPRITES[`keeper-${realm}`] = keeper; });
+const CATEGORY_REALM = { web: 'harbor', mobile: 'garden', other: 'wilds', ai: 'observatory', cli: 'forge', data: 'archive', game: 'citadel' };
+function keeperFor(realm) {
+  const key = KEEPERS[realm] ? realm : 'harbor';
+  return { realm: key, sprite: `keeper-${key}`, title: KEEPERS[key].title, accent: KEEPERS[key].accent };
+}
+
 const DATA = JSON.parse(document.getElementById('pelago-data').textContent);
 const PROJECTS = Array.isArray(DATA.projects) ? DATA.projects : [];
 // A world is a snapshot: recency is measured from when it was generated, so a shared page never ages.
@@ -2728,6 +2945,65 @@ function drawStat(context, x, y, value, label, scale, align = 'left') {
   if ('letterSpacing' in context) context.letterSpacing = '0px';
 }
 
+// A 5×7 bitmap font for the big numbers on cards, drawn in whole pixels so it stays crisp in a feed.
+const PIXEL_FONT = {
+  0: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  1: ['..#..', '.##..', '..#..', '..#..', '..#..', '..#..', '.###.'],
+  2: ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
+  3: ['####.', '....#', '....#', '.###.', '....#', '....#', '####.'],
+  4: ['...#.', '..##.', '.#.#.', '#..#.', '#####', '...#.', '...#.'],
+  5: ['#####', '#....', '####.', '....#', '....#', '#...#', '.###.'],
+  6: ['..##.', '.#...', '#....', '####.', '#...#', '#...#', '.###.'],
+  7: ['#####', '....#', '...#.', '..#..', '.#...', '.#...', '.#...'],
+  8: ['.###.', '#...#', '#...#', '.###.', '#...#', '#...#', '.###.'],
+  9: ['.###.', '#...#', '#...#', '.####', '....#', '...#.', '.##..'],
+  K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
+  M: ['#...#', '##.##', '#.#.#', '#.#.#', '#...#', '#...#', '#...#'],
+  B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+  d: ['....#', '....#', '.####', '#...#', '#...#', '#...#', '.####'],
+  '/': ['....#', '...#.', '...#.', '..#..', '.#...', '.#...', '#....'],
+  '.': ['..', '..', '..', '..', '..', '##', '##'],
+  '%': ['##..#', '##.#.', '...#.', '..#..', '.#...', '.#.##', '#..##'],
+  '+': ['.....', '..#..', '..#..', '#####', '..#..', '..#..', '.....'],
+  ' ': ['..', '..', '..', '..', '..', '..', '..'],
+};
+PIXEL_FONT.k = PIXEL_FONT.K;
+const pixelable = (text) => [...String(text)].every((char) => PIXEL_FONT[char]);
+function pixelTextWidth(text, cell) { return [...String(text)].reduce((sum, char) => sum + (PIXEL_FONT[char][0].length + 1) * cell, -cell); }
+// y is the baseline: the bottom row of every glyph sits just above it.
+function drawPixelText(context, text, x, y, cell, color) {
+  let cursor = Math.round(x);
+  const top = Math.round(y) - 7 * cell;
+  context.fillStyle = color;
+  [...String(text)].forEach((char) => {
+    const glyph = PIXEL_FONT[char];
+    glyph.forEach((row, gy) => [...row].forEach((on, gx) => { if (on === '#') context.fillRect(cursor + gx * cell, top + gy * cell, cell, cell); }));
+    cursor += (glyph[0].length + 1) * cell;
+  });
+}
+// A keeper drawn in whole pixels, its feet on (x, bottom).
+function drawKeeper(context, realm, x, bottom, cell) {
+  const sprite = RELIC_SPRITES[keeperFor(realm).sprite];
+  const top = Math.round(bottom) - sprite.rows.length * cell;
+  context.fillStyle = 'rgba(2,6,18,.45)';
+  context.fillRect(Math.round(x) + 2 * cell, Math.round(bottom) - cell, 12 * cell, cell * 2);
+  paintSprite(keeperFor(realm).sprite, (px, py, colour) => { context.fillStyle = `rgb(${colour.join(',')})`; context.fillRect(Math.round(x) + px * cell, top + py * cell, cell, cell); });
+}
+// A frame with stepped corners, in the realm's accent, so cards from different builders look different in a feed.
+function drawPixelFrame(context, width, height, color, scale) {
+  const cell = Math.max(2, Math.round(4 * scale)), inset = Math.round(16 * scale);
+  const draw = (offset, fill) => {
+    const x0 = inset + offset, y0 = inset + offset, x1 = width - inset + offset, y1 = height - inset + offset;
+    context.fillStyle = fill;
+    context.fillRect(x0 + 2 * cell, y0, x1 - x0 - 4 * cell, cell); context.fillRect(x0 + 2 * cell, y1 - cell, x1 - x0 - 4 * cell, cell);
+    context.fillRect(x0, y0 + 2 * cell, cell, y1 - y0 - 4 * cell); context.fillRect(x1 - cell, y0 + 2 * cell, cell, y1 - y0 - 4 * cell);
+    [[x0 + cell, y0 + cell], [x1 - 2 * cell, y0 + cell], [x0 + cell, y1 - 2 * cell], [x1 - 2 * cell, y1 - 2 * cell]].forEach(([x, y]) => context.fillRect(x, y, cell, cell));
+    [[x0 + 3 * cell, y0 + 3 * cell], [x1 - 4 * cell, y0 + 3 * cell], [x0 + 3 * cell, y1 - 4 * cell], [x1 - 4 * cell, y1 - 4 * cell]].forEach(([x, y]) => context.fillRect(x, y, cell, cell));
+  };
+  draw(cell, 'rgba(2,6,18,.55)');
+  draw(0, color);
+}
+
 function islandLine(project) {
   const recipe = islandRecipe(project);
   return `${plural(recipe.buildings.count, 'building')}, ${plural(recipe.trees.count, 'tree')} and ${plural(recipe.waterfalls, 'waterfall')}, all built from ${compact(project.sessions)} sessions${totalTokens(project) ? ` and ${compact(totalTokens(project))} tokens` : ''}.`;
@@ -2736,7 +3012,8 @@ function islandLine(project) {
 function cardCopy(selected) {
   if (selected) {
     return {
-      overline: TEAM ? 'AN ISLAND WE BUILT WITH AI' : 'AN ISLAND I BUILT WITH AI',
+      overline: DATA.demo ? 'A SAMPLE ISLAND' : TEAM ? 'AN ISLAND WE BUILT WITH AI' : 'AN ISLAND I BUILT WITH AI',
+      accent: keeperFor(CATEGORY_REALM[selected.category] || 'wilds').accent,
       title: nameOf(selected) || kindOf(selected),
       line: islandLine(selected),
       stats: [[compact(selected.sessions), 'sessions'], [compact(selected.prompts ?? selected.messages), selected.prompts !== undefined ? 'requests' : 'messages'], totalTokens(selected) ? [compact(totalTokens(selected)), 'tokens'] : [`${activeSpan(selected)}d`, 'lifespan']],
@@ -2744,7 +3021,8 @@ function cardCopy(selected) {
   }
   const custom = ($('#cardTitle')?.value || '').trim();
   return {
-    overline: TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    overline: DATA.demo ? (TEAM ? 'SAMPLE TEAM ARCHETYPE' : 'SAMPLE ARCHETYPE') : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    accent: keeperFor(PERSONA.realm).accent,
     title: custom || PERSONA.title,
     line: PERSONA.line,
     stats: [
@@ -2757,9 +3035,11 @@ function cardCopy(selected) {
 
 function drawTitle(context, title, x, y, maxWidth, size, align = 'left') {
   context.textAlign = align;
-  context.font = `700 ${size}px ${SERIF}`;
   const { lead, accent } = personaParts(title);
   const isPersona = title === PERSONA.title && accent;
+  const full = size;
+  context.font = `700 ${size}px ${SERIF}`;
+  while (isPersona && size > full * .8 && wrapLines(context, lead, maxWidth).length > 1) { size *= .95; context.font = `700 ${size}px ${SERIF}`; }
   const lines = isPersona ? [...wrapLines(context, lead, maxWidth), accent] : wrapLines(context, title, maxWidth);
   const shown = lines.slice(0, 3);
   shown.forEach((line, index) => {
@@ -2809,7 +3089,8 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     const centreX = heroItem ? heroItem.x : width / 2, centreY = heroItem ? heroItem.y : height / 2;
     context.translate(centreX, centreY); context.scale(zoom, zoom); context.translate(-centreX, -centreY);
   }
-  drawOcean(context, width, height, selected ? selected.seed : 73, time);
+  // A persona card's keeper stands where the moon would, so the moon rises higher and further left.
+  drawOcean(context, width, height, selected ? selected.seed : 73, time, selected || wide ? null : tall ? [.6, .062] : [.6, .08]);
   drawCloudSea(context, width, height, time);
   if (heroItem) {
     // A warm halo behind the capital gives the card a centre.
@@ -2868,10 +3149,20 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   if (!wide) context.fillText(`${TEAM ? "OUR" : "MY"} PELAGO · ${year}`, width - pad, pad + 26 * scale);
   const textWidth = wide ? width * .36 - pad : width - pad * 2;
   const top = wide ? height * .2 : pad + 92 * scale;
-  context.textAlign = 'left'; context.fillStyle = COLORS.coral; context.font = `900 ${(wide ? 16 : 19) * scale}px ${SANS}`;
+  drawPixelFrame(context, width, height, copy.accent, scale);
+  context.textAlign = 'left'; context.fillStyle = copy.accent; context.font = `900 ${(wide ? 16 : 19) * scale}px ${SANS}`;
   context.fillText(copy.overline, pad, top);
   const titleSize = (tall ? 92 : square ? 66 : 62) * scale;
-  const end = drawTitle(context, copy.title, pad, top + titleSize * 1.04, textWidth, titleSize);
+  // The keeper stands at the end of the title, in whole pixels.
+  const cell = selected ? 0 : Math.max(3, Math.round((tall ? 8 : square ? 6 : 7) * scale));
+  if (cell) {
+    const keeperX = pad + textWidth - 16 * cell, keeperBottom = top + titleSize * 2.1;
+    const halo = context.createRadialGradient(keeperX + 8 * cell, keeperBottom - 10 * cell, 0, keeperX + 8 * cell, keeperBottom - 10 * cell, 16 * cell);
+    halo.addColorStop(0, `${copy.accent}38`); halo.addColorStop(1, `${copy.accent}00`);
+    context.fillStyle = halo; context.fillRect(keeperX - 8 * cell, keeperBottom - 26 * cell, 32 * cell, 32 * cell);
+    drawKeeper(context, PERSONA.realm, keeperX, keeperBottom, cell);
+  }
+  const end = drawTitle(context, copy.title, pad, top + titleSize * 1.04, textWidth - (cell ? 16 * cell + 20 * scale : 0), titleSize);
   context.fillStyle = '#d2e1f0'; context.font = `600 ${(tall ? 28 : 22) * scale}px ${SANS}`;
   const lines = wrapLines(context, copy.line, textWidth).slice(0, 2);
   lines.forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
@@ -2910,8 +3201,16 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
       const tx = x + (index % columns) * (tw + gap), ty = y + Math.floor(index / columns) * (th + gap);
       glass(tx, ty, tw, th, 18 * scale);
       const size = Math.min(th * .44, tw * .3);
-      context.textAlign = 'left'; context.fillStyle = index === 3 ? '#ffd36b' : COLORS.paper; context.font = `700 ${size}px ${SERIF}`;
-      context.fillText(value, tx + 18 * scale, ty + th * .56);
+      context.textAlign = 'left';
+      if (pixelable(value)) {
+        let unit = Math.max(2, Math.floor(size / 7));
+        while (unit > 2 && pixelTextWidth(value, unit) > tw - 36 * scale) unit -= 1;
+        drawPixelText(context, value, tx + 18 * scale + unit, ty + th * .56 + unit, unit, 'rgba(2,6,18,.6)');
+        drawPixelText(context, value, tx + 18 * scale, ty + th * .56, unit, index === 3 ? '#ffd36b' : COLORS.paper);
+      } else {
+        context.fillStyle = index === 3 ? '#ffd36b' : COLORS.paper; context.font = `700 ${size}px ${SERIF}`;
+        context.fillText(value, tx + 18 * scale, ty + th * .56);
+      }
       context.fillStyle = '#9fbad4'; context.font = `900 ${Math.max(11 * scale, size * .26)}px ${SANS}`;
       if ('letterSpacing' in context) context.letterSpacing = `${2 * scale}px`;
       context.fillText(label.toUpperCase(), tx + 18 * scale, ty + th * .82);
@@ -2927,7 +3226,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     context.save();
     context.beginPath(); context.roundRect(x, y, w, h, 999);
     context.fillStyle = 'rgba(8,15,34,.8)'; context.fill();
-    context.strokeStyle = RARITY[rarest.rarity].color; context.lineWidth = 2 * scale; context.stroke();
+    context.strokeStyle = copy.accent; context.lineWidth = 3 * scale; context.stroke();
     context.restore();
     const sprite = RELIC_SPRITES[rarest.sprite];
     const cell = Math.floor(iconSize / Math.max(sprite.rows.length, sprite.rows[0].length));
@@ -3193,7 +3492,7 @@ function drawCloudSea(context, width, height, time, front = false) {
   context.restore();
 }
 
-function drawOcean(context, width, height, seed = 41, time = performance.now()) {
+function drawOcean(context, width, height, seed = 41, time = performance.now(), moonAt = null) {
   // Night sky: deep zenith, a luminous band at the horizon, stars, a pixel moon and a sea of cloud below.
   const random = seeded(seed);
   const horizon = height * .62;
@@ -3242,7 +3541,7 @@ function drawOcean(context, width, height, seed = 41, time = performance.now()) 
     // A pixel moon with craters and a halo.
     const portrait = height > width;
     const radius = Math.round(Math.min(width, height) * (portrait ? .045 : .055) / unit) * unit;
-    const mx = Math.round(width * (portrait ? .8 : .86)), my = Math.round(height * (portrait ? .1 : .17));
+    const [mx, my] = (moonAt || [portrait ? .8 : .86, portrait ? .1 : .17]).map((share, index) => Math.round(share * (index ? height : width)));
     const halo = context.createRadialGradient(mx, my, radius * .8, mx, my, radius * 4);
     halo.addColorStop(0, 'rgba(255,236,180,.16)'); halo.addColorStop(1, 'rgba(255,236,180,0)');
     context.fillStyle = halo;
@@ -4058,6 +4357,19 @@ function buildGuide() {
     });
     read.append(section);
   });
+  const keepers = element('section', 'guide-section');
+  keepers.append(element('h3', 'guide-heading', 'Archetypes'));
+  const combos = (DATA.archetypes?.prefixes?.length || 11) * (DATA.archetypes?.titles?.length || 8);
+  keepers.append(element('p', 'guide-copy', `Every title has a keeper. The title comes from the realm you build in most, its first word from how you build: ${combos} in all. ${TEAM ? 'Together you are' : DATA.demo ? 'This sample builder is' : 'You are'} ${PERSONA.title}.`));
+  const keeperRow = element('div', 'keeper-row');
+  Object.entries(KEEPERS).forEach(([realm, keeper]) => {
+    const tile = element('figure', `keeper-tile${realm === PERSONA.realm ? ' mine' : ''}`);
+    tile.style.setProperty('--accent', keeper.accent);
+    tile.append(relicIcon(keeperFor(realm).sprite, 3), element('figcaption', '', keeper.title.replace(/(master|grapher)$/, '\u00AD$1')));
+    keeperRow.append(tile);
+  });
+  keepers.append(keeperRow);
+  read.append(keepers);
   const landmarks = element('section', 'guide-section');
   landmarks.append(element('h3', 'guide-heading', 'Landmarks and biomes'));
   landmarks.append(element('p', 'guide-copy', 'The kind of project sets the biome and the landmark at its heart: a lighthouse for web, an observatory for AI, a clock tower for data, a radio mast for CLIs, a pagoda for mobile, a castle with balloons for games, and an ancient lantern tree for everything else. The flags show which agents built it.'));
@@ -4820,17 +5132,7 @@ function buildSlides() {
     return slide;
   }));
 
-  slides.push(at({ mode: 'wide', zoom: .95, shade: .25, reveal: true }, () => {
-    const slide = element('div', 'slide slide-persona');
-    slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : DATA.demo ? 'THIS BUILDER IS' : 'WHICH MAKES YOU'));
-    const title = element('h2', 'story-persona');
-    const { lead, accent } = personaParts();
-    title.append(document.createTextNode(`${lead} `));
-    if (accent) title.append(element('em', '', accent));
-    slide.append(title);
-    slide.append(element('p', 'story-copy', `${PERSONA.line} ${PERSONA.realmLine || ''}`.trim()));
-    return slide;
-  }));
+  slides.push(Object.assign(at({ mode: 'wide', zoom: .95, shade: .25, reveal: true }, personaSlide), { seconds: 8.5 }));
 
   slides.push(at({ mode: 'wide', zoom: .9, shade: .85 }, () => {
     const slide = element('div', `slide slide-share${DATA.demo ? ' demo' : ''}`);
@@ -4846,6 +5148,102 @@ function buildSlides() {
   }));
   return slides;
 }
+// The archetype reveal: two reels spin through every first word and title and lock on yours, then your keeper
+// dithers in and the two numbers that decided it appear.
+function keeperPortrait(realm, size) {
+  const sprite = RELIC_SPRITES[keeperFor(realm).sprite];
+  // Whole device pixels per sprite pixel, whatever the screen's density.
+  const ratio = window.devicePixelRatio || 1, cell = Math.max(1, Math.round(size * ratio));
+  const canvas = element('canvas', 'keeper-portrait');
+  canvas.width = 16 * cell; canvas.height = sprite.rows.length * cell;
+  canvas.style.width = `${16 * cell / ratio}px`; canvas.style.height = `${sprite.rows.length * cell / ratio}px`;
+  canvas.setAttribute('aria-hidden', 'true');
+  const pixels = [];
+  paintSprite(keeperFor(realm).sprite, (x, y, colour) => pixels.push([x, y, `rgb(${colour.join(',')})`]));
+  // Ordered dither: each step lights the pixels whose Bayer threshold it has passed, so it arrives in whole pixels.
+  canvas.reveal = (step = 16) => {
+    const context = canvas.getContext('2d');
+    pixels.forEach(([x, y, colour]) => { if (BAYER[((y & 3) << 2) | (x & 3)] < step / 16) { context.fillStyle = colour; context.fillRect(x * cell, y * cell, cell, cell); } });
+  };
+  return canvas;
+}
+function storyReel(words, final, tag) {
+  const reel = element(tag, 'reel');
+  reel.setAttribute('aria-hidden', 'true');
+  const strip = element('span', 'reel-strip');
+  const pool = words.filter((word) => word !== final);
+  const spins = [];
+  for (let index = 0; pool.length && index < 14; index += 1) {
+    const options = pool.filter((word) => word !== spins[spins.length - 1]);
+    spins.push(options[Math.floor(Math.random() * options.length)]);
+  }
+  [...spins, final].forEach((word) => strip.append(element('span', 'reel-word', word)));
+  reel.append(strip);
+  reel.steps = spins.length;
+  return reel;
+}
+function personaSlide() {
+  const slide = element('div', 'slide slide-persona');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const keeper = keeperFor(PERSONA.realm);
+  slide.style.setProperty('--accent', keeper.accent);
+  const portrait = keeperPortrait(PERSONA.realm, window.innerWidth < 380 ? 5 : 6);
+  slide.append(portrait);
+  slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : DATA.demo ? 'THIS BUILDER IS' : 'WHICH MAKES YOU'));
+  const title = element('h2', 'story-persona');
+  const [first, second] = PERSONA.clues || [];
+  const spinning = first && second && PERSONA.title === `The ${first.label} ${second.label}`;
+  const reels = [];
+  if (spinning) {
+    title.classList.add('reels');
+    title.append(element('span', 'sr-only', PERSONA.title));
+    const line = element('span', 'reel-line'); line.setAttribute('aria-hidden', 'true');
+    reels.push(storyReel(still ? [] : DATA.archetypes?.prefixes || [], first.label, 'span'), storyReel(still ? [] : DATA.archetypes?.titles || [], second.label, 'em'));
+    line.append(document.createTextNode('The '), reels[0]);
+    title.append(line, reels[1]);
+  } else {
+    const { lead, accent } = personaParts();
+    title.append(document.createTextNode(`${lead} `));
+    if (accent) title.append(element('em', '', accent));
+  }
+  slide.append(title);
+  slide.append(element('p', 'story-copy', `${PERSONA.line} ${PERSONA.realmLine || ''}`.trim()));
+  const chips = element('div', 'clue-chips');
+  (PERSONA.clues || []).forEach((clue) => {
+    const chip = element('p', 'clue-chip');
+    chip.append(element('strong', '', clue.label), document.createTextNode(clue.why));
+    chips.append(chip);
+  });
+  slide.append(chips);
+  // Long words shrink the title rather than spill past the frame.
+  requestAnimationFrame(() => {
+    const widest = Math.max(0, ...[...title.querySelectorAll('.reel-line, em.reel')].map((child) => child.scrollWidth));
+    if (spinning && widest > title.clientWidth) title.style.fontSize = `${parseFloat(getComputedStyle(title).fontSize) * title.clientWidth / widest * .98}px`;
+  });
+  if (still) { portrait.reveal(); chips.classList.add('shown'); return slide; }
+  const later = (ms, run) => setTimeout(() => { if (slide.isConnected) run(); }, ms);
+  const lock = (reel) => {
+    reel.classList.add('locked');
+    for (let index = 0; index < 5; index += 1) {
+      const spark = element('i', 'reel-spark');
+      spark.style.left = `${reel.offsetLeft + Math.random() * reel.offsetWidth * .9}px`;
+      spark.style.top = `${reel.offsetTop + (index % 2 ? -6 : reel.offsetHeight - 2) + Math.random() * 10 - 5}px`;
+      spark.style.animationDelay = `${index * 60}ms`;
+      title.append(spark);
+    }
+    navigator.vibrate?.(15);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(() => reels.forEach((reel, index) => {
+    const strip = reel.firstChild;
+    strip.style.transitionDuration = `${index ? 2.1 : 1.3}s`;
+    strip.style.transform = `translateY(${-reel.steps * 1.08}em)`;
+  })));
+  reels.forEach((reel, index) => later(index ? 2100 : 1300, () => lock(reel)));
+  for (let step = 1; step <= 16; step += 1) later(2250 + step * 40, () => portrait.reveal(step));
+  later(2950, () => chips.classList.add('shown'));
+  return slide;
+}
+
 // The last slide's buttons. A real world shares its card; the sample leads to the prompt and never posts someone else's card.
 function storyEndActions(slide) {
   const actions = element('div', `story-actions${DATA.demo ? ' demo' : ''}`);
@@ -4993,7 +5391,7 @@ function renderStorySlide() {
   $$('#storyProgress i').forEach((bar, index) => {
     bar.classList.toggle('done', index < story.index);
     bar.classList.toggle('active', index === story.index);
-    bar.style.setProperty('--duration', `${STORY_SECONDS}s`);
+    bar.style.setProperty('--duration', `${index === story.index && build.seconds || STORY_SECONDS}s`);
   });
   $('#storyCount').textContent = `${story.index + 1} / ${story.slides.length}`;
   $('#story').classList.toggle('last', story.index === story.slides.length - 1);
@@ -5003,7 +5401,7 @@ function scheduleStory() {
   clearTimeout(story.timer);
   const last = story.index === story.slides.length - 1;
   if (last || story.paused || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  story.timer = setTimeout(() => stepStory(1), STORY_SECONDS * 1000);
+  story.timer = setTimeout(() => stepStory(1), (story.slides[story.index].seconds || STORY_SECONDS) * 1000);
 }
 function stepStory(direction) {
   const next = story.index + direction;

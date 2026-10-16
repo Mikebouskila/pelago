@@ -121,6 +121,12 @@ class PelagoTests(unittest.TestCase):
             self.assertIn('id="toggleNames"', html)
             self.assertIn("function nameOf", html)
             self.assertIn("function nextRelics", html)
+            # Every title has a keeper, and the archetype arrives with its reasons.
+            self.assertIn("function keeperFor", html)
+            for title in pelago.TITLES.values():
+                self.assertIn(f"title: '{title}'", html)
+            self.assertIn("39% of your building happened after 10 PM", html)
+            self.assertIn("SAMPLE ARCHETYPE", html)
             # The sample doubles as the live demo, so it carries link previews; a real world never does.
             self.assertIn('property="og:image"', html)
             data = pelago.demo_data()
@@ -245,6 +251,72 @@ class PelagoTests(unittest.TestCase):
         quiet = builder("web", 14); quiet["rhythm"] = {}
         self.assertEqual(pelago.persona(quiet)["title"], "The Steady Harbormaster")
         self.assertIn("returning", pelago.persona(quiet)["line"])
+
+    def test_persona_clues_quote_the_numbers_that_decided_it(self):
+        def why(data):
+            return [clue["why"] for clue in pelago.persona(data)["clues"]]
+
+        def builder(mix, hours=None, **rhythm):
+            projects = [{"name": f"P{index}", "agent": "claude", "category": category, "activity": activity, "tools": {"shell": 100}}
+                        for index, (category, activity) in enumerate(mix)]
+            return {"projects": projects, "rhythm": {"hours": hours or [0] * 17 + [48, 0, 0, 0, 0] + [52, 0], "weekdays": [1] * 7, **rhythm}}
+
+        demo = pelago.demo_data()["persona"]
+        self.assertEqual([clue["label"] for clue in demo["clues"]], ["Midnight", "Harbormaster"])
+        self.assertEqual(demo["clues"][0]["why"], "39% of your building happened after 10 PM")
+        evening = [0] * 24; evening[18] = 48; evening[9] = 30; evening[14] = 22
+        self.assertEqual(why(builder([("web", 71), ("ai", 29)], evening)), ["48% of your building happened between 5 and 10 PM", "71% of your work was web"])
+        self.assertEqual(why(builder([("web", 50), ("ai", 45), ("cli", 5)], evening))[1], "45% of your work was AI and agents, 50% web")
+        self.assertEqual(why(builder([("web", 30), ("ai", 30), ("cli", 20), ("data", 20)], evening))[1], "4 realms, none above 35%")
+        self.assertEqual(why(builder([("cli", 100)], evening, longestStreak=41))[0], "41 days in a row")
+        both = builder([("cli", 100)], evening); both["projects"][0]["crews"] = {"claude": .55, "codex": .45}
+        self.assertEqual(why(both)[0], "Claude Code 55%, Codex 45%")
+        hive = builder([("cli", 100)], evening); hive["projects"][0]["tools"] = {"shell": 86, "crew": 14}
+        self.assertEqual(why(hive)[0], "14% of tool calls were subagents")
+        many = builder([("web", 10)] * 22, evening)
+        self.assertEqual(why(many)[0], "22 islands, none above 40%")
+        weekend = builder([("web", 10)], evening); weekend["rhythm"]["weekdays"] = [1] * 5 + [3, 3]
+        self.assertEqual(why(weekend)[0], "55% of your building happened on weekends")
+
+    def test_archetypes_spread_across_many_kinds_of_builder(self):
+        """2,000 synthetic builders: no archetype may claim more than 15%, and no first word more than 30%."""
+        import math
+        import random
+        from collections import Counter
+
+        def builder(rng, web_heavy=False):
+            base = {"web": .62, "other": .1, "ai": .1, "cli": .07, "data": .04, "mobile": .04, "game": .03} if web_heavy else \
+                {"web": .42, "other": .16, "ai": .13, "cli": .1, "data": .07, "mobile": .06, "game": .06}
+            home = rng.choices(list(base), list(base.values()))[0]
+            prefs = {kind: weight * (rng.uniform(2, 7) if kind == home else rng.uniform(.3, 1.5)) for kind, weight in base.items()}
+            count = rng.choice([rng.randint(1, 3), rng.randint(4, 10), rng.randint(4, 10), rng.randint(11, 19), rng.randint(20, 45)])
+            mode = rng.choices(["claude", "codex", "both"], [.6, .15, .25])[0]
+            codex_mean = rng.uniform(.15, .6)
+            crew_share = rng.choices([rng.uniform(0, .05), rng.uniform(.05, .15), rng.uniform(.1, .35)], [.7, .2, .1])[0]
+            projects = []
+            for index in range(count):
+                codex = min(1.0, max(0.0, rng.gauss(codex_mean, .2))) if mode == "both" else float(mode == "codex")
+                tools = {"shell": rng.randint(50, 500), "build": rng.randint(50, 500), "read": rng.randint(20, 300), "web": rng.randint(0, 80)}
+                tools["crew"] = int(sum(tools.values()) * crew_share / (1 - crew_share) * rng.uniform(.6, 1.4))
+                projects.append({"name": f"P{index}", "category": rng.choices(list(prefs), list(prefs.values()))[0], "tools": tools,
+                                 "activity": int(math.exp(rng.gauss(6, 1.4))) + 1, "crews": {key: value for key, value in (("claude", 1 - codex), ("codex", codex)) if value}})
+            # A day shift, an evening shift, late nights and early mornings, mixed differently for everyone.
+            mix = [rng.gammavariate(alpha, 1) for alpha in ((1.0, 1.6, .45, .1) if web_heavy else (1.3, 1.1, .45, .15))]
+            centres = (rng.uniform(10, 15.5), rng.uniform(19, 21.5), rng.uniform(23, 25.5), rng.uniform(5.5, 7.5))
+            hours = [sum(weight * math.exp(-min(abs(hour - centre), 24 - abs(hour - centre)) ** 2 / (2 * width ** 2))
+                         for weight, centre, width in zip(mix, centres, (2.8, 1.6, 1.6, 1.0))) for hour in range(24)]
+            hours = [int(value / sum(hours) * 2000 * rng.uniform(.8, 1.2)) for value in hours]
+            weekend = min(.6, max(.02, rng.betavariate(2.5, 7.5)))
+            weekdays = [int((1 - weekend) * 200)] * 5 + [int(weekend * 500)] * 2
+            return {"projects": projects, "rhythm": {"hours": hours, "weekdays": weekdays, "longestStreak": min(120, int(rng.expovariate(1 / 11)) + 1)}}
+
+        for web_heavy, limit in ((False, .15), (True, .2)):
+            rng = random.Random(7)
+            titles = Counter(pelago.persona(builder(rng, web_heavy))["title"] for _ in range(2000))
+            prefixes = Counter(title.split()[1] for title in titles.elements())
+            self.assertLessEqual(titles.most_common(1)[0][1] / 2000, limit, titles.most_common(3))
+            self.assertLessEqual(prefixes.most_common(1)[0][1] / 2000, .3, prefixes.most_common(3))
+            self.assertGreaterEqual(len(titles), 60)
 
     def test_team_worlds_merge_shared_islands(self):
         def export(builder, projects, daily):
@@ -372,6 +444,8 @@ class PelagoTests(unittest.TestCase):
             data = pelago.load_input(source)
             self.assertIn("persona", data)
             self.assertEqual(data["rhythm"]["activeDays"], 0)
+            self.assertEqual([clue["label"] for clue in data["persona"]["clues"]], ["Two-Tide", "Harbormaster"])
+            self.assertEqual(data["persona"]["clues"][0]["why"], "Claude Code 55%, Codex 45%")
 
     def test_tokens_tools_and_requests_are_counted(self):
         with tempfile.TemporaryDirectory() as directory:

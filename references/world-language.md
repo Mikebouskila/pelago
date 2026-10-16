@@ -41,23 +41,25 @@ Relics are defined in `assets/relics.js` (`RELICS`). Each has a sprite, a rarity
 
 The archetype is `The <Adjective> <Title>`, computed in `scripts/pelago.py` (`persona()`).
 
-**Title** comes from the realm holding the most activity: web → Harbormaster, mobile → Gardener, AI → Stargazer, CLI → Toolsmith, data → Archivist, games → Castle Builder, anything else → Wayfinder. When no realm holds 35% of activity (and at least three realms appear), the title is Cartographer.
+**Title** comes from the realm holding the most activity: web → Harbormaster, mobile → Gardener, AI → Stargazer, CLI → Toolsmith, data → Archivist, games → Castle Builder, anything else → Wayfinder. Web and uncategorised work are the commonest realms, so they count at 70% and 75% when picking: a rarer realm close behind them names you instead. When no realm holds 35% of activity (and at least three realms appear), the title is Cartographer.
 
 **Adjective**: the first rule that matches wins.
 
 | Rule | Adjective |
 |---|---|
-| More than 30% of timestamped activity is between 22:00 and 04:59 local time | Midnight |
+| More than 33% of timestamped activity is between 22:00 and 04:59 local time | Midnight |
 | More than 25% is between 05:00 and 08:59 | Dawn |
 | More than 40% falls on Saturday or Sunday | Weekend |
 | Both agents hold more than 25% of activity | Two-Tide |
 | A streak of 30 or more days | Unbroken |
 | Subagent launches are more than 12% of tool calls | Hive |
 | 20 or more projects and none holds 40% of activity | Wandering |
-| Otherwise, whichever of 09–11, 12–16 or 17–21 holds the most activity | Morning, Sunlit or Twilight |
+| Otherwise, whichever of 06–11, 12–16 or 17–21 holds the most activity | Morning, Sunlit or Twilight |
 | No timestamps at all | Steady |
 
 When one island holds more than 60% of activity, the line adds "One island holds most of your heart."
+
+Each title has a keeper and an accent colour, which share cards wear on their overline, pixel frame and relic seal. `persona()` also returns two `clues`, one per word, built from the exact numbers that decided it ("39% of your building happened after 10 PM", "71% of your work was web"). The archetype slide of the story shows them, so the title always comes with its reason. `tests/test_pelago.py` simulates 2,000 varied builders and fails if any one archetype passes 15% or any first word passes 30%. A second run of mostly-web, evening-heavy builders (three in four are Harbormasters there) allows one archetype up to 20%.
 
 ## Story
 
@@ -71,7 +73,7 @@ The story has up to nine slides (ten in a team world), and a slide is skipped wh
 5. The longest run of consecutive active days, plus the busiest date.
 6. The crew: Claude Code versus Codex activity share, shown only when both are present.
 7. Relics found, rarest first, and the locked relic closest to unlocking.
-8. The archetype reveal, over the top islands.
+8. The archetype reveal, over the top islands: two reels spin through every first word and title and lock on yours, your keeper (one pixel character per title, `keeperFor()` in `assets/relics.js`) dithers in, then the two clues. With reduced motion everything appears at once.
 9. The share card, with share, post, more formats, and explore actions.
 
 Rhythm data is stored only as 24 hour buckets, 7 weekday buckets, the active-day count, the longest streak, and the first, last, and busiest dates.

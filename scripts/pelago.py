@@ -494,11 +494,19 @@ PREFIX_LINES = dict(zip(PREFIXES, (
     "Your best work arrives as the lamps come on.",
     "You keep returning, and the islands keep growing.",
 )))
-PERIODS = dict(zip(PREFIXES[7:10], (range(9, 12), range(12, 17), range(17, 22))))
+PERIODS = dict(zip(PREFIXES[7:10], (range(6, 12), range(12, 17), range(17, 22))))
+PERIOD_WORDS = {"Morning": "between 6 AM and noon", "Sunlit": "between noon and 5 PM", "Twilight": "between 5 and 10 PM"}
+# Web and uncategorised work are the commonest realms, so a rarer realm close behind them names you instead.
+REALM_PULL = {"harbor": 0.7, "wilds": 0.75}
+REALM_WHY = {
+    "harbor": "web", "garden": "mobile apps", "wilds": "off the map", "observatory": "AI and agents",
+    "forge": "tools and CLIs", "archive": "data", "citadel": "games",
+}
+AGENT_NAMES = {"claude": "Claude Code", "codex": "Codex"}
 
 
 def persona(data: dict[str, Any]) -> dict[str, Any]:
-    """Derive a playful, non-evaluative archetype from aggregate signals."""
+    """Derive a playful, non-evaluative archetype from aggregate signals, with the two numbers that decided it."""
     projects = data.get("projects") or []
     rhythm = data.get("rhythm") or {}
     realm_weight: Counter[str] = Counter()
@@ -510,11 +518,16 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
         tool_weight.update(project.get("tools") or {})
         for agent, share in (project.get("crews") or {project.get("agent", "claude"): 1.0}).items():
             agent_weight[agent] += weight * share
-    realm = "harbor"
+    realm, realm_why = "harbor", "no projects yet"
     if realm_weight:
-        realm, top = realm_weight.most_common(1)[0]
-        if len(realm_weight) >= 3 and top / sum(realm_weight.values()) < 0.35:
-            realm = "atlas"
+        whole = sum(realm_weight.values())
+        pct = {name: round(value / whole * 100) for name, value in realm_weight.items()}
+        common = realm_weight.most_common(1)[0][0]
+        realm = max(realm_weight, key=lambda name: realm_weight[name] * REALM_PULL.get(name, 1))
+        if len(realm_weight) >= 3 and realm_weight[common] / whole < 0.35:
+            realm, realm_why = "atlas", f"{len(realm_weight)} realms, none above 35%"
+        else:
+            realm_why = f"{pct[realm]}% of your work was {REALM_WHY[realm]}" + (f", {pct[common]}% {REALM_WHY[common]}" if realm != common else "")
 
     hours = rhythm.get("hours") or [0] * 24
     weekdays = rhythm.get("weekdays") or [0] * 7
@@ -528,11 +541,31 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
     total_agents = sum(agent_weight.values())
     both = len(agent_weight) > 1 and min(agent_weight.values()) / total_agents > 0.25
     crew = tool_weight["crew"] / max(1, sum(tool_weight.values()))
+    streak = rhythm.get("longestStreak") or 0
+    crews = [[AGENT_NAMES.get(agent, agent.title()), round(share / max(1, total_agents) * 100)] for agent, share in agent_weight.most_common(2)]
+    if len(agent_weight) == 2:
+        crews[1][1] = 100 - crews[0][1]
 
-    signals = (night > 0.3, dawn > 0.25, weekend > 0.4, both, (rhythm.get("longestStreak") or 0) >= 30, crew > 0.12, len(projects) >= 20 and top_share < 0.4)
+    signals = (night > 0.33, dawn > 0.25, weekend > 0.4, both, streak >= 30, crew > 0.12, len(projects) >= 20 and top_share < 0.4)
+    reasons = (
+        f"{round(night * 100)}% of your building happened after 10 PM",
+        f"{round(dawn * 100)}% of your building happened between 5 and 9 AM",
+        f"{round(weekend * 100)}% of your building happened on weekends",
+        ", ".join(f"{name} {share}%" for name, share in crews),
+        f"{streak} days in a row",
+        f"{round(crew * 100)}% of tool calls were subagents",
+        f"{len(projects)} islands, none above 40%",
+    )
     prefix = next((name for name, hit in zip(PREFIXES, signals) if hit), None)
-    if not prefix:
-        prefix = max(PERIODS, key=lambda name: sum(hours[hour] for hour in PERIODS[name])) if total else PREFIXES[-1]
+    if prefix:
+        prefix_why = reasons[PREFIXES.index(prefix)]
+    elif total:
+        prefix = max(PERIODS, key=lambda name: sum(hours[hour] for hour in PERIODS[name]))
+        prefix_why = f"{round(sum(hours[hour] for hour in PERIODS[prefix]) / total * 100)}% of your building happened {PERIOD_WORDS[prefix]}"
+    else:
+        prefix = PREFIXES[-1]
+        days = rhythm.get("activeDays") or 0
+        prefix_why = f"back at it on {days} different days" if days else "no clock to read, just steady returns"
     line = PREFIX_LINES[prefix]
     if top_share > 0.6 and len(projects) > 1:
         line += " One island holds most of your heart."
@@ -542,6 +575,7 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
         "line": line,
         "realmLine": REALM_LINES[realm],
         "peakHour": peak,
+        "clues": [{"label": prefix, "why": prefix_why}, {"label": TITLES[realm], "why": realm_why}],
     }
 
 

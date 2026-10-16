@@ -614,3 +614,32 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .welcome { height: auto; margin: 0; }
   .toast { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ---------- Archetype reveal and keepers ---------- */
+.slide-persona { --accent: #ffd66f; }
+.slide-persona > .keeper-portrait { animation: none; image-rendering: pixelated; margin-bottom: 2px; filter: drop-shadow(0 6px 22px color-mix(in srgb, var(--accent) 40%, transparent)); }
+.story-persona.reels { position: relative; align-self: stretch; line-height: 1.08; }
+.reel-line { display: block; white-space: nowrap; }
+.reel { display: inline-block; height: 1.08em; overflow: hidden; vertical-align: top; text-shadow: none; }
+.story-persona em.reel { display: block; text-shadow: none; }
+.reel-line { filter: drop-shadow(0 2px 10px rgba(0,0,0,.55)); }
+.reel-strip { display: flex; flex-direction: column; transition: transform 1.3s cubic-bezier(.12,.62,.22,1); }
+.reel-word { display: block; height: 1.08em; line-height: 1.08; white-space: nowrap; }
+.reel.locked { animation: reel-flash .7s steps(5, end); }
+@keyframes reel-flash { 0% { color: #fffbea; filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 14px #ffd66f) drop-shadow(0 0 30px rgba(255,190,80,.8)); } }
+.reel-spark { position: absolute; width: 4px; height: 4px; background: #fff8d6; box-shadow: 4px 0 #ffd66f, -4px 0 #ffd66f, 0 4px #ffd66f, 0 -4px #ffd66f; pointer-events: none; transform: scale(0); animation: reel-spark .7s steps(1, end) both; }
+@keyframes reel-spark { 0% { transform: scale(1); } 30% { transform: scale(2); } 65% { transform: scale(1); } 100% { transform: scale(0); } }
+.clue-chips { display: grid; gap: 6px; width: 100%; margin-top: 4px; }
+.clue-chip { display: flex; align-items: baseline; gap: 9px; margin: 0; padding: 8px 12px; border: 2px solid var(--accent); background: rgba(5,11,28,.8); color: rgba(232,240,252,.94); font-size: 13.5px; font-weight: 700; line-height: 1.35; text-shadow: none; visibility: hidden;
+  clip-path: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)); }
+.clue-chip strong { flex: none; color: var(--accent); font-size: 10.5px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.clue-chips.shown .clue-chip { visibility: visible; animation: chip-in .3s steps(3, end) both; }
+.clue-chips.shown .clue-chip:nth-child(2) { animation-delay: .25s; }
+@keyframes chip-in { from { visibility: hidden; transform: translateX(-12px); } 1% { visibility: visible; } }
+@media (prefers-reduced-motion: reduce) { .clue-chips .clue-chip, .reel.locked, .reel-spark { animation: none !important; } .reel-spark { display: none; } }
+.keeper-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.keeper-tile { display: grid; justify-items: center; align-content: start; gap: 6px; margin: 0; padding: 10px 4px 8px; border: 1px solid rgba(167,198,236,.1); border-radius: 12px; background: radial-gradient(circle at 50% 55%, #1b3763, #0a1530); }
+.keeper-tile.mine { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.keeper-tile .relic-icon { max-width: none; max-height: none; }
+.keeper-tile figcaption { color: rgba(220,232,248,.82); font-size: 11px; font-weight: 800; line-height: 1.2; text-align: center; }
+.keeper-tile.mine figcaption { color: var(--accent); }

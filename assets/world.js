@@ -141,6 +141,65 @@ function drawStat(context, x, y, value, label, scale, align = 'left') {
   if ('letterSpacing' in context) context.letterSpacing = '0px';
 }
 
+// A 5×7 bitmap font for the big numbers on cards, drawn in whole pixels so it stays crisp in a feed.
+const PIXEL_FONT = {
+  0: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  1: ['..#..', '.##..', '..#..', '..#..', '..#..', '..#..', '.###.'],
+  2: ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
+  3: ['####.', '....#', '....#', '.###.', '....#', '....#', '####.'],
+  4: ['...#.', '..##.', '.#.#.', '#..#.', '#####', '...#.', '...#.'],
+  5: ['#####', '#....', '####.', '....#', '....#', '#...#', '.###.'],
+  6: ['..##.', '.#...', '#....', '####.', '#...#', '#...#', '.###.'],
+  7: ['#####', '....#', '...#.', '..#..', '.#...', '.#...', '.#...'],
+  8: ['.###.', '#...#', '#...#', '.###.', '#...#', '#...#', '.###.'],
+  9: ['.###.', '#...#', '#...#', '.####', '....#', '...#.', '.##..'],
+  K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
+  M: ['#...#', '##.##', '#.#.#', '#.#.#', '#...#', '#...#', '#...#'],
+  B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+  d: ['....#', '....#', '.####', '#...#', '#...#', '#...#', '.####'],
+  '/': ['....#', '...#.', '...#.', '..#..', '.#...', '.#...', '#....'],
+  '.': ['..', '..', '..', '..', '..', '##', '##'],
+  '%': ['##..#', '##.#.', '...#.', '..#..', '.#...', '.#.##', '#..##'],
+  '+': ['.....', '..#..', '..#..', '#####', '..#..', '..#..', '.....'],
+  ' ': ['..', '..', '..', '..', '..', '..', '..'],
+};
+PIXEL_FONT.k = PIXEL_FONT.K;
+const pixelable = (text) => [...String(text)].every((char) => PIXEL_FONT[char]);
+function pixelTextWidth(text, cell) { return [...String(text)].reduce((sum, char) => sum + (PIXEL_FONT[char][0].length + 1) * cell, -cell); }
+// y is the baseline: the bottom row of every glyph sits just above it.
+function drawPixelText(context, text, x, y, cell, color) {
+  let cursor = Math.round(x);
+  const top = Math.round(y) - 7 * cell;
+  context.fillStyle = color;
+  [...String(text)].forEach((char) => {
+    const glyph = PIXEL_FONT[char];
+    glyph.forEach((row, gy) => [...row].forEach((on, gx) => { if (on === '#') context.fillRect(cursor + gx * cell, top + gy * cell, cell, cell); }));
+    cursor += (glyph[0].length + 1) * cell;
+  });
+}
+// A keeper drawn in whole pixels, its feet on (x, bottom).
+function drawKeeper(context, realm, x, bottom, cell) {
+  const sprite = RELIC_SPRITES[keeperFor(realm).sprite];
+  const top = Math.round(bottom) - sprite.rows.length * cell;
+  context.fillStyle = 'rgba(2,6,18,.45)';
+  context.fillRect(Math.round(x) + 2 * cell, Math.round(bottom) - cell, 12 * cell, cell * 2);
+  paintSprite(keeperFor(realm).sprite, (px, py, colour) => { context.fillStyle = `rgb(${colour.join(',')})`; context.fillRect(Math.round(x) + px * cell, top + py * cell, cell, cell); });
+}
+// A frame with stepped corners, in the realm's accent, so cards from different builders look different in a feed.
+function drawPixelFrame(context, width, height, color, scale) {
+  const cell = Math.max(2, Math.round(4 * scale)), inset = Math.round(16 * scale);
+  const draw = (offset, fill) => {
+    const x0 = inset + offset, y0 = inset + offset, x1 = width - inset + offset, y1 = height - inset + offset;
+    context.fillStyle = fill;
+    context.fillRect(x0 + 2 * cell, y0, x1 - x0 - 4 * cell, cell); context.fillRect(x0 + 2 * cell, y1 - cell, x1 - x0 - 4 * cell, cell);
+    context.fillRect(x0, y0 + 2 * cell, cell, y1 - y0 - 4 * cell); context.fillRect(x1 - cell, y0 + 2 * cell, cell, y1 - y0 - 4 * cell);
+    [[x0 + cell, y0 + cell], [x1 - 2 * cell, y0 + cell], [x0 + cell, y1 - 2 * cell], [x1 - 2 * cell, y1 - 2 * cell]].forEach(([x, y]) => context.fillRect(x, y, cell, cell));
+    [[x0 + 3 * cell, y0 + 3 * cell], [x1 - 4 * cell, y0 + 3 * cell], [x0 + 3 * cell, y1 - 4 * cell], [x1 - 4 * cell, y1 - 4 * cell]].forEach(([x, y]) => context.fillRect(x, y, cell, cell));
+  };
+  draw(cell, 'rgba(2,6,18,.55)');
+  draw(0, color);
+}
+
 function islandLine(project) {
   const recipe = islandRecipe(project);
   return `${plural(recipe.buildings.count, 'building')}, ${plural(recipe.trees.count, 'tree')} and ${plural(recipe.waterfalls, 'waterfall')}, all built from ${compact(project.sessions)} sessions${totalTokens(project) ? ` and ${compact(totalTokens(project))} tokens` : ''}.`;
@@ -149,7 +208,8 @@ function islandLine(project) {
 function cardCopy(selected) {
   if (selected) {
     return {
-      overline: TEAM ? 'AN ISLAND WE BUILT WITH AI' : 'AN ISLAND I BUILT WITH AI',
+      overline: DATA.demo ? 'A SAMPLE ISLAND' : TEAM ? 'AN ISLAND WE BUILT WITH AI' : 'AN ISLAND I BUILT WITH AI',
+      accent: keeperFor(CATEGORY_REALM[selected.category] || 'wilds').accent,
       title: nameOf(selected) || kindOf(selected),
       line: islandLine(selected),
       stats: [[compact(selected.sessions), 'sessions'], [compact(selected.prompts ?? selected.messages), selected.prompts !== undefined ? 'requests' : 'messages'], totalTokens(selected) ? [compact(totalTokens(selected)), 'tokens'] : [`${activeSpan(selected)}d`, 'lifespan']],
@@ -157,7 +217,8 @@ function cardCopy(selected) {
   }
   const custom = ($('#cardTitle')?.value || '').trim();
   return {
-    overline: TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    overline: DATA.demo ? (TEAM ? 'SAMPLE TEAM ARCHETYPE' : 'SAMPLE ARCHETYPE') : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    accent: keeperFor(PERSONA.realm).accent,
     title: custom || PERSONA.title,
     line: PERSONA.line,
     stats: [
@@ -170,9 +231,11 @@ function cardCopy(selected) {
 
 function drawTitle(context, title, x, y, maxWidth, size, align = 'left') {
   context.textAlign = align;
-  context.font = `700 ${size}px ${SERIF}`;
   const { lead, accent } = personaParts(title);
   const isPersona = title === PERSONA.title && accent;
+  const full = size;
+  context.font = `700 ${size}px ${SERIF}`;
+  while (isPersona && size > full * .8 && wrapLines(context, lead, maxWidth).length > 1) { size *= .95; context.font = `700 ${size}px ${SERIF}`; }
   const lines = isPersona ? [...wrapLines(context, lead, maxWidth), accent] : wrapLines(context, title, maxWidth);
   const shown = lines.slice(0, 3);
   shown.forEach((line, index) => {
@@ -222,7 +285,8 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     const centreX = heroItem ? heroItem.x : width / 2, centreY = heroItem ? heroItem.y : height / 2;
     context.translate(centreX, centreY); context.scale(zoom, zoom); context.translate(-centreX, -centreY);
   }
-  drawOcean(context, width, height, selected ? selected.seed : 73, time);
+  // A persona card's keeper stands where the moon would, so the moon rises higher and further left.
+  drawOcean(context, width, height, selected ? selected.seed : 73, time, selected || wide ? null : tall ? [.6, .062] : [.6, .08]);
   drawCloudSea(context, width, height, time);
   if (heroItem) {
     // A warm halo behind the capital gives the card a centre.
@@ -281,10 +345,20 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   if (!wide) context.fillText(`${TEAM ? "OUR" : "MY"} PELAGO · ${year}`, width - pad, pad + 26 * scale);
   const textWidth = wide ? width * .36 - pad : width - pad * 2;
   const top = wide ? height * .2 : pad + 92 * scale;
-  context.textAlign = 'left'; context.fillStyle = COLORS.coral; context.font = `900 ${(wide ? 16 : 19) * scale}px ${SANS}`;
+  drawPixelFrame(context, width, height, copy.accent, scale);
+  context.textAlign = 'left'; context.fillStyle = copy.accent; context.font = `900 ${(wide ? 16 : 19) * scale}px ${SANS}`;
   context.fillText(copy.overline, pad, top);
   const titleSize = (tall ? 92 : square ? 66 : 62) * scale;
-  const end = drawTitle(context, copy.title, pad, top + titleSize * 1.04, textWidth, titleSize);
+  // The keeper stands at the end of the title, in whole pixels.
+  const cell = selected ? 0 : Math.max(3, Math.round((tall ? 8 : square ? 6 : 7) * scale));
+  if (cell) {
+    const keeperX = pad + textWidth - 16 * cell, keeperBottom = top + titleSize * 2.1;
+    const halo = context.createRadialGradient(keeperX + 8 * cell, keeperBottom - 10 * cell, 0, keeperX + 8 * cell, keeperBottom - 10 * cell, 16 * cell);
+    halo.addColorStop(0, `${copy.accent}38`); halo.addColorStop(1, `${copy.accent}00`);
+    context.fillStyle = halo; context.fillRect(keeperX - 8 * cell, keeperBottom - 26 * cell, 32 * cell, 32 * cell);
+    drawKeeper(context, PERSONA.realm, keeperX, keeperBottom, cell);
+  }
+  const end = drawTitle(context, copy.title, pad, top + titleSize * 1.04, textWidth - (cell ? 16 * cell + 20 * scale : 0), titleSize);
   context.fillStyle = '#d2e1f0'; context.font = `600 ${(tall ? 28 : 22) * scale}px ${SANS}`;
   const lines = wrapLines(context, copy.line, textWidth).slice(0, 2);
   lines.forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
@@ -323,8 +397,16 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
       const tx = x + (index % columns) * (tw + gap), ty = y + Math.floor(index / columns) * (th + gap);
       glass(tx, ty, tw, th, 18 * scale);
       const size = Math.min(th * .44, tw * .3);
-      context.textAlign = 'left'; context.fillStyle = index === 3 ? '#ffd36b' : COLORS.paper; context.font = `700 ${size}px ${SERIF}`;
-      context.fillText(value, tx + 18 * scale, ty + th * .56);
+      context.textAlign = 'left';
+      if (pixelable(value)) {
+        let unit = Math.max(2, Math.floor(size / 7));
+        while (unit > 2 && pixelTextWidth(value, unit) > tw - 36 * scale) unit -= 1;
+        drawPixelText(context, value, tx + 18 * scale + unit, ty + th * .56 + unit, unit, 'rgba(2,6,18,.6)');
+        drawPixelText(context, value, tx + 18 * scale, ty + th * .56, unit, index === 3 ? '#ffd36b' : COLORS.paper);
+      } else {
+        context.fillStyle = index === 3 ? '#ffd36b' : COLORS.paper; context.font = `700 ${size}px ${SERIF}`;
+        context.fillText(value, tx + 18 * scale, ty + th * .56);
+      }
       context.fillStyle = '#9fbad4'; context.font = `900 ${Math.max(11 * scale, size * .26)}px ${SANS}`;
       if ('letterSpacing' in context) context.letterSpacing = `${2 * scale}px`;
       context.fillText(label.toUpperCase(), tx + 18 * scale, ty + th * .82);
@@ -340,7 +422,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     context.save();
     context.beginPath(); context.roundRect(x, y, w, h, 999);
     context.fillStyle = 'rgba(8,15,34,.8)'; context.fill();
-    context.strokeStyle = RARITY[rarest.rarity].color; context.lineWidth = 2 * scale; context.stroke();
+    context.strokeStyle = copy.accent; context.lineWidth = 3 * scale; context.stroke();
     context.restore();
     const sprite = RELIC_SPRITES[rarest.sprite];
     const cell = Math.floor(iconSize / Math.max(sprite.rows.length, sprite.rows[0].length));
@@ -606,7 +688,7 @@ function drawCloudSea(context, width, height, time, front = false) {
   context.restore();
 }
 
-function drawOcean(context, width, height, seed = 41, time = performance.now()) {
+function drawOcean(context, width, height, seed = 41, time = performance.now(), moonAt = null) {
   // Night sky: deep zenith, a luminous band at the horizon, stars, a pixel moon and a sea of cloud below.
   const random = seeded(seed);
   const horizon = height * .62;
@@ -655,7 +737,7 @@ function drawOcean(context, width, height, seed = 41, time = performance.now()) 
     // A pixel moon with craters and a halo.
     const portrait = height > width;
     const radius = Math.round(Math.min(width, height) * (portrait ? .045 : .055) / unit) * unit;
-    const mx = Math.round(width * (portrait ? .8 : .86)), my = Math.round(height * (portrait ? .1 : .17));
+    const [mx, my] = (moonAt || [portrait ? .8 : .86, portrait ? .1 : .17]).map((share, index) => Math.round(share * (index ? height : width)));
     const halo = context.createRadialGradient(mx, my, radius * .8, mx, my, radius * 4);
     halo.addColorStop(0, 'rgba(255,236,180,.16)'); halo.addColorStop(1, 'rgba(255,236,180,0)');
     context.fillStyle = halo;
@@ -1471,6 +1553,19 @@ function buildGuide() {
     });
     read.append(section);
   });
+  const keepers = element('section', 'guide-section');
+  keepers.append(element('h3', 'guide-heading', 'Archetypes'));
+  const combos = (DATA.archetypes?.prefixes?.length || 11) * (DATA.archetypes?.titles?.length || 8);
+  keepers.append(element('p', 'guide-copy', `Every title has a keeper. The title comes from the realm you build in most, its first word from how you build: ${combos} in all. ${TEAM ? 'Together you are' : DATA.demo ? 'This sample builder is' : 'You are'} ${PERSONA.title}.`));
+  const keeperRow = element('div', 'keeper-row');
+  Object.entries(KEEPERS).forEach(([realm, keeper]) => {
+    const tile = element('figure', `keeper-tile${realm === PERSONA.realm ? ' mine' : ''}`);
+    tile.style.setProperty('--accent', keeper.accent);
+    tile.append(relicIcon(keeperFor(realm).sprite, 3), element('figcaption', '', keeper.title.replace(/(master|grapher)$/, '\u00AD$1')));
+    keeperRow.append(tile);
+  });
+  keepers.append(keeperRow);
+  read.append(keepers);
   const landmarks = element('section', 'guide-section');
   landmarks.append(element('h3', 'guide-heading', 'Landmarks and biomes'));
   landmarks.append(element('p', 'guide-copy', 'The kind of project sets the biome and the landmark at its heart: a lighthouse for web, an observatory for AI, a clock tower for data, a radio mast for CLIs, a pagoda for mobile, a castle with balloons for games, and an ancient lantern tree for everything else. The flags show which agents built it.'));
@@ -2233,17 +2328,7 @@ function buildSlides() {
     return slide;
   }));
 
-  slides.push(at({ mode: 'wide', zoom: .95, shade: .25, reveal: true }, () => {
-    const slide = element('div', 'slide slide-persona');
-    slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : DATA.demo ? 'THIS BUILDER IS' : 'WHICH MAKES YOU'));
-    const title = element('h2', 'story-persona');
-    const { lead, accent } = personaParts();
-    title.append(document.createTextNode(`${lead} `));
-    if (accent) title.append(element('em', '', accent));
-    slide.append(title);
-    slide.append(element('p', 'story-copy', `${PERSONA.line} ${PERSONA.realmLine || ''}`.trim()));
-    return slide;
-  }));
+  slides.push(Object.assign(at({ mode: 'wide', zoom: .95, shade: .25, reveal: true }, personaSlide), { seconds: 8.5 }));
 
   slides.push(at({ mode: 'wide', zoom: .9, shade: .85 }, () => {
     const slide = element('div', `slide slide-share${DATA.demo ? ' demo' : ''}`);
@@ -2259,6 +2344,102 @@ function buildSlides() {
   }));
   return slides;
 }
+// The archetype reveal: two reels spin through every first word and title and lock on yours, then your keeper
+// dithers in and the two numbers that decided it appear.
+function keeperPortrait(realm, size) {
+  const sprite = RELIC_SPRITES[keeperFor(realm).sprite];
+  // Whole device pixels per sprite pixel, whatever the screen's density.
+  const ratio = window.devicePixelRatio || 1, cell = Math.max(1, Math.round(size * ratio));
+  const canvas = element('canvas', 'keeper-portrait');
+  canvas.width = 16 * cell; canvas.height = sprite.rows.length * cell;
+  canvas.style.width = `${16 * cell / ratio}px`; canvas.style.height = `${sprite.rows.length * cell / ratio}px`;
+  canvas.setAttribute('aria-hidden', 'true');
+  const pixels = [];
+  paintSprite(keeperFor(realm).sprite, (x, y, colour) => pixels.push([x, y, `rgb(${colour.join(',')})`]));
+  // Ordered dither: each step lights the pixels whose Bayer threshold it has passed, so it arrives in whole pixels.
+  canvas.reveal = (step = 16) => {
+    const context = canvas.getContext('2d');
+    pixels.forEach(([x, y, colour]) => { if (BAYER[((y & 3) << 2) | (x & 3)] < step / 16) { context.fillStyle = colour; context.fillRect(x * cell, y * cell, cell, cell); } });
+  };
+  return canvas;
+}
+function storyReel(words, final, tag) {
+  const reel = element(tag, 'reel');
+  reel.setAttribute('aria-hidden', 'true');
+  const strip = element('span', 'reel-strip');
+  const pool = words.filter((word) => word !== final);
+  const spins = [];
+  for (let index = 0; pool.length && index < 14; index += 1) {
+    const options = pool.filter((word) => word !== spins[spins.length - 1]);
+    spins.push(options[Math.floor(Math.random() * options.length)]);
+  }
+  [...spins, final].forEach((word) => strip.append(element('span', 'reel-word', word)));
+  reel.append(strip);
+  reel.steps = spins.length;
+  return reel;
+}
+function personaSlide() {
+  const slide = element('div', 'slide slide-persona');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const keeper = keeperFor(PERSONA.realm);
+  slide.style.setProperty('--accent', keeper.accent);
+  const portrait = keeperPortrait(PERSONA.realm, window.innerWidth < 380 ? 5 : 6);
+  slide.append(portrait);
+  slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : DATA.demo ? 'THIS BUILDER IS' : 'WHICH MAKES YOU'));
+  const title = element('h2', 'story-persona');
+  const [first, second] = PERSONA.clues || [];
+  const spinning = first && second && PERSONA.title === `The ${first.label} ${second.label}`;
+  const reels = [];
+  if (spinning) {
+    title.classList.add('reels');
+    title.append(element('span', 'sr-only', PERSONA.title));
+    const line = element('span', 'reel-line'); line.setAttribute('aria-hidden', 'true');
+    reels.push(storyReel(still ? [] : DATA.archetypes?.prefixes || [], first.label, 'span'), storyReel(still ? [] : DATA.archetypes?.titles || [], second.label, 'em'));
+    line.append(document.createTextNode('The '), reels[0]);
+    title.append(line, reels[1]);
+  } else {
+    const { lead, accent } = personaParts();
+    title.append(document.createTextNode(`${lead} `));
+    if (accent) title.append(element('em', '', accent));
+  }
+  slide.append(title);
+  slide.append(element('p', 'story-copy', `${PERSONA.line} ${PERSONA.realmLine || ''}`.trim()));
+  const chips = element('div', 'clue-chips');
+  (PERSONA.clues || []).forEach((clue) => {
+    const chip = element('p', 'clue-chip');
+    chip.append(element('strong', '', clue.label), document.createTextNode(clue.why));
+    chips.append(chip);
+  });
+  slide.append(chips);
+  // Long words shrink the title rather than spill past the frame.
+  requestAnimationFrame(() => {
+    const widest = Math.max(0, ...[...title.querySelectorAll('.reel-line, em.reel')].map((child) => child.scrollWidth));
+    if (spinning && widest > title.clientWidth) title.style.fontSize = `${parseFloat(getComputedStyle(title).fontSize) * title.clientWidth / widest * .98}px`;
+  });
+  if (still) { portrait.reveal(); chips.classList.add('shown'); return slide; }
+  const later = (ms, run) => setTimeout(() => { if (slide.isConnected) run(); }, ms);
+  const lock = (reel) => {
+    reel.classList.add('locked');
+    for (let index = 0; index < 5; index += 1) {
+      const spark = element('i', 'reel-spark');
+      spark.style.left = `${reel.offsetLeft + Math.random() * reel.offsetWidth * .9}px`;
+      spark.style.top = `${reel.offsetTop + (index % 2 ? -6 : reel.offsetHeight - 2) + Math.random() * 10 - 5}px`;
+      spark.style.animationDelay = `${index * 60}ms`;
+      title.append(spark);
+    }
+    navigator.vibrate?.(15);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(() => reels.forEach((reel, index) => {
+    const strip = reel.firstChild;
+    strip.style.transitionDuration = `${index ? 2.1 : 1.3}s`;
+    strip.style.transform = `translateY(${-reel.steps * 1.08}em)`;
+  })));
+  reels.forEach((reel, index) => later(index ? 2100 : 1300, () => lock(reel)));
+  for (let step = 1; step <= 16; step += 1) later(2250 + step * 40, () => portrait.reveal(step));
+  later(2950, () => chips.classList.add('shown'));
+  return slide;
+}
+
 // The last slide's buttons. A real world shares its card; the sample leads to the prompt and never posts someone else's card.
 function storyEndActions(slide) {
   const actions = element('div', `story-actions${DATA.demo ? ' demo' : ''}`);
@@ -2406,7 +2587,7 @@ function renderStorySlide() {
   $$('#storyProgress i').forEach((bar, index) => {
     bar.classList.toggle('done', index < story.index);
     bar.classList.toggle('active', index === story.index);
-    bar.style.setProperty('--duration', `${STORY_SECONDS}s`);
+    bar.style.setProperty('--duration', `${index === story.index && build.seconds || STORY_SECONDS}s`);
   });
   $('#storyCount').textContent = `${story.index + 1} / ${story.slides.length}`;
   $('#story').classList.toggle('last', story.index === story.slides.length - 1);
@@ -2416,7 +2597,7 @@ function scheduleStory() {
   clearTimeout(story.timer);
   const last = story.index === story.slides.length - 1;
   if (last || story.paused || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  story.timer = setTimeout(() => stepStory(1), STORY_SECONDS * 1000);
+  story.timer = setTimeout(() => stepStory(1), (story.slides[story.index].seconds || STORY_SECONDS) * 1000);
 }
 function stepStory(direction) {
   const next = story.index + direction;
