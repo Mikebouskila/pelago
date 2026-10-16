@@ -992,7 +992,7 @@ function renderIslandArt(project) {
   relicBoxes.forEach((box) => { box.x -= minX; box.y -= minY; });
   anims.forEach((entry) => { entry.x -= minX; if (entry.y !== undefined) entry.y -= minY; if (entry.y0 !== undefined) { entry.y0 -= minY; entry.y1 -= minY; } });
   const half = pixelDownsample(art);
-  return { art, glow, anims, relicBoxes, depth: depthMap, mips: [art, half, pixelDownsample(half)], anchorX: originX - minX, anchorY: centreY, recipe, gridWidth: size * TILE_W * 2, falls: falls.length, buildings: placed.length };
+  return { art, glow, anims, relicBoxes, depth: depthMap, mips: [art, half, pixelDownsample(half)], anchorX: originX - minX, anchorY: centreY, recipe, gridWidth: size * TILE_W * 2, falls: falls.length, buildings: placed.length, heights: height };
 }
 
 // Halve a pixel-art canvas without inventing colours: each 2x2 block keeps its most common opaque

@@ -55,7 +55,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 #worldCanvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: auto; cursor: grab; touch-action: none; }
 #worldCanvas:active { cursor: grabbing; }
 .ocean-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, transparent 0 55%, rgba(1,4,16,.32) 100%); transition: background .4s; }
-.welcome:not(.dismissed) ~ .ocean-vignette { background: radial-gradient(ellipse at 50% 45%, transparent 0 55%, rgba(1,4,16,.32) 100%), linear-gradient(90deg, rgba(1,4,16,.55), transparent 40%); }
 
 .overline { margin: 0; color: var(--coral-deep); font-size: 11.5px; font-weight: 900; letter-spacing: .17em; text-transform: uppercase; }
 .welcome { position: absolute; z-index: 4; left: clamp(30px, 5vw, 78px); top: 90px; bottom: 108px; width: min(440px, 34vw); height: fit-content; max-height: calc(100% - 198px); margin: auto 0; overflow: auto; transition: opacity .28s cubic-bezier(.22,1,.36,1), transform .28s cubic-bezier(.22,1,.36,1), visibility .28s; }
@@ -340,6 +339,12 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .card-island { width: 46px; height: 46px; border-radius: 12px; }
 .map-controls { right: 18px; bottom: 108px; border-radius: 16px; }
 .map-controls button { border-radius: 10px; }
+/* Desktop, while the welcome card shows: the dock and the map controls slide away and leave the islands the sky. */
+.island-index, .map-controls { transition: transform .5s cubic-bezier(.22,1,.36,1), opacity .35s, visibility .5s; }
+@media (min-width: 981px) {
+  .welcome:not(.dismissed) ~ .island-index { transform: translate(-50%, calc(100% + 40px)); opacity: 0; visibility: hidden; }
+  .welcome:not(.dismissed) ~ .map-controls { transform: translateX(calc(100% + 40px)); opacity: 0; visibility: hidden; }
+}
 
 /* The island sheet floats like a lit window over the night. */
 .island-sheet { top: 84px; right: 18px; bottom: 108px; width: 360px; border: 1px solid rgba(167,198,236,.16); border-radius: 22px; background: rgba(8,15,34,.78); backdrop-filter: blur(18px); box-shadow: 0 30px 80px rgba(0,2,14,.55); }

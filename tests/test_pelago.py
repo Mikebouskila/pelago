@@ -424,6 +424,26 @@ class PelagoTests(unittest.TestCase):
         self.assertIn("'#relicPopShare'", re.search(r"function markDemo\(\).*?\n}\n", script, re.S).group(0))
         self.assertIn("if (DATA.demo) return null;", re.search(r"function sharePill\(.*?\n}\n", script, re.S).group(0))
 
+    def test_first_frame_paints_at_once_and_keeps_the_map_calm(self):
+        root = Path(__file__).parents[1]
+        script = (root / "assets" / "world.js").read_text(encoding="utf-8")
+        # The diorama path is gone; the hazed mips it used stay in the island renderer.
+        for dead in ("SCENE_MODE", "composeScene", "composeAt", "sceneTiers", "centreOut", "sceneBounds", "TIERS", "drawCloudBank", "drawConnections"):
+            self.assertNotIn(dead, script)
+        self.assertIn("function hazedMips(", (root / "assets" / "island.js").read_text(encoding="utf-8"))
+        # The intro plays once per viewer, never under reduced motion, and raises the islands with the reel's riseAt.
+        intro = re.search(r"function startIntro\(\).*?\n}\n", script, re.S).group(0)
+        self.assertIn("reducedMotion.matches", intro)
+        self.assertIn("try { if (localStorage.getItem('pelago-intro-seen') === '1') return;", intro)
+        self.assertIn("riseAt(item, rise)", script)
+        # Cards carry no golden route (only the reel draws it) and every scene has exactly one capital halo.
+        card = re.search(r"function drawCardScene\(.*?\n}\n", script, re.S).group(0)
+        self.assertIn("if (!selected && up) drawRoute(", card)
+        self.assertEqual(script.count("function drawCapitalHalo("), 1)
+        self.assertIn("halo: item !== capitalItem", script)
+        # Explore glides back over the whole archipelago.
+        self.assertIn("animateView(0, 0, 1, { duration: 700 })", script)
+
     def test_demo_team_world_renders(self):
         team = pelago.demo_team()
         self.assertEqual([member["name"] for member in team["team"]["members"]], ["Maya", "Noam", "Dana"])

@@ -118,7 +118,7 @@ No two islands are alike, because no two projects are. And they're alive: waterf
 
 <img src="docs/gallery.jpg" alt="Eight generated islands, each captioned with the sessions, requests and tokens it was built from" width="100%">
 
-Your capital sits at the heart, related projects cluster as families, rope bridges join projects nested in each other's folders, and a golden route threads every island in the order you founded them. Filter to just Claude Code or just Codex and the archipelago re-forms around what's left.
+Your capital sits at the heart, related projects cluster as families, rope bridges join projects nested in each other's folders, and on your first visit the islands rise from the clouds along a golden route, in the order you founded them. Filter to just Claude Code or just Codex and the archipelago re-forms around what's left.
 
 <br>
 

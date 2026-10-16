@@ -27,7 +27,7 @@ const state = {
   scale: 1, panX: 0, panY: 0, dragging: false, moved: false, pointerX: 0, pointerY: 0,
   startX: 0, startY: 0, filter: 'all', selected: null, hovered: null, format: 'story',
   exportSelected: null, showNames: true, entered: false, items: [], viewWidth: 0, viewHeight: 0,
-  hideNames: false, moment: null,
+  hideNames: false, moment: null, ready: false, hero: false, heroEdge: 0,
 };
 // Hide names: for screenshots and screen shares, no project name appears anywhere on the page or on
 // cards. Where words are needed, an island is called by its kind ("Meadow harbor") instead.
@@ -275,7 +275,8 @@ function cardScene(format, selected = null) {
 }
 
 // The night scene behind a card. In the reel `rise` is the time in seconds: islands still to come stay under the
-// cloud sea, rising ones climb through a puff of cloud, and the route and bridges only reach islands that are up.
+// cloud sea, rising ones climb through a puff of cloud, and the golden route (only the reel draws it) and the
+// bridges only reach islands that are up.
 function drawCardScene(context, scene, { time = 2400, camera = null, rise = null, showNames = false } = {}) {
   const { width, height, tall, wide, scale, selected, items, heroItem } = scene;
   const view = camera || { x: 0, y: 0, scale: 1 };
@@ -285,22 +286,14 @@ function drawCardScene(context, scene, { time = 2400, camera = null, rise = null
   // A persona card's keeper stands where the moon would, so the moon rises higher and further left.
   drawOcean(context, width, height, selected ? selected.seed : 73, time, selected || wide ? null : tall ? [.6, .062] : [.6, .08]);
   drawCloudSea(context, width, height, time);
-  if (heroItem) {
-    // A warm halo behind the capital gives the card a centre.
-    const radius = heroItem.size * 2.4 * view.scale;
-    const x = view.x + heroItem.x * view.scale, y = view.y + (heroItem.y - heroItem.size * .3) * view.scale;
-    const halo = context.createRadialGradient(x, y, 0, x, y, radius);
-    halo.addColorStop(0, 'rgba(255,214,111,.28)'); halo.addColorStop(.45, 'rgba(125,190,240,.1)'); halo.addColorStop(1, 'rgba(125,190,240,0)');
-    context.fillStyle = halo; context.fillRect(x - radius, view.y + heroItem.y * view.scale - radius * 1.2, radius * 2, radius * 2.2);
-  }
-  if (!selected) drawConnections(context, items, view, time, pixel, 'route', up);
+  if (heroItem) drawCapitalHalo(context, heroItem, view);
+  if (!selected && up) drawRoute(context, items, view, time, pixel, up);
   const rising = [];
-  [...items].sort((a, b) => a.y - b.y).forEach((item) => {
+  paintIslands(context, items, view, time, pixel, (item) => {
     const shown = up ? up(item) : 1;
     if (shown >= 1) drawIsland(context, item, flat);
     else if (shown > 0) { drawRisingIsland(context, item, flat, shown); rising.push([item, shown]); }
-  });
-  if (!selected) drawConnections(context, items, view, time, pixel, 'bridges', up);
+  }, up);
   drawCloudSea(context, width, height, time, true);
   rising.forEach(([item, shown]) => drawPuff(context, view.x + item.x * view.scale, view.y + (item.y + item.size * .28) * view.scale, item.size * .8 * view.scale, shown, Math.max(4, Math.round(7 * scale)), item.project.seed));
   if (showNames && !selected) {
@@ -1000,76 +993,80 @@ function drawCloudSea(context, width, height, time, front = false) {
   context.restore();
 }
 
-function drawOcean(context, width, height, seed = 41, time = performance.now(), moonAt = null) {
+function drawOcean(context, width, height, seed = 41, time = performance.now(), moonAt = null, part = 'all') {
   // Night sky: deep zenith, a luminous band at the horizon, stars, a pixel moon and a sea of cloud below.
+  // The map keeps the still layers in a cache (`part` 'still') and draws only the moving ones each frame ('moving').
   const random = seeded(seed);
   const horizon = height * .62;
-  const sky = context.createLinearGradient(0, 0, 0, height);
-  sky.addColorStop(0, '#050a1c');
-  sky.addColorStop(.38, '#0b1736');
-  sky.addColorStop(.62, '#1a3466');
-  sky.addColorStop(.7, '#16305c');
-  sky.addColorStop(1, '#0a1530');
-  context.fillStyle = sky;
-  context.fillRect(0, 0, width, height);
-
-  const glow = context.createRadialGradient(width * .5, horizon, 0, width * .5, horizon, Math.max(width, height) * .6);
-  glow.addColorStop(0, 'rgba(90,170,200,.22)');
-  glow.addColorStop(.5, 'rgba(60,110,180,.08)');
-  glow.addColorStop(1, 'rgba(20,40,90,0)');
-  context.fillStyle = glow;
-  context.fillRect(0, 0, width, height);
-
+  const still = part !== 'moving', moving = part !== 'still';
   const unit = Math.max(1, Math.round(Math.min(width, height) / 420));
-  const stars = Math.floor(width * horizon / (5200 / unit));
-  for (let index = 0; index < stars; index += 1) {
-    const x = Math.floor(random() * width), y = Math.floor(Math.pow(random(), 1.6) * horizon * .95);
-    const bright = random() > .92;
-    context.globalAlpha = (bright ? .9 : .25 + random() * .4) * (1 - y / horizon * .6);
-    context.fillStyle = bright ? '#fff1c4' : '#b9d4ff';
-    context.fillRect(x, y, unit, unit);
-    if (bright && unit > 1) { context.fillRect(x - unit, y, unit * 3, Math.max(1, unit / 2)); context.fillRect(x, y - unit, Math.max(1, unit / 2), unit * 3); }
-  }
-  context.globalAlpha = 1;
+  if (still) {
+    const sky = context.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(0, '#050a1c');
+    sky.addColorStop(.38, '#0b1736');
+    sky.addColorStop(.62, '#1a3466');
+    sky.addColorStop(.7, '#16305c');
+    sky.addColorStop(1, '#0a1530');
+    context.fillStyle = sky;
+    context.fillRect(0, 0, width, height);
 
-  // A faint band of the Milky Way.
-  if (width > 480) {
-    const band = seeded(seed + 3);
-    for (let index = 0; index < stars * .9; index += 1) {
-      const t = band();
-      const x = t * width, y = height * (.05 + t * .38) + (band() - .5) * height * .12 * (1 + Math.sin(t * 9));
-      context.globalAlpha = .12 + band() * .25;
-      context.fillStyle = band() > .7 ? '#ffe9c4' : '#a9c8ff';
-      context.fillRect(Math.round(x), Math.round(y), unit, unit);
+    const glow = context.createRadialGradient(width * .5, horizon, 0, width * .5, horizon, Math.max(width, height) * .6);
+    glow.addColorStop(0, 'rgba(90,170,200,.22)');
+    glow.addColorStop(.5, 'rgba(60,110,180,.08)');
+    glow.addColorStop(1, 'rgba(20,40,90,0)');
+    context.fillStyle = glow;
+    context.fillRect(0, 0, width, height);
+
+    const stars = Math.floor(width * horizon / (5200 / unit));
+    for (let index = 0; index < stars; index += 1) {
+      const x = Math.floor(random() * width), y = Math.floor(Math.pow(random(), 1.6) * horizon * .95);
+      const bright = random() > .92;
+      context.globalAlpha = (bright ? .9 : .25 + random() * .4) * (1 - y / horizon * .6);
+      context.fillStyle = bright ? '#fff1c4' : '#b9d4ff';
+      context.fillRect(x, y, unit, unit);
+      if (bright && unit > 1) { context.fillRect(x - unit, y, unit * 3, Math.max(1, unit / 2)); context.fillRect(x, y - unit, Math.max(1, unit / 2), unit * 3); }
     }
     context.globalAlpha = 1;
-  }
 
-  if (width > 480) {
-    // A pixel moon with craters and a halo.
-    const portrait = height > width;
-    const radius = Math.round(Math.min(width, height) * (portrait ? .045 : .055) / unit) * unit;
-    const [mx, my] = (moonAt || [portrait ? .8 : .86, portrait ? .1 : .17]).map((share, index) => Math.round(share * (index ? height : width)));
-    const halo = context.createRadialGradient(mx, my, radius * .8, mx, my, radius * 4);
-    halo.addColorStop(0, 'rgba(255,236,180,.16)'); halo.addColorStop(1, 'rgba(255,236,180,0)');
-    context.fillStyle = halo;
-    context.fillRect(mx - radius * 4, my - radius * 4, radius * 8, radius * 8);
-    const cells = Math.round(radius / unit);
-    for (let gy = -cells; gy <= cells; gy += 1) for (let gx = -cells; gx <= cells; gx += 1) {
-      const d = Math.hypot(gx, gy) / cells;
-      if (d > 1) continue;
-      const lit = (gx + gy * .3) / cells;
-      let colour = lit < -.45 ? '#c9b98e' : lit < .1 ? '#efe2b8' : '#fff6d6';
-      if (d > .9) colour = '#d8c79a';
-      const crater = [[-.3, -.25, .22], [.25, .2, .16], [-.05, .45, .12], [.4, -.35, .1]].some(([cx, cy, r]) => Math.hypot(gx / cells - cx, gy / cells - cy) < r);
-      if (crater) colour = '#cdbb8e';
-      context.fillStyle = colour;
-      context.fillRect(mx + gx * unit, my + gy * unit, unit, unit);
+    // A faint band of the Milky Way.
+    if (width > 480) {
+      const band = seeded(seed + 3);
+      for (let index = 0; index < stars * .9; index += 1) {
+        const t = band();
+        const x = t * width, y = height * (.05 + t * .38) + (band() - .5) * height * .12 * (1 + Math.sin(t * 9));
+        context.globalAlpha = .12 + band() * .25;
+        context.fillStyle = band() > .7 ? '#ffe9c4' : '#a9c8ff';
+        context.fillRect(Math.round(x), Math.round(y), unit, unit);
+      }
+      context.globalAlpha = 1;
+    }
+
+    if (width > 480) {
+      // A pixel moon with craters and a halo.
+      const portrait = height > width;
+      const radius = Math.round(Math.min(width, height) * (portrait ? .045 : .055) / unit) * unit;
+      const [mx, my] = (moonAt || [portrait ? .8 : .86, portrait ? .1 : .17]).map((share, index) => Math.round(share * (index ? height : width)));
+      const halo = context.createRadialGradient(mx, my, radius * .8, mx, my, radius * 4);
+      halo.addColorStop(0, 'rgba(255,236,180,.16)'); halo.addColorStop(1, 'rgba(255,236,180,0)');
+      context.fillStyle = halo;
+      context.fillRect(mx - radius * 4, my - radius * 4, radius * 8, radius * 8);
+      const cells = Math.round(radius / unit);
+      for (let gy = -cells; gy <= cells; gy += 1) for (let gx = -cells; gx <= cells; gx += 1) {
+        const d = Math.hypot(gx, gy) / cells;
+        if (d > 1) continue;
+        const lit = (gx + gy * .3) / cells;
+        let colour = lit < -.45 ? '#c9b98e' : lit < .1 ? '#efe2b8' : '#fff6d6';
+        if (d > .9) colour = '#d8c79a';
+        const crater = [[-.3, -.25, .22], [.25, .2, .16], [-.05, .45, .12], [.4, -.35, .1]].some(([cx, cy, r]) => Math.hypot(gx / cells - cx, gy / cells - cy) < r);
+        if (crater) colour = '#cdbb8e';
+        context.fillStyle = colour;
+        context.fillRect(mx + gx * unit, my + gy * unit, unit, unit);
+      }
     }
   }
 
   // Pixel clouds drifting slowly across the night, nearer ones faster and brighter.
-  if (width > 480) {
+  if (moving && width > 480) {
     const drift = seeded(seed + 11);
     for (let index = 0; index < 9; index += 1) {
       const depth = drift();
@@ -1100,6 +1097,7 @@ function drawOcean(context, width, height, seed = 41, time = performance.now(), 
     }
   }
 
+  if (!still) return;
   // Low mist banks along the horizon and the cloud sea beneath.
   const unitWidth = Math.max(width, height);
   for (let layer = 0; layer < 3; layer += 1) {
@@ -1116,6 +1114,22 @@ function drawOcean(context, width, height, seed = 41, time = performance.now(), 
       context.fill();
     }
   }
+}
+
+// The live sky of the map and the story: its still layers are painted once per size and kept, so a frame only
+// blits them and draws the drifting clouds and the shooting star.
+const skyCache = new Map();
+function drawSky(context, width, height, seed, time) {
+  const key = `${seed}|${width}x${height}`;
+  if (!skyCache.has(key)) {
+    const still = document.createElement('canvas');
+    still.width = width; still.height = height;
+    drawOcean(still.getContext('2d'), width, height, seed, 0, null, 'still');
+    skyCache.set(key, still);
+    if (skyCache.size > 2) skyCache.delete(skyCache.keys().next().value);
+  }
+  context.drawImage(skyCache.get(key), 0, 0);
+  drawOcean(context, width, height, seed, time, null, 'moving');
 }
 
 const ART_UNIT = 420;
@@ -1141,7 +1155,8 @@ function drawIsland(context, item, options = {}) {
   context.save();
   context.translate(transform.x, transform.y);
   context.scale(transform.scale, transform.scale);
-  if (selected || hovered) {
+  // The capital already stands in its warm halo (`halo: false`); a second glow is never stacked on it.
+  if ((selected || hovered) && options.halo !== false) {
     const halo = context.createRadialGradient(x, y - size * .2, size * .2, x, y - size * .2, size * 1.5);
     halo.addColorStop(0, selected ? 'rgba(255,211,106,.22)' : 'rgba(170,220,255,.12)');
     halo.addColorStop(1, 'rgba(255,211,106,0)');
@@ -1154,7 +1169,7 @@ function drawIsland(context, item, options = {}) {
   const screenTop = transform.y + (y - art.anchorY * px) * transform.scale;
   context.save();
   context.setTransform(1, 0, 0, 1, 0, 0);
-  const origin = drawIslandArtCrisp(context, art, screenLeft, screenTop, scale, { ...options, haze: options.haze ?? item.haze ?? 0 });
+  const origin = drawIslandArtCrisp(context, art, screenLeft, screenTop, scale, options);
   if (options.animate !== false) drawIslandAnimations(context, art, origin.x, origin.y, scale, options.time ?? performance.now(), project.seed);
   context.restore();
   if (selected || hovered) {
@@ -1310,15 +1325,8 @@ function makeLayout(width, height, projects = PROJECTS, options = {}) {
   const availableWidth = Math.max(120, width - box.left - box.right);
   const availableHeight = Math.max(120, height - box.top - box.bottom);
   const aspect = clamp(availableHeight / availableWidth, .45, 2);
-  const key = `${projects.map((project) => project.id).join()}|${aspect.toFixed(2)}|${options.depth ? 1 : 0}|${options.factors ? [...options.factors.values()].join() : ''}`;
-  let factors = options.factors || null, hazes = null, tierOf = null;
-  if (options.depth) {
-    factors = new Map(); hazes = new Map(); tierOf = new Map();
-    sceneTiers(projects).forEach((tier, index) => tier.forEach((project) => {
-      factors.set(project.id, [1, .84, .7][index]); hazes.set(project.id, [0, .1, .22][index]); tierOf.set(project.id, index);
-    }));
-  }
-  const placed = layoutCache.get(key) || packIslands(projects, aspect, factors);
+  const key = `${projects.map((project) => project.id).join()}|${aspect.toFixed(2)}|${options.factors ? [...options.factors.values()].join() : ''}`;
+  const placed = layoutCache.get(key) || packIslands(projects, aspect, options.factors || null);
   layoutCache.set(key, placed);
   // Bounds come from each island's real artwork; hanging rock and waterfalls may trail off a little.
   const minX = Math.min(...placed.map((item) => item.x - item.metrics.left));
@@ -1335,8 +1343,6 @@ function makeLayout(width, height, projects = PROJECTS, options = {}) {
     y: offsetY + (item.y - minY) * fit,
     size: item.unit * fit,
     px: fit / ART_UNIT * (item.factor || 1),
-    haze: hazes?.get(item.project.id) || 0,
-    tier: tierOf?.get(item.project.id) ?? 0,
   }));
 }
 const layoutCache = new Map();
@@ -1371,15 +1377,46 @@ function resizeWorld() {
   const ratio = worldRatio();
   world.width = Math.max(1, Math.floor(bounds.width * ratio));
   world.height = Math.max(1, Math.floor(bounds.height * ratio));
-  if (previousWidth && Math.abs(previousWidth - world.width) > 20) {
-    state.panX = 0; state.panY = 0; state.scale = 1;
-  }
   state.viewWidth = world.width;
   state.viewHeight = world.height;
+  // The hero frame is measured again at every size; leaving it, or a real change of width, shows the whole map.
+  if (state.ready && heroWanted()) showHero();
+  else if (state.hero || (previousWidth && Math.abs(previousWidth - world.width) > 20)) { viewAnimation += 1; state.hero = false; state.panX = 0; state.panY = 0; state.scale = 1; }
   drawWorld();
 }
 
-let SCENE_MODE = 'packed';
+// Desktop, before Explore: the capital and about six of the next islands by activity (the six of the next seven that
+// sit closest to it) fill the sky beside the welcome card, big enough to read; the rest bleeds off the edges. When six
+// would leave them small (under 1.3x the whole map) the farthest drop out, down to the capital and three.
+// Phones keep their panorama.
+function heroWanted() { return !state.entered && innerWidth > 980 && world.width > world.height && PROJECTS.length > 1; }
+function heroView() {
+  const ratio = worldRatio(), atlas = world.getBoundingClientRect(), card = $('#welcome').getBoundingClientRect();
+  const box = { left: (card.right - atlas.left + 28) * ratio, right: world.width - 20 * ratio, top: 84 * ratio, bottom: world.height - 28 * ratio };
+  const [first, ...rest] = worldLayout().sort((a, b) => b.project.activity - a.project.activity);
+  if (!first || box.right - box.left < 200 * ratio) return { x: 0, y: 0, scale: 1, edge: -Infinity };
+  const away = (item) => Math.hypot(item.x - first.x, item.y - first.y);
+  const near = rest.slice(0, 7).sort((a, b) => away(a) - away(b));
+  const frame = (hero) => {
+    let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+    hero.forEach((item) => {
+      const art = islandArt(item.project);
+      left = Math.min(left, item.x - art.anchorX * item.px); right = Math.max(right, item.x + (art.art.width - art.anchorX) * item.px);
+      top = Math.min(top, item.y - art.anchorY * item.px); bottom = Math.max(bottom, item.y + (art.art.height - art.anchorY) * item.px * .42);
+    });
+    const scale = clamp(Math.min((box.right - box.left) / (right - left), (box.bottom - box.top) / (bottom - top)), 1, 4);
+    return { x: (box.left + box.right) / 2 - (left + right) / 2 * scale, y: (box.top + box.bottom) / 2 - (top + bottom) / 2 * scale, scale, edge: box.left - 28 * ratio };
+  };
+  let view = frame([first, ...near.slice(0, 6)]);
+  for (let count = Math.min(6, near.length) - 1; view.scale < 1.3 && count >= 3; count -= 1) view = frame([first, ...near.slice(0, count)]);
+  return view;
+}
+function showHero() {
+  const view = heroView();
+  viewAnimation += 1; state.hero = true; state.heroEdge = view.edge;
+  state.panX = view.x; state.panY = view.y; state.scale = view.scale;
+}
+
 function visibleProjects() {
   if (state.filter.startsWith('builder:')) return PROJECTS.filter((project) => (project.builders || {})[state.filter.slice(8)] > 0);
   return PROJECTS.filter((project) => state.filter === 'all' || hasCrew(project, state.filter));
@@ -1413,27 +1450,33 @@ function curvePoints(a, b, sag, steps) {
   }
   return points;
 }
-// `shownAt(item)`, when given, is how far each island has risen (the rise reel): the route then reaches each island
-// as it rises and stops there, and bridges wait until both ends are up.
-function drawConnections(context, items, transform, time, pixel, layer = 'all', shownAt = null) {
-  const byId = new Map(items.map((item) => [item.project.id, item]));
+// The golden route: the islands in the order they were founded, drawn whole only by the intro, the story and the rise
+// reel. `shownAt(item)`, when given, is how far each island has risen: the route then reaches each island as it rises
+// and stops there. With `focus` (a project id) only the legs into and out of that island are drawn, as on the map,
+// from coast to coast so the islands never hide them.
+function drawRoute(context, items, transform, time, pixel, shownAt = null, focus = null) {
   const unit = Math.max(2, Math.round(pixel * 3));
-  const block = (x, y, w, h, color, alpha = 1) => { context.globalAlpha = alpha; context.fillStyle = color; context.fillRect(Math.round(x), Math.round(y), w, h); };
-
-  // The route: islands in the order you founded them.
-  const route = foundingOrder(items).map((item) => ({ ...islandScreen(item, transform), shown: shownAt ? shownAt(item) : 1, first: item.founding < 0 }));
-  const samples = [];
-  let open = layer !== 'bridges';
-  route.slice(1).forEach((point, index) => {
-    if (!open) return;
-    const from = route[index];
+  const route = foundingOrder(items).map((item) => ({ ...islandScreen(item, transform), item, shown: shownAt ? shownAt(item) : 1, first: item.founding < 0 }));
+  const paths = [[]];
+  let open = true;
+  route.slice(1).forEach((to, index) => {
+    let from = route[index], point = to;
+    if (!open || (focus && from.item.project.id !== focus && to.item.project.id !== focus)) return;
+    if (focus) {
+      const dx = to.item.x - from.item.x, dy = to.item.y - from.item.y, length = Math.hypot(dx, dy) || 1;
+      const screen = (spot) => ({ x: transform.x + spot.x * transform.scale, y: transform.y + spot.y * transform.scale });
+      from = { ...from, ...screen(coastPoint(from.item, dx / length, dy / length)) };
+      point = { ...to, ...screen(coastPoint(to.item, -dx / length, -dy / length)) };
+      if (paths[paths.length - 1].length) paths.push([]);
+    }
+    const samples = paths[paths.length - 1];
     const lift = -Math.min(160 * unit, Math.hypot(point.x - from.x, point.y - from.y) * .22);
     // The line into the capital, which is up from the start, draws as the island before it rises.
     const reach = Math.round((point.first ? from.shown : point.shown) * 24);
-    curvePoints(from, point, lift, 24).forEach((sample, k) => { if ((k || !index) && k <= reach) samples.push(sample); });
+    curvePoints(from, point, lift, 24).forEach((sample, k) => { if ((k || !samples.length) && k <= reach) samples.push(sample); });
     if (reach < 24) open = false;
   });
-  if (samples.length > 1) {
+  paths.filter((samples) => samples.length > 1).forEach((samples) => {
     context.save();
     context.lineCap = 'round';
     const trace = () => { context.beginPath(); samples.forEach((sample, index) => (index ? context.lineTo(sample.x, sample.y) : context.moveTo(sample.x, sample.y))); };
@@ -1452,249 +1495,150 @@ function drawConnections(context, items, transform, time, pixel, layer = 'all', 
     glow.addColorStop(0, 'rgba(255,220,130,.55)'); glow.addColorStop(1, 'rgba(255,220,130,0)');
     context.globalAlpha = 1; context.fillStyle = glow;
     context.fillRect(head.x - 10 * unit, head.y - 10 * unit, 20 * unit, 20 * unit);
-    block(head.x - unit * 1.5, head.y - unit * 1.5, unit * 3, unit * 3, '#fff1c4');
+    context.fillStyle = '#fff1c4'; context.fillRect(Math.round(head.x - unit * 1.5), Math.round(head.y - unit * 1.5), unit * 3, unit * 3);
+  });
+}
+// Where an island's coast meets the line from its centre along (dx, dy), in world units: the last land tile on that
+// line, on top of its grass.
+function coastPoint(item, dx, dy) {
+  const art = islandArt(item.project), size = art.recipe.grid;
+  let coast = { x: item.x, y: item.y };
+  for (let r = 0; r <= size * TILE_W; r += 2) {
+    const u = dx * r, v = dy * r;
+    const level = art.heights[Math.floor((u / TILE_W + v / TILE_H + size) / 2)]?.[Math.floor((v / TILE_H + size - u / TILE_W) / 2)];
+    if (level) coast = { x: item.x + u * item.px, y: item.y + (v - level * LEVEL) * item.px };
   }
-
-  // Bridges: wooden rope bridges for nested projects, lantern-lit sky paths for shared names.
-  LINKS.forEach((link) => {
-    // Sky paths for shared names fly behind the islands; rope bridges rest on top of them.
-    const wanted = link.kind === 'nest' ? 'bridges' : 'route';
-    if (layer !== 'all' && layer !== wanted) return;
-    const first = byId.get(link.a), second = byId.get(link.b);
-    if (!first || !second || (shownAt && (shownAt(first) < 1 || shownAt(second) < 1))) return;
-    if (link.kind === 'nest' && first.tier !== undefined && first.tier !== second.tier) return;
-    const a = islandScreen(first, transform), b = islandScreen(second, transform);
-    const distance = Math.hypot(b.x - a.x, b.y - a.y);
-    const dx = (b.x - a.x) / distance, dy = (b.y - a.y) / distance;
-    const start = { x: a.x + dx * a.r * .62, y: a.y + dy * a.r * .3 };
-    const end = { x: b.x - dx * b.r * .62, y: b.y - dy * b.r * .3 };
-    const span = Math.hypot(end.x - start.x, end.y - start.y);
-    if (span < 8 * unit) return;
-    // Ropes only hang between near neighbours; far relatives are already grouped by the layout.
-    if (link.kind === 'nest' && span > (a.r + b.r) * 1.1) return;
-    const stroke = (points, width, color, offsetY = 0) => {
-      context.beginPath();
-      points.forEach((point, index) => (index ? context.lineTo(point.x, point.y + offsetY) : context.moveTo(point.x, point.y + offsetY)));
-      context.lineWidth = width; context.strokeStyle = color; context.stroke();
-    };
-    context.save();
-    context.lineCap = 'round'; context.lineJoin = 'round';
-    if (link.kind === 'nest') {
-      // A rope bridge: two sagging ropes, a plank deck and lantern posts at both ends.
-      const points = curvePoints(start, end, span * .16, 40);
-      stroke(points, unit * 4, 'rgba(10,8,20,.35)', unit * 3);
-      const angle = Math.atan2(end.y - start.y, end.x - start.x);
-      const plankEvery = Math.max(2, Math.round(40 / (span / (unit * 3))));
-      points.forEach((point, index) => {
-        if (index % plankEvery) return;
-        context.save();
-        context.translate(point.x, point.y);
-        context.rotate(angle);
-        context.fillStyle = '#9a6a44'; context.fillRect(-unit, -unit * 2.2, unit * 2, unit * 4.4);
-        context.fillStyle = '#c8955e'; context.fillRect(-unit, -unit * 2.2, unit * 2, unit);
-        context.restore();
-      });
-      stroke(points, unit * .8, '#4a3222', -unit * 3);
-      stroke(points, unit * .8, '#4a3222', unit * 2.4);
-      [start, end].forEach((post) => {
-        context.fillStyle = '#4a3222'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 8), unit * 2, unit * 10);
-        context.fillStyle = '#ffd56a'; context.fillRect(Math.round(post.x - unit * 1.5), Math.round(post.y - unit * 10), unit * 3, unit * 2.5);
-        const glow = context.createRadialGradient(post.x, post.y - unit * 9, 0, post.x, post.y - unit * 9, unit * 9);
-        glow.addColorStop(0, 'rgba(255,207,106,.45)'); glow.addColorStop(1, 'rgba(255,207,106,0)');
-        context.fillStyle = glow; context.fillRect(post.x - unit * 9, post.y - unit * 18, unit * 18, unit * 18);
-      });
-    } else {
-      // A light bridge: an arc of starlight between islands that share a name.
-      const points = curvePoints(start, end, -span * .22, 48);
-      stroke(points, unit * 6, 'rgba(125,231,239,.08)');
-      stroke(points, unit * 2.2, 'rgba(125,231,239,.28)');
-      stroke(points, unit * .8, 'rgba(232,251,255,.75)');
-      const travel = ((time * .00035) % 1 + 1) % 1;
-      const spark = points[Math.floor(travel * (points.length - 1))];
-      const glow = context.createRadialGradient(spark.x, spark.y, 0, spark.x, spark.y, unit * 7);
-      glow.addColorStop(0, 'rgba(232,251,255,.9)'); glow.addColorStop(1, 'rgba(125,231,239,0)');
-      context.fillStyle = glow; context.fillRect(spark.x - unit * 7, spark.y - unit * 7, unit * 14, unit * 14);
-      [start, end].forEach((post) => {
-        context.fillStyle = '#b48cff'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 6), unit * 2, unit * 6);
-        context.fillStyle = '#efe4ff'; context.fillRect(Math.round(post.x - unit * .5), Math.round(post.y - unit * 7), unit, unit * 2);
-      });
-    }
-    context.restore();
-  });
-  context.globalAlpha = 1;
+  return coast;
 }
-
-
-// ---------- Scene composition: a diorama with depth ----------
-// Recent work stands in the foreground, older work recedes into the night air. The capital takes the
-// front and centre; bigger islands sit near the middle of their row and related islands sit side by side.
-const TIERS = [
-  { scale: 1, haze: 0, band: .74 },
-  { scale: .66, haze: .24, band: .46 },
-  { scale: .44, haze: .46, band: .24 },
-];
-function sceneTiers(projects) {
-  const n = projects.length;
-  const tiers = [[], [], []];
-  const byRecency = [...projects].sort((a, b) => (Date.parse(b.lastActive || '') || 0) - (Date.parse(a.lastActive || '') || 0));
-  const near = n <= 3 ? n : Math.ceil(n * (n > 12 ? .3 : .42));
-  const mid = n <= 3 ? 0 : Math.ceil((n - near) * .5);
-  byRecency.forEach((project, index) => tiers[index < near ? 0 : index < near + mid ? 1 : 2].push(project));
-  const capital = [...projects].sort((a, b) => b.activity - a.activity)[0];
-  const home = tiers.findIndex((tier) => tier.includes(capital));
-  if (home > 0 && tiers[0].length) {
-    const swap = [...tiers[0]].sort((a, b) => a.activity - b.activity)[0];
-    tiers[0] = tiers[0].map((project) => (project === swap ? capital : project));
-    tiers[home] = tiers[home].map((project) => (project === capital ? swap : project));
-  }
-  return tiers;
-}
-function centreOut(list) {
-  // Families first (each island followed by the relatives in the same tier), then spread from the middle.
-  const sorted = [...list].sort((a, b) => b.activity - a.activity);
-  const sequence = [];
-  const used = new Set();
-  sorted.forEach((project) => {
-    const queue = [project];
-    while (queue.length) {
-      const next = queue.shift();
-      if (used.has(next.id)) continue;
-      used.add(next.id);
-      sequence.push(next);
-      linksOf(next).map((link) => link.other).filter((other) => list.includes(other) && !used.has(other.id)).forEach((other) => queue.push(other));
-    }
-  });
-  const row = [];
-  sequence.forEach((project, index) => (index % 2 ? row.unshift(project) : row.push(project)));
-  return row;
-}
-function composeAt(projects, tiers, box, scale) {
-  const items = [];
-  const width = box.right - box.left, height = box.bottom - box.top;
-  tiers.forEach((tierProjects, tierIndex) => {
-    if (!tierProjects.length) return;
-    const tier = TIERS[tierIndex];
-    const px = scale * tier.scale;
-    const span = (project) => islandArt(project).art.width * px * (.68 + seeded(project.seed ^ 77)() * .22);
-    const ordered = centreOut(tierProjects);
-    const total = ordered.reduce((sum, project) => sum + span(project), 0);
-    const perRowMax = height > width * 1.1 ? [3, 3, 4][tierIndex] : [8, 6, 6][tierIndex];
-    const wanted = Math.max(1, Math.ceil(ordered.length / perRowMax));
-    void total;
-    const perRow = Math.ceil(ordered.length / wanted);
-    const rows = Math.ceil(ordered.length / perRow);
-    for (let row = 0; row < rows; row += 1) {
-      const members = centreOut(ordered.slice(row * perRow, (row + 1) * perRow));
-      if (!members.length) continue;
-      const rowWidth = members.reduce((sum, project) => sum + span(project), 0);
-      // Each row spans the frame: its islands are spread evenly, and second rows sit half a step over.
-      const step = width / members.length;
-      const shift = rows > 1 ? (row % 2 ? .25 : -.25) * step : 0;
-      void rowWidth;
-      const rowLift = (rows - 1 - row) * height * .11 * tier.scale;
-      members.forEach((project, slot) => {
-        const art = islandArt(project);
-        const random = seeded(project.seed ^ 0x2545f491);
-        const w = span(project);
-        const x = box.left + step * (slot + .5) + shift + (random() - .5) * step * .18;
-        // Rows bow toward the viewer in the middle and drift back at the edges; each island floats at its own height.
-        const across = (x - (box.left + width / 2)) / (width / 2);
-        const bow = (1 - across * across) * height * .06 * tier.scale;
-        const altitude = (random() - .5) * art.art.height * px * .22;
-        const y = box.top + height * tier.band - rowLift + bow + altitude;
-        items.push({ project, x, y, px, size: art.art.width * .44 * px, tier: tierIndex, haze: tier.haze });
-        void w;
-      });
-    }
-  });
-  return items;
-}
-function sceneBounds(items, hang) {
-  let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-  items.forEach((item) => {
-    const art = islandArt(item.project);
-    left = Math.min(left, item.x - art.anchorX * item.px);
-    right = Math.max(right, item.x + (art.art.width - art.anchorX) * item.px);
-    top = Math.min(top, item.y - art.anchorY * item.px);
-    bottom = Math.max(bottom, item.y + (art.art.height - art.anchorY) * item.px * hang);
-  });
-  return { left, right, top, bottom };
-}
-const sceneCache = new Map();
-function composeScene(width, height, projects, box = {}, options = {}) {
-  const frame = { left: box.left ?? 0, right: width - (box.right ?? 0), top: box.top ?? 0, bottom: height - (box.bottom ?? 0) };
-  const key = `${width}x${height}|${JSON.stringify(frame)}|${projects.map((project) => project.id).join()}|${options.hang ?? .4}`;
-  if (sceneCache.has(key)) return sceneCache.get(key).map((item) => ({ ...item }));
-  const tiers = sceneTiers(projects);
-  const hang = options.hang ?? .4;
-  let low = .02, high = 6, best = composeAt(projects, tiers, frame, low);
-  for (let step = 0; step < 22; step += 1) {
-    const mid = (low + high) / 2;
-    const items = composeAt(projects, tiers, frame, mid);
-    const bounds = sceneBounds(items, hang);
-    const fits = bounds.left >= frame.left - 1 && bounds.right <= frame.right + 1 && bounds.top >= frame.top - 1 && bounds.bottom <= frame.bottom + 1;
-    if (fits) { low = mid; best = items; } else high = mid;
-  }
-  // Centre the finished scene vertically within the frame.
-  const bounds = sceneBounds(best, hang);
-  const shift = (frame.top + frame.bottom) / 2 - (bounds.top + bounds.bottom) / 2;
-  best.forEach((item) => { item.y += shift; });
-  best.sort((a, b) => b.tier - a.tier || a.y - b.y);
-  sceneCache.set(key, best);
-  return best.map((item) => ({ ...item }));
-}
-
-// Cloud banks drifting between the depth layers.
-function drawCloudBank(context, y, width, seed, alpha, transform, thickness) {
-  const random = seeded(seed);
-  for (let index = 0; index < 9; index += 1) {
-    const cx = transform.x + (random() * 1.3 - .15) * width * transform.scale;
-    const cy = transform.y + (y + (random() - .5) * thickness * .5) * transform.scale;
-    const radius = (thickness * (.7 + random() * .8)) * transform.scale;
-    const cloud = context.createRadialGradient(cx, cy, 0, cx, cy, radius);
-    cloud.addColorStop(0, `rgba(118,150,210,${alpha})`);
-    cloud.addColorStop(.6, `rgba(84,116,180,${alpha * .45})`);
-    cloud.addColorStop(1, 'rgba(60,90,160,0)');
-    context.fillStyle = cloud;
+// A bridge landing on the two coasts that face each other: a wooden rope bridge for nested projects, a lantern-lit
+// sky path for shared names.
+function drawBridge(context, link, first, second, transform, time, unit) {
+  const dx = second.x - first.x, dy = second.y - first.y, length = Math.hypot(dx, dy) || 1;
+  const screen = (point) => ({ x: transform.x + point.x * transform.scale, y: transform.y + point.y * transform.scale });
+  const start = screen(coastPoint(first, dx / length, dy / length)), end = screen(coastPoint(second, -dx / length, -dy / length));
+  const span = Math.hypot(end.x - start.x, end.y - start.y);
+  // Coasts that touch or overlap need no bridge; ropes only hang between near neighbours.
+  if (span < 8 * unit || (end.x - start.x) * dx + (end.y - start.y) * dy <= 0) return;
+  if (link.kind === 'nest' && span > (first.size + second.size) * transform.scale * .9) return;
+  const stroke = (points, width, color, offsetY = 0) => {
     context.beginPath();
-    context.ellipse(cx, cy, radius * 2.6, radius * .55, 0, 0, Math.PI * 2);
-    context.fill();
+    points.forEach((point, index) => (index ? context.lineTo(point.x, point.y + offsetY) : context.moveTo(point.x, point.y + offsetY)));
+    context.lineWidth = width; context.strokeStyle = color; context.stroke();
+  };
+  context.save();
+  context.lineCap = 'round'; context.lineJoin = 'round';
+  if (link.kind === 'nest') {
+    // A rope bridge: two sagging ropes, a plank deck and lantern posts at both ends.
+    const points = curvePoints(start, end, span * .16, 40);
+    stroke(points, unit * 4, 'rgba(10,8,20,.35)', unit * 3);
+    const angle = Math.atan2(end.y - start.y, end.x - start.x);
+    const plankEvery = Math.max(2, Math.round(40 / (span / (unit * 3))));
+    points.forEach((point, index) => {
+      if (index % plankEvery) return;
+      context.save();
+      context.translate(point.x, point.y);
+      context.rotate(angle);
+      context.fillStyle = '#9a6a44'; context.fillRect(-unit, -unit * 2.2, unit * 2, unit * 4.4);
+      context.fillStyle = '#c8955e'; context.fillRect(-unit, -unit * 2.2, unit * 2, unit);
+      context.restore();
+    });
+    stroke(points, unit * .8, '#4a3222', -unit * 3);
+    stroke(points, unit * .8, '#4a3222', unit * 2.4);
+    [start, end].forEach((post) => {
+      context.fillStyle = '#4a3222'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 8), unit * 2, unit * 10);
+      context.fillStyle = '#ffd56a'; context.fillRect(Math.round(post.x - unit * 1.5), Math.round(post.y - unit * 10), unit * 3, unit * 2.5);
+      const glow = context.createRadialGradient(post.x, post.y - unit * 9, 0, post.x, post.y - unit * 9, unit * 9);
+      glow.addColorStop(0, 'rgba(255,207,106,.45)'); glow.addColorStop(1, 'rgba(255,207,106,0)');
+      context.fillStyle = glow; context.fillRect(post.x - unit * 9, post.y - unit * 18, unit * 18, unit * 18);
+    });
+  } else {
+    // A light bridge: an arc of starlight between islands that share a name.
+    const points = curvePoints(start, end, -span * .22, 48);
+    stroke(points, unit * 6, 'rgba(125,231,239,.08)');
+    stroke(points, unit * 2.2, 'rgba(125,231,239,.28)');
+    stroke(points, unit * .8, 'rgba(232,251,255,.75)');
+    const travel = ((time * .00035) % 1 + 1) % 1;
+    const spark = points[Math.floor(travel * (points.length - 1))];
+    const glow = context.createRadialGradient(spark.x, spark.y, 0, spark.x, spark.y, unit * 7);
+    glow.addColorStop(0, 'rgba(232,251,255,.9)'); glow.addColorStop(1, 'rgba(125,231,239,0)');
+    context.fillStyle = glow; context.fillRect(spark.x - unit * 7, spark.y - unit * 7, unit * 14, unit * 14);
+    [start, end].forEach((post) => {
+      context.fillStyle = '#b48cff'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 6), unit * 2, unit * 6);
+      context.fillStyle = '#efe4ff'; context.fillRect(Math.round(post.x - unit * .5), Math.round(post.y - unit * 7), unit, unit * 2);
+    });
   }
+  context.restore();
+}
+// Islands back to front, `paint(item)` drawing each one. A bridge is painted just before the nearer of its two islands,
+// so that island stands in front of its far end and no bridge ever crosses a town. Bridges wait until both ends are up.
+function paintIslands(context, items, transform, time, pixel, paint, shownAt = null) {
+  const byId = new Map(items.map((item) => [item.project.id, item]));
+  const before = new Map();
+  LINKS.forEach((link) => {
+    const first = byId.get(link.a), second = byId.get(link.b);
+    if (!first || !second) return;
+    const near = first.y > second.y ? first : second;
+    before.set(near, [...(before.get(near) || []), [link, first, second]]);
+  });
+  const unit = Math.max(2, Math.round(pixel * 3));
+  [...items].sort((a, b) => a.y - b.y).forEach((item) => {
+    (before.get(item) || []).forEach(([link, first, second]) => { if (!shownAt || (shownAt(first) >= 1 && shownAt(second) >= 1)) drawBridge(context, link, first, second, transform, time, unit); });
+    paint(item);
+  });
+}
+// The one warm halo behind the capital: the centre of the map and of every card.
+function drawCapitalHalo(context, item, view) {
+  const radius = item.size * 2.4 * view.scale;
+  const x = view.x + item.x * view.scale, y = view.y + (item.y - item.size * .3) * view.scale;
+  const halo = context.createRadialGradient(x, y, 0, x, y, radius);
+  halo.addColorStop(0, 'rgba(255,214,111,.28)'); halo.addColorStop(.45, 'rgba(125,190,240,.1)'); halo.addColorStop(1, 'rgba(125,190,240,0)');
+  context.fillStyle = halo; context.fillRect(x - radius, view.y + item.y * view.scale - radius * 1.2, radius * 2, radius * 2.2);
 }
 
 function drawWorld() {
-  drawOcean(worldContext, world.width, world.height);
-  drawCloudSea(worldContext, world.width, world.height, performance.now());
+  const now = performance.now();
+  drawSky(worldContext, world.width, world.height, 41, now);
+  drawCloudSea(worldContext, world.width, world.height, now);
+  // Until every island's art is ready the sky and the cloud sea stand alone, and the welcome card reads over them.
+  if (!state.ready) return;
   const ratio = worldRatio();
   state.items = worldLayout();
   // Phones show the reset button only once the map has been moved or zoomed.
   const moved = Math.abs(state.panX) > 1 || Math.abs(state.panY) > 1 || Math.abs(state.scale - 1) > .01;
   if (moved !== state.viewMoved) { state.viewMoved = moved; $('.map-controls').classList.toggle('moved', moved); }
   const view = { x: state.panX, y: state.panY, scale: state.scale };
-  const now = performance.now();
-  const capital = [...PROJECTS].sort((a, b) => b.activity - a.activity)[0];
+  const phone = world.height > world.width;
+  const pixel = (state.items[0]?.px || .5) * state.scale;
   const topNamed = new Set([...PROJECTS].sort((a, b) => b.activity - a.activity).slice(0, 10).map((project) => project.id));
-  if (SCENE_MODE === 'diorama') {
-    // Far to near, with cloud banks between the layers so each one floats in its own air.
-    [2, 1, 0].forEach((tier) => {
-      const layer = state.items.filter((item) => item.tier === tier);
-      if (!layer.length) return;
-      const depth = layer.reduce((sum, item) => sum + item.y, 0) / layer.length;
-      const thickness = layer[0].size * 1.1;
-      layer.forEach((item) => drawIsland(worldContext, item, { label: false, haze: item.haze, time: now }));
-      drawCloudBank(worldContext, depth + thickness * 1.25, world.width, 31 + tier * 7, tier === 0 ? .1 : .16, view, thickness);
-    });
-  } else {
-    if (SCENE_MODE === 'packed' && world.width > world.height) drawConnections(worldContext, state.items, view, now, (state.items[0]?.px || .5) * state.scale, 'route');
-    [...state.items].sort((a, b) => a.y - b.y).forEach((item) => drawIsland(worldContext, item, { label: false, haze: item.haze, time: now }));
-  }
+  const capitalItem = [...state.items].sort((a, b) => b.project.activity - a.project.activity)[0];
+  // The intro raises the islands through the cloud sea in the order they were founded, along the whole golden route.
+  // Afterwards the map keeps the route quiet: only the legs into and out of the island under the pointer or in the sheet.
+  const rise = introRise(now);
+  const up = rise === null ? null : (item) => riseAt(item, rise);
+  if (up) foundingOrder(state.items);
+  if (capitalItem) drawCapitalHalo(worldContext, capitalItem, view);
+  const focus = state.hovered || state.selected;
+  if (up || focus) drawRoute(worldContext, state.items, view, now, pixel, up, up ? null : focus);
+  // Islands whose art misses the screen by more than 64 px are not drawn at all.
+  const margin = 64 * ratio, rising = [];
+  paintIslands(worldContext, state.items, view, now, pixel, (item) => {
+    const art = islandArt(item.project), step = item.px * view.scale;
+    const left = view.x + (item.x - art.anchorX * item.px) * view.scale, top = view.y + (item.y - art.anchorY * item.px) * view.scale;
+    if (left > world.width + margin || top > world.height + margin || left + art.art.width * step < -margin || top + art.art.height * step < -margin) return;
+    const shown = up ? up(item) : 1, options = { label: false, time: now, halo: item !== capitalItem };
+    if (shown >= 1) drawIsland(worldContext, item, options);
+    else if (shown > 0) { drawRisingIsland(worldContext, item, { ...options, transform: view }, shown); rising.push([item, shown]); }
+  }, up);
   drawCloudSea(worldContext, world.width, world.height, now, true);
-  drawConnections(worldContext, state.items, view, now, (state.items[0]?.px || .5) * state.scale, 'bridges');
+  const cell = Math.max(3, Math.round(Math.min(world.width, world.height) / 150));
+  rising.forEach(([item, shown]) => drawPuff(worldContext, view.x + item.x * view.scale, view.y + (item.y + item.size * .28) * view.scale, item.size * .8 * view.scale, shown, cell, item.project.seed));
   state.items.forEach((item) => {
-    const phone = world.height > world.width;
-    const show = SCENE_MODE !== 'diorama' ? ((phone ? topNamed.has(item.project.id) && [...topNamed].indexOf(item.project.id) < 6 : topNamed.has(item.project.id)) || item.size * state.scale > (phone ? 220 : 140) * ratio) || state.hovered === item.project.id || state.selected === item.project.id
-      : item.tier === 0 || (item.tier === 1 && world.width > world.height) || item.project === capital || state.hovered === item.project.id || state.selected === item.project.id;
-    if (show) drawIslandLabel(worldContext, item, { labelScale: ratio * (item.tier === 0 ? 1 : .85) * (world.height > world.width ? 1.25 : 1) });
+    if (up && up(item) < 1) return;
+    // The hero frame names only the islands whose label would sit in the open sky, not behind the card or on an edge.
+    const labelX = view.x + item.x * view.scale, labelY = view.y + (item.y + item.size * .62) * view.scale;
+    if (state.hero && (labelX - 60 * ratio < state.heroEdge || labelX > world.width - 40 * ratio || labelY > world.height - 20 * ratio)) return;
+    const show = (phone ? topNamed.has(item.project.id) && [...topNamed].indexOf(item.project.id) < 6 : topNamed.has(item.project.id)) || item.size * state.scale > (phone ? 220 : 140) * ratio || state.hovered === item.project.id || state.selected === item.project.id;
+    if (show) drawIslandLabel(worldContext, item, { labelScale: ratio * (phone ? 1.25 : 1) });
   });
 }
 
@@ -1754,19 +1698,20 @@ function showRelicCard(hit, clientX, clientY) {
 function hideRelicCard() { $('#relicPop').hidden = true; }
 
 let viewAnimation = 0;
-function animateView(targetX, targetY, targetScale) {
+// Glides the camera to a view. Short moves settle fast; longer ones (`duration` in ms) ease in and out.
+function animateView(targetX, targetY, targetScale, { duration = 420 } = {}) {
   const token = viewAnimation += 1;
   const start = { x: state.panX, y: state.panY, scale: state.scale };
   const startTime = performance.now();
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const duration = reduced ? 1 : 420;
+  const length = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : duration;
   function frame(now) {
     if (token !== viewAnimation) return;
-    const progress = clamp((now - startTime) / duration, 0, 1);
-    const eased = 1 - Math.pow(1 - progress, 4);
+    const progress = clamp((now - startTime) / length, 0, 1);
+    const eased = duration > 420 ? (progress < .5 ? 4 * progress ** 3 : 1 - Math.pow(2 - 2 * progress, 3) / 2) : 1 - Math.pow(1 - progress, 4);
     state.panX = start.x + (targetX - start.x) * eased;
     state.panY = start.y + (targetY - start.y) * eased;
     state.scale = start.scale + (targetScale - start.scale) * eased;
+    ambient.last = now;
     drawWorld();
     if (progress < 1) requestAnimationFrame(frame);
   }
@@ -1774,7 +1719,12 @@ function animateView(targetX, targetY, targetScale) {
 }
 
 function resetView() { state.selected = null; state.hovered = null; animateView(0, 0, 1); $('#islandSheet').classList.remove('open'); updateCardSelection(); }
-function enterWorld() { state.entered = true; $('#welcome').classList.add('dismissed'); }
+// Explore leaves the hero frame and pulls the camera back over the whole archipelago.
+function enterWorld() {
+  if (!state.entered && state.hero) animateView(0, 0, 1, { duration: 700 });
+  state.entered = true; state.hero = false;
+  $('#welcome').classList.add('dismissed');
+}
 
 
 // ---------- Field guide ----------
@@ -1803,7 +1753,7 @@ const GUIDE = [
   ['Between islands', [
     ['lg-rope', 'Rope bridge', 'One project lives inside the other’s folder.'],
     ['lg-light', 'Light bridge', 'Two projects share a distinctive name.'],
-    ['lg-route', 'Golden route', 'Threads the islands in the order you founded them.'],
+    ['lg-route', 'Golden route', 'Threads the islands in the order you founded them. Point at or open an island to see the legs before and after it.'],
   ]],
 ];
 
@@ -2108,7 +2058,7 @@ function updateCardSelection() {
 function renderThumbnail(canvas, project) {
   // A square backing store at the thumbnail's device size: one canvas pixel per screen pixel.
   const css = canvas.getBoundingClientRect().width;
-  if (!css) return;
+  if (!css || !islandCache.has(project.id)) return;
   const size = Math.round(css * Math.min(3, window.devicePixelRatio || 1));
   if (canvas.width === size && canvas.height === size) return;
   canvas.width = size; canvas.height = size;
@@ -2879,13 +2829,12 @@ function drawStoryScene(now) {
   storyScene.shade += (storyScene.targetShade - storyScene.shade) * .08;
   // A slow drift keeps the shot alive while text is on screen.
   const drift = { x: camera.x + Math.sin(now / 4200) * width * .012, y: camera.y + Math.cos(now / 5100) * height * .008, scale: camera.scale };
-  drawOcean(context, width, height, 73, now);
+  drawSky(context, width, height, 73, now);
   drawCloudSea(context, width, height, now);
   const items = storyLayout(width, height);
   const pixel = (items[0]?.px || 1) * drift.scale;
-  drawConnections(context, items, drift, now, pixel, 'route');
-  [...items].sort((a, b) => a.y - b.y).forEach((item) => drawIsland(context, item, { transform: drift, label: false, selected: false, hovered: false, time: now }));
-  drawConnections(context, items, drift, now, pixel, 'bridges');
+  drawRoute(context, items, drift, now, pixel);
+  paintIslands(context, items, drift, now, pixel, (item) => drawIsland(context, item, { transform: drift, label: false, selected: false, hovered: false, time: now }));
   drawCloudSea(context, width, height, now, true);
   const focus = items.find((item) => item.project.id === storyScene.focus);
   if (focus && storyScene.shade < .4) drawIslandLabel(context, focus, { transform: drift, labelScale: Math.min(2, window.devicePixelRatio || 1) * 1.2 });
@@ -3008,18 +2957,72 @@ document.addEventListener('keydown', (event) => {
 });
 $$('[data-play-story]').forEach((button) => button.addEventListener('click', openStory));
 
-buildInterface();
-resizeWorld();
-
-// Keep the world alive: water falls, smoke drifts, sails turn. Paused when hidden or when motion is reduced.
+// Keep the world alive: water falls, smoke drifts, sails turn, at about 25 fps. After 30 s without input it slows to
+// about 8 fps, and after 2 minutes it rests until a pointer, a key or the tab coming back wakes it. Paused when hidden
+// or when motion is reduced.
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-let lastFrame = 0;
+const ambient = { frame: 0, last: 0, input: performance.now() };
 function animateWorld(now) {
-  requestAnimationFrame(animateWorld);
-  if (document.hidden || reducedMotion.matches || now - lastFrame < 40) return;
-  lastFrame = now;
+  const idle = performance.now() - ambient.input;
+  if (idle > 120000 && !intro.running) { ambient.frame = 0; return; }
+  ambient.frame = requestAnimationFrame(animateWorld);
+  if (intro.running && !document.hidden) { if (!intro.start) intro.start = now; ambient.last = now; drawWorld(); return; }
+  if (!state.ready || document.hidden || reducedMotion.matches || now - ambient.last < (idle > 30000 ? 125 : 40)) return;
+  ambient.last = now;
   if (!$('#story').hidden) { $$('.story-island').forEach((canvas) => canvas.redraw?.()); return; }
   if ($('#shareDialog').open) return;
   drawWorld();
 }
-requestAnimationFrame(animateWorld);
+function wakeWorld() { ambient.input = performance.now(); if (!ambient.frame) ambient.frame = requestAnimationFrame(animateWorld); }
+['pointerdown', 'pointermove', 'wheel', 'keydown'].forEach((type) => window.addEventListener(type, wakeWorld, { capture: true, passive: true }));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) wakeWorld(); });
+
+// A first visit opens on the islands rising from the cloud sea in the order they were founded, about 2.2 s, once per
+// viewer. Any pointer, wheel or key jumps to the end; reduced motion and a story opened from a link skip it.
+const INTRO_SECONDS = 2.2;
+const intro = { running: false, start: 0 };
+function startIntro() {
+  if (reducedMotion.matches || /^#story/.test(location.hash) || !$('#story').hidden || PROJECTS.length < 2) return;
+  try { if (localStorage.getItem('pelago-intro-seen') === '1') return; localStorage.setItem('pelago-intro-seen', '1'); } catch { /* storage blocked: play it */ }
+  intro.running = true; intro.start = 0; ambient.input = performance.now();
+  ['pointerdown', 'wheel', 'keydown'].forEach((type) => window.addEventListener(type, endIntro, { capture: true, passive: true }));
+}
+function endIntro() {
+  if (!intro.running) return;
+  intro.running = false;
+  ['pointerdown', 'wheel', 'keydown'].forEach((type) => window.removeEventListener(type, endIntro, { capture: true }));
+  requestDraw();
+}
+// The intro's clock in rise-reel seconds, or null once it is over. It starts on the first frame shown.
+function introRise(now) {
+  if (!intro.running) return null;
+  const seconds = intro.start ? (now - intro.start) / 1000 : 0;
+  if (seconds >= INTRO_SECONDS) { endIntro(); return null; }
+  return seconds / INTRO_SECONDS * RISE.to;
+}
+
+// The first frame is the sky, the cloud sea and the welcome card. The island art is then made one island per task,
+// the capital first, each dock card filled as its island is ready; the islands appear (and rise) once all are made.
+function raiseIslands() {
+  const queue = [...PROJECTS].sort((a, b) => b.activity - a.activity);
+  const step = () => {
+    const project = queue.shift();
+    if (project) {
+      islandArt(project);
+      const card = $$('.island-card').find((node) => node.dataset.project === project.id);
+      if (card) renderThumbnail(card.querySelector('canvas'), project);
+      setTimeout(step, 0);
+      return;
+    }
+    state.ready = true;
+    if (heroWanted()) showHero();
+    startIntro();
+    drawWorld();
+  };
+  if (document.hidden) setTimeout(step, 0); else requestAnimationFrame(() => setTimeout(step, 0));
+}
+
+buildInterface();
+resizeWorld();
+raiseIslands();
+ambient.frame = requestAnimationFrame(animateWorld);
