@@ -649,8 +649,7 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
 
 def history_tip(data: dict[str, Any]) -> bool:
     """Claude Code deletes transcripts after 30 days unless told otherwise; say so when a world looks cut short."""
-    keeps = data.get("claudeKeepsDays")
-    if data.get("demo") or data.get("sinceDays") or (isinstance(keeps, (int, float)) and keeps > 35):
+    if data.get("demo") or data.get("sinceDays"):
         return False
     starts = [project.get("firstActive") for project in data.get("projects") or []
               if (project.get("crews") or {project.get("agent"): 1}).get("claude") and project.get("firstActive")]
@@ -715,15 +714,6 @@ def find_links(projects: list[tuple[dict[str, Any], str]], per_island: int = 4) 
         degree[second["id"]] += 1
         links.append({"a": first["id"], "b": second["id"], "kind": kind, "word": word})
     return links
-
-
-def claude_keeps_days(home: Path) -> int | None:
-    """How many days Claude Code keeps transcripts, if the person changed it. Only this one setting is read."""
-    try:
-        value = json.loads((home / ".claude" / "settings.json").read_text(encoding="utf-8")).get("cleanupPeriodDays")
-    except (OSError, ValueError, AttributeError):
-        return None
-    return value if isinstance(value, int) and not isinstance(value, bool) else None
 
 
 def scan(home: Path, since_days: int | None = None, year: int | None = None) -> dict[str, Any]:
@@ -856,7 +846,6 @@ def scan(home: Path, since_days: int | None = None, year: int | None = None) -> 
         "sources": source_info,
         "rhythm": rhythm.public(),
         "sinceDays": since_days,
-        "claudeKeepsDays": claude_keeps_days(home),
     })
 
 

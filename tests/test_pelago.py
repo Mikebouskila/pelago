@@ -694,9 +694,6 @@ class PelagoTests(unittest.TestCase):
             with unittest.mock.patch("sys.stdout", new_callable=io.StringIO) as printed:
                 pelago.print_summary(data, output)
             self.assertIn('Add "cleanupPeriodDays": 365 to ~/.claude/settings.json', printed.getvalue())
-            (home / ".claude" / "settings.json").write_text(json.dumps({"cleanupPeriodDays": 365}), encoding="utf-8")
-            self.assertFalse(pelago.scan(home)["historyTip"])
-            self.assertEqual(json.loads((home / ".claude" / "settings.json").read_text(encoding="utf-8")), {"cleanupPeriodDays": 365})
         self.assertFalse(pelago.demo_data()["historyTip"])
         codex_only = pelago.demo_data()
         codex_only.pop("demo")

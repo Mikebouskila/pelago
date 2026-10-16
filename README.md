@@ -258,7 +258,7 @@ Exports hold only the counts listed under [Privacy](#-private-by-design), never 
 
 ## 🔒 Private by design
 
-- Reads your history from `~/.claude/projects` and `~/.codex/sessions`, and nothing else except one setting, `cleanupPeriodDays` in `~/.claude/settings.json`, to know whether to suggest keeping more history.
+- Reads only `~/.claude/projects` and `~/.codex/sessions`. Nothing else.
 - No network requests, no uploads, no fonts or scripts from anywhere. One HTML file that works offline. Every island is drawn in your browser from the numbers.
 - Message text is read in memory, to tell what kind of project it is, which technologies came up and what goes on the receipts, then forgotten.
 - The page keeps only aggregates, per project:

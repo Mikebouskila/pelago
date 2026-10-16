@@ -2133,7 +2133,7 @@ function fillSheet(project) {
   const category = CATEGORIES[project.category] || CATEGORIES.other;
   $('#selectedAgent').textContent = crewLabel(project);
   $('#selectedAgent').style.setProperty('--agent-color', project.agent === 'claude' ? COLORS.claude : COLORS.codex);
-  $('#selectedType').textContent = `${category.label} · ${recencyText(project)}`;
+  $('#selectedType').textContent = state.hideNames ? recencyText(project) : `${category.label} · ${recencyText(project)}`;
   $('#selectedName').textContent = nameOf(project) || kindOf(project);
   $('#selectedStory').textContent = `${category.story} This ${activityBand(project)} island holds ${settlementBand(project)} shaped across ${plural(project.sessions, 'session')}.`;
   $('#selectedFacts').innerHTML = '';
@@ -2697,7 +2697,7 @@ function stretchLabel(minutes) {
 function receiptLines(mine = false) {
   const lines = [];
   const count = (value) => Number(value || 0);
-  const who = mine ? (TEAM ? 'we' : 'I') : 'you', whose = mine ? (TEAM ? 'our agents' : 'my agent') : 'your agent';
+  const who = mine ? (TEAM ? 'we' : 'I') : 'you', whose = mine ? (TEAM ? 'our agents' : 'my agent') : (TEAM ? 'your agents' : 'your agent');
   const [stops, please, thanks, nudges, stretch] = ['interrupts', 'please', 'thanks', 'nudges', 'longestStretch'].map((key) => count(HABITS[key]));
   if (stops) lines.push([stops.toLocaleString('en-US'), `${stops === 1 ? 'time' : 'times'} ${who} hit stop on ${whose}.`]);
   if (please) lines.push([please.toLocaleString('en-US'), thanks ? `${please === 1 ? 'please' : 'pleases'}. And ${thanks.toLocaleString('en-US')} thank-you${thanks === 1 ? '' : 's'}.` : `${please === 1 ? 'time' : 'times'} ${who} said please.`]);
