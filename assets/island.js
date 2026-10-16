@@ -9,7 +9,17 @@ function mixRgb(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]
 function tone(color, amount) { return amount >= 0 ? mixRgb(color, WARM, amount) : mixRgb(color, COOL, -amount); }
 const palette = (list) => list.map(hexRgb);
 
-const ROCK = palette(['#a3929f', '#8a7a8e', '#71637c', '#5b4f69', '#473e57', '#352e45', '#272136']);
+// Bedrock, seven tones from the lit strata down to the dark tip of the root, one stone per biome.
+const ROCKS = {
+  web: palette(['#b6a69b', '#9a8b83', '#7f716d', '#675b5a', '#514749', '#3d353a', '#2a242b']),
+  other: palette(['#a3929f', '#8a7a8e', '#71637c', '#5b4f69', '#473e57', '#352e45', '#272136']),
+  ai: palette(['#ab9ecb', '#9082b3', '#766999', '#5f5383', '#4a406b', '#372f54', '#27213b']),
+  cli: palette(['#b7c5d2', '#9aa9b9', '#7e8ea0', '#657588', '#4e5c70', '#3a4658', '#283140']),
+  data: palette(['#e6c592', '#d2a774', '#b8895c', '#996c4a', '#79523b', '#593b2c', '#3b271f']),
+  mobile: palette(['#cba5ae', '#af8894', '#936e7c', '#795866', '#604551', '#47333e', '#30232c']),
+  game: palette(['#908596', '#74697a', '#5c5262', '#473f4e', '#362f3c', '#27222c', '#1a161e']),
+};
+const MOONLIT = [150, 192, 255], GLOW_BAND = .09;
 const BIOMES = {
   web: { name: 'Meadow harbor', grass: palette(['#5fae4e', '#76c25c', '#8fd46c']), dirt: palette(['#a87b51', '#8a6142']), sand: hexRgb('#ecd8a0'), roofs: palette(['#e0604c', '#d47a43', '#c24f45', '#3f86c4']), wall: hexRgb('#f2e4c4'), trees: 'oak', leaves: palette(['#2f7a3e', '#3f9447', '#5aae52', '#86cc6a']), flowers: palette(['#ffd36b', '#ff8fa3', '#ffffff', '#9fd0ff']), accent: hexRgb('#4fc4d6'), crystal: null },
   other: { name: 'Lighthouse meadow', grass: palette(['#5aa856', '#6fbd63', '#8bd27a']), dirt: palette(['#a5805a', '#876546']), sand: hexRgb('#e9d7a6'), roofs: palette(['#3a988b', '#e0784f', '#5684c6', '#c95c4c']), wall: hexRgb('#f0e5cd'), trees: 'oak', leaves: palette(['#2d6f45', '#3d8a50', '#57a75c', '#82c677']), flowers: palette(['#ffe27a', '#b9a3ff', '#ffffff', '#ff9a8a']), accent: hexRgb('#57c8c0'), crystal: null },
@@ -156,7 +166,43 @@ function renderIslandArt(project) {
     if (land[i][j]) while (distance < 9 && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([a, b]) => isLand(i + a * (distance + 1), j + b * (distance + 1)))) distance += 1;
     return distance;
   }));
-  const undersideDepth = coastDistance.map((row, i) => row.map((distance, j) => Math.round((1.4 + Math.pow(distance, 1.18) * 1.55 + hash2(seed, i, j * 3) * 1.6) * LEVEL)));
+  // Under the earth every column keeps a short slab of rock; the root below it is painted as one mass.
+  const undersideDepth = coastDistance.map((row, i) => row.map((_, j) => Math.round((1.3 + hash2(seed, i, j * 3) * .8) * LEVEL)));
+  let landLeft = 0, landRight = 0;
+  for (let i = 0; i < size; i += 1) for (let j = 0; j < size; j += 1) if (land[i][j]) { landLeft = Math.min(landLeft, (i - j) * TILE_W); landRight = Math.max(landRight, (i - j) * TILE_W); }
+  // The root: an inverted mountain 0.6-1x the island's width, a main peak and a few lesser crags, all tapering to tips.
+  const rocks = ROCKS[project.category] || ROCKS.other;
+  const span = landRight - landLeft + TILE_W * 2, rootHalf = span / 2, rootMid = (landLeft + landRight) / 2;
+  const rootDepth = Math.round(span * (.98 - .38 * clamp((size - 7) / 19, 0, 1)) * (.9 + hash2(seed, 2, 71) * .2));
+  // A long spike first (it holds the tip), a broad belly under the whole island, then a few lesser crags.
+  const cones = [
+    { x: rootMid + (hash2(seed, 1, 72) - .5) * span * .16, w: rootHalf * (.5 + hash2(seed, 2, 72) * .14), h: rootDepth, p: 1.45 },
+    { x: rootMid, w: rootHalf * 1.02, h: rootDepth * .4, p: .8 },
+  ];
+  for (let k = 0; k < 2 + Math.floor(hash2(seed, 3, 73) * 2); k += 1) {
+    cones.push({ x: rootMid + (k % 2 ? 1 : -1) * rootHalf * (.3 + hash2(seed, k, 74) * .38), w: rootHalf * (.16 + hash2(seed, k, 75) * .16), h: rootDepth * (.4 + hash2(seed, k, 76) * .24), p: 1.25 });
+  }
+  // Per pixel column (offset k from the left edge): the bottom of the frontmost earth, its slab, the root's drop and which crag owns it.
+  const frontGround = new Array(span).fill(-1e9), frontSlab = new Array(span).fill(0), drops = new Array(span), owner = new Array(span);
+  for (let i = 0; i < size; i += 1) for (let j = 0; j < size; j += 1) {
+    if (!land[i][j]) continue;
+    for (let x = 0; x < TILE_W * 2; x += 1) {
+      const k = (i - j) * TILE_W - landLeft + x;
+      const ground = (i + j) * TILE_H + (x < TILE_W ? TILE_H + Math.floor(x / 2) : TILE_H * 2 - 1 - Math.floor((x - TILE_W) / 2));
+      if (ground > frontGround[k]) { frontGround[k] = ground; frontSlab[k] = undersideDepth[i][j]; }
+    }
+  }
+  for (let k = 0; k < span; k += 1) {
+    if (frontGround[k] < -1e8) { frontGround[k] = frontGround[k - 1] ?? 0; frontSlab[k] = frontSlab[k - 1] ?? LEVEL; }
+    const x = landLeft - TILE_W + k;
+    let drop = 0, best = cones[0];
+    cones.forEach((cone) => { const t = Math.abs(x - cone.x) / cone.w; const d = t < 1 ? cone.h * Math.pow(1 - t, cone.p) : 0; if (d > drop) { drop = d; best = cone; } });
+    const crag = (valueNoise(seed + 31, x / 7, 0) - .5) * 8 + (hash2(seed, Math.floor(x / 3), 77) > .72 ? hash2(seed, Math.floor(x / 3), 78) * 10 : 0);
+    drops[k] = Math.round(Math.max(frontSlab[k] + 3, drop * (.88 + valueNoise(seed + 33, x / 15, 0) * .24) + crag * Math.min(1, drop / 30)));
+    owner[k] = best;
+  }
+  let rootReach = 0;
+  for (let k = 0; k < span; k += 1) rootReach = Math.max(rootReach, frontGround[k] + drops[k]);
 
   // 2. Rivers: tokens flow downhill and leave the island as waterfalls on the visible side.
   const water = height.map((row) => row.map(() => false));
@@ -277,10 +323,9 @@ function renderIslandArt(project) {
 
   // 4. Paint back to front into a pixel buffer.
   let peakLevel = 0; height.forEach((row) => row.forEach((value) => { peakLevel = Math.max(peakLevel, value); }));
-  let deepest = 0; undersideDepth.forEach((row) => row.forEach((value) => { deepest = Math.max(deepest, value); }));
   const width = size * TILE_W * 2 + 120;
-  const canvasHeight = size * TILE_H * 2 + (peakLevel + 1) * LEVEL + 170 + deepest + 140;
   const originX = width / 2, originY = (peakLevel + 1) * LEVEL + 170;
+  const canvasHeight = originY + Math.max(rootReach, size * TILE_H * 2 + 3 * LEVEL) + 160;
   const surface = createSurface(width, canvasHeight);
   const { put, shadow } = surface;
   const lights = [];
@@ -316,6 +361,138 @@ function renderIslandArt(project) {
     return recipe.snow && valueNoise(seed + 9, gx / 7, gy / 5) > .48 ? mixRgb(color, [238, 244, 255], .85) : color;
   }
 
+  // Bedrock: bands darken with depth. Data islands are layered sandstone; tundra strata carry frost.
+  const motif = BIOMES[project.category] ? project.category : 'other';
+  const bandH = Math.max(LEVEL * 1.35, rootDepth / 7);
+  function bedrock(gx, y, d) {
+    const wobble = valueNoise(seed + 13, gx / 7, 0) * 6;
+    // Bands step one tone darker every bandH, Bayer-dithered across the last quarter of each band.
+    const position = (d + wobble) / bandH, within = position - Math.floor(position);
+    const band = 1 + Math.floor(position) + (within > .75 && dither(gx, y, (within - .75) * 4) ? 1 : 0);
+    let rock;
+    if (motif === 'data') {
+      const s = d + wobble * .6 + Math.sin(gx / 11 + (seed % 7)) * 2, layer = Math.floor(s / 4);
+      rock = rocks[clamp(band + (layer % 3 === 1 ? 1 : 0), 0, 6)];
+      if (s % 4 < 1 && layer % 3 === 0) rock = tone(rock, .2);
+    } else {
+      rock = rocks[clamp(band, 0, 6)];
+      if (within < 1 / bandH) rock = motif === 'cli' ? mixRgb(rock, [226, 238, 248], .45) : tone(rock, .16);
+    }
+    return hash2(seed, gx, y) > .93 ? tone(rock, -.12) : rock;
+  }
+  const rootX = (k) => originX + landLeft - TILE_W + k;
+  const faceBottom = (k) => originY + frontGround[k] + frontSlab[k];
+  const rootBottom = (k) => originY + frontGround[k] + drops[k];
+  const inRoot = (k, y, margin = 1) => k >= 0 && k < span && y >= faceBottom(k) && y < rootBottom(k) - margin;
+
+  // The root goes down first, behind everything: a lit and a shadowed face per crag, darkening toward the tip,
+  // with a cool moonlit rim along the lit side.
+  function paintRoot() {
+    surface.z = 1;
+    for (let k = 0; k < span; k += 1) {
+      const gx = rootX(k), top = originY + frontGround[k], bottom = rootBottom(k);
+      const lit = gx < originX + owner[k].x;
+      for (let y = top; y < bottom; y += 1) {
+        const color = tone(bedrock(gx, y, y - top), (lit ? -.04 : -.26) - clamp((y - top) / rootDepth, 0, 1) * .3);
+        put(gx, y, lit && bottom - y <= 2 ? mixRgb(color, MOONLIT, .5) : color);
+      }
+    }
+  }
+
+  // One motif per biome on the underside, painted over the root once the columns are down.
+  function bedrockMotif() {
+    surface.z = 1;
+    const pick = (salt) => Math.floor(span * (.14 + hash2(seed, salt, 81) * .72));
+    const tipX = originX + cones[0].x;
+    const walk = (salt, steps, paint) => {
+      let k = pick(salt), y = faceBottom(k) + 2;
+      for (let step = 0; step < steps && inRoot(k, y, 3); step += 1) {
+        paint(rootX(k), y, step);
+        const toward = Math.sign(tipX - rootX(k)) || 1;
+        k += hash2(seed, step, salt + 90) < .66 ? toward : -toward;
+        y += 1 + (step % 3 === 0 ? 1 : 0);
+      }
+    };
+    if (motif === 'ai') {
+      // Geodes broken open in the rock, and crystal seams running down toward the tip.
+      const glowColour = `rgb(${biome.crystal[1].join(',')})`;
+      for (let n = 0; n < 3; n += 1) walk(n * 5 + 2, 70, (gx, y, step) => {
+        put(gx, y, step % 4 === 0 ? biome.crystal[2] : biome.crystal[1]); put(gx + 1, y, biome.crystal[0]);
+        if (step % 10 === 5) light(gx, y, glowColour, 6, .24);
+      });
+      for (let n = 0; n < 2 + Math.floor(hash2(seed, 4, 82) * 2); n += 1) {
+        const k = pick(n * 3 + 1), rx = 4 + Math.round(hash2(seed, n, 84) * 3), ry = 3 + Math.round(hash2(seed, n, 85) * 2);
+        const cy = faceBottom(k) + ry + 4 + Math.round((drops[k] - frontSlab[k]) * (.1 + hash2(seed, n, 83) * .28));
+        if (!inRoot(k - rx, cy + ry + 1, 3) || !inRoot(k + rx, cy + ry + 1, 3)) continue;
+        for (let dy = -ry - 1; dy <= ry + 1; dy += 1) for (let dx = -rx - 1; dx <= rx + 1; dx += 1) {
+          const e = Math.hypot(dx / (rx + .5), dy / (ry + .5));
+          if (e <= 1.18) put(rootX(k) + dx, cy + dy, e > .95 ? rocks[6] : e > .68 ? biome.crystal[0] : (dx - dy + 9) % 3 === 0 ? biome.crystal[2] : biome.crystal[1]);
+        }
+        light(rootX(k), cy, glowColour, 16, .36);
+      }
+    } else if (motif === 'game') {
+      // Lava seams glowing through dark basalt, converging on a drip at the tip.
+      for (let n = 0; n < 3; n += 1) walk(n * 5 + 3, 110, (gx, y, step) => {
+        put(gx - 1, y, rocks[6]); put(gx + 1, y, rocks[6]);
+        put(gx, y, step % 5 === 0 ? [255, 236, 140] : [255, 146, 44]);
+        if (step % 7 === 3) light(gx, y, '#ff7a2a', 10, .32);
+      });
+      let deepest = 0;
+      for (let k = 1; k < span; k += 1) if (rootBottom(k) > rootBottom(deepest)) deepest = k;
+      const dripY = rootBottom(deepest);
+      for (let y = -2; y < 4; y += 1) put(rootX(deepest), dripY + y, y < 1 ? [255, 146, 44] : [255, 210, 90]);
+      put(rootX(deepest) - 1, dripY + 2, [255, 146, 44]); put(rootX(deepest) + 1, dripY + 2, [214, 84, 30]);
+      light(rootX(deepest), dripY + 1, '#ff7a2a', 14, .42);
+    } else if (motif === 'cli') {
+      // Icicles hang wherever the underside runs level enough to hold them.
+      for (let k = 2; k < span - 2; k += 2 + Math.floor(hash2(seed, k, 88) * 4)) {
+        if (Math.abs(rootBottom(k + 1) - rootBottom(k - 1)) > 4) continue;
+        const length = 3 + Math.round(hash2(seed, k, 89) * (4 + drops[k] / 40)), y0 = rootBottom(k) - 1;
+        for (let y = 0; y < length; y += 1) {
+          put(rootX(k), y0 + y, y >= length - 2 ? [255, 255, 255] : [226, 246, 255]);
+          if (y < length - 3) put(rootX(k) + 1, y0 + y, [150, 206, 232]);
+        }
+      }
+    } else if (motif === 'mobile') {
+      // Blossom vines trail down the rock.
+      const stem = tone(biome.grass[0], -.3);
+      for (let n = 0; n < 6 + Math.floor(hash2(seed, 5, 91) * 4); n += 1) {
+        const k0 = pick(n * 7 + 4), side = n % 2 ? 1 : -1;
+        const length = Math.round((drops[k0] - frontSlab[k0]) * (.22 + hash2(seed, n, 92) * .34));
+        for (let y = 0; y < length; y += 1) {
+          const k = k0 + Math.round(Math.sin(y / 6 + n) * 1.4), gy = faceBottom(k0) - 2 + y;
+          if (y > 3 && !inRoot(k, gy, 3)) break;
+          put(rootX(k), gy, stem);
+          if (y % 5 === 3) {
+            const petal = biome.leaves[1 + (y + n) % 3];
+            [[0, -1], [-1, 0], [1, 0], [0, 1]].forEach(([a, b]) => put(rootX(k) + side + a, gy + b, petal));
+            put(rootX(k) + side, gy, [255, 226, 122]);
+          }
+        }
+      }
+    } else if (motif === 'web') {
+      // Ivy curtains creep down from the lip.
+      for (let n = 0; n < 5 + Math.floor(hash2(seed, 6, 93) * 4); n += 1) {
+        const k0 = pick(n * 11 + 5), length = Math.round((drops[k0] - frontSlab[k0]) * (.18 + hash2(seed, n, 94) * .3));
+        for (let y = -2; y < length; y += 1) {
+          const w = Math.round(4 * (1 - y / length)) + 1;
+          for (let dx = -w; dx <= w; dx += 1) {
+            const k = k0 + dx + Math.round(Math.sin((y + n * 5) / 5) * 1.5), gy = faceBottom(k0) + y;
+            const h = hash2(seed, rootX(k), gy);
+            if (k < 0 || k >= span || gy >= rootBottom(k) - 1 || h < .42) continue;
+            put(rootX(k), gy, h > .88 ? biome.leaves[3] : h > .7 ? biome.leaves[2] : h > .55 ? biome.leaves[1] : biome.leaves[0]);
+          }
+        }
+      }
+    } else if (motif === 'other') {
+      // A lip of moss where the slab meets the root, dripping here and there.
+      for (let k = 0; k < span; k += 1) {
+        const length = 2 + Math.round(valueNoise(seed + 41, k / 4, 0) * 3) + (hash2(seed, k, 95) > .86 ? 3 + Math.round(hash2(seed, k, 96) * 6) : 0);
+        for (let y = 0; y < length && faceBottom(k) - 1 + y < rootBottom(k) - 1; y += 1) put(rootX(k), faceBottom(k) - 1 + y, y === 0 ? biome.leaves[3] : y < 3 ? biome.leaves[2] : biome.leaves[1]);
+      }
+    }
+  }
+
   function column(i, j) {
     const level = height[i][j];
     const cx = originX + (i - j) * TILE_W, cy = originY + (i + j) * TILE_H;
@@ -324,14 +501,13 @@ function renderIslandArt(project) {
     const depth = undersideDepth[i][j];
     const lift = (level - 1) / Math.max(1, peakLevel) * .12;
 
-    // Side faces: grass lip, earth, then strata of floating rock that taper into stalactites.
+    // Side faces: grass lip, earth, then the first strata of the rock root.
     for (let x = 0; x < TILE_W * 2; x += 1) {
       const left = x < TILE_W;
       const gx = cx - TILE_W + x;
       const edgeY = left ? top + TILE_H + Math.floor(x / 2) : top + TILE_H * 2 - 1 - Math.floor((x - TILE_W) / 2);
       const groundY = edgeY + level * LEVEL;
-      const spike = Math.pow(valueNoise(seed + 3, gx / 4.2, 0), 3) * depth * .55 + hash2(seed, gx, 9) * 4;
-      const bottomY = groundY + depth + spike;
+      const bottomY = groundY + depth;
       const faceShade = left ? -.04 : -.26;
       const lip = 2 + (hash2(seed, gx, j) > .55 ? 1 : 0) + (hash2(seed, gx, i) > .86 ? 3 : 0);
       for (let y = edgeY; y < bottomY; y += 1) {
@@ -341,16 +517,7 @@ function renderIslandArt(project) {
         else if (y < groundY) {
           const earth = biome.dirt[(hash2(seed, gx, y) > .82) ? 1 : 0];
           color = (y - edgeY) % LEVEL === LEVEL - 1 ? tone(earth, -.2) : earth;
-        } else {
-          const d = y - groundY;
-          const wobble = valueNoise(seed + 13, gx / 7, 0) * 6;
-          const band = Math.floor((d + wobble) / (LEVEL * 1.35));
-          let rock = ROCK[clamp(band, 0, ROCK.length - 1)];
-          if ((d + wobble) % (LEVEL * 1.35) < 1) rock = tone(rock, .18);
-          if (hash2(seed, gx, y) > .92) rock = tone(rock, -.12);
-          color = rock;
-          if (bottomY - y < 3) color = tone(color, -.25);
-        }
+        } else color = bedrock(gx, y, y - groundY);
         put(gx, y, tone(color, faceShade));
       }
       // Hanging vines and roots from the grass lip.
@@ -360,12 +527,6 @@ function renderIslandArt(project) {
           const leaf = biome.leaves[(y + gx) % 3 === 0 ? 2 : 1];
           put(gx, edgeY + lip + y, tone(recipe.snow ? [200, 210, 220] : leaf, faceShade - .1));
         }
-      }
-      // Glowing crystal seams in the rock.
-      if (biome.crystal && hash2(seed, gx * 3, i + j * 31) > .985) {
-        const y = groundY + 6 + hash2(seed, gx, i) * Math.max(4, depth * .6);
-        for (let k = 0; k < 5; k += 1) put(gx, y - k, pickFrom(biome.crystal, k / 5));
-        light(gx, y - 2, `rgb(${biome.crystal[1].join(',')})`, 8, .28);
       }
     }
 
@@ -589,9 +750,13 @@ function renderIslandArt(project) {
 
 
   function flagPole(x, topY, length = 14) {
+    // In a team world the keep flies one pennant per top builder (up to three), longest for the biggest share.
+    const pennants = [...builders].sort((a, b) => b[1] - a[1]).slice(0, 3);
+    if (pennants.length) length = Math.max(length, pennants.length * 8 + 3);
     for (let y = 0; y < length; y += 1) put(x, topY - y, hexRgb('#3a2c22'));
     put(x, topY - length, [230, 200, 120]);
-    crewColors.forEach((color, index) => anim({ type: 'flag', x: x + 1, y: topY - length + 1 + index * 6, color, length: 10 - index * 2 }));
+    if (pennants.length) pennants.forEach(([color, share], index) => anim({ type: 'pennant', x: x + 1, y: topY - length + 1 + index * 8, color: hexRgb(color), length: Math.round(10 + share * 12) }));
+    else crewColors.forEach((color, index) => anim({ type: 'flag', x: x + 1, y: topY - length + 1 + index * 6, color, length: 10 - index * 2 }));
     if (recipe.beacon) { anim({ type: 'beacon', x, y: topY - length - 3 }); light(x, topY - length - 2, '#ffd36b', 22, .4); }
   }
 
@@ -865,6 +1030,7 @@ function renderIslandArt(project) {
     }
   }
 
+  paintRoot();
   for (let sum = 0; sum <= (size - 1) * 2; sum += 1) {
     for (let i = Math.max(0, sum - size + 1); i <= Math.min(size - 1, sum); i += 1) {
       const j = sum - i;
@@ -878,13 +1044,15 @@ function renderIslandArt(project) {
       });
     }
   }
+  bedrockMotif();
 
   surface.z = 4000;
   // 5. Waterfalls spill past the floating rock and dissolve into mist.
   falls.forEach(({ i, j, side }, index) => {
     const cx = originX + (i - j) * TILE_W + (side === 'right' ? TILE_W / 2 : -TILE_W / 2);
     const lipY = originY + (i + j) * TILE_H - height[i][j] * LEVEL + TILE_H * 2 - 2;
-    const endY = lipY + height[i][j] * LEVEL + undersideDepth[i][j] + 40 + hash2(seed, index, 77) * 40;
+    const fallK = clamp(Math.round(cx - originX - landLeft + TILE_W), 0, span - 1);
+    const endY = lipY + height[i][j] * LEVEL + undersideDepth[i][j] + Math.min(drops[fallK] * .6, 150) + 30 + hash2(seed, index, 77) * 40;
     // A sheet of water: lit on the left, shaded on the right, with long vertical streaks that fray into spray.
     for (let y = lipY; y < endY; y += 1) {
       const fade = (y - lipY) / (endY - lipY);
@@ -928,10 +1096,12 @@ function renderIslandArt(project) {
     light(wx + 14, wy + 8, RARITY[entry.relic.rarity].color, 18, .3);
   }); }
 
-  // Loose chunks of rock drift beside the island.
+  // Loose chunks of rock drift beside the island, and a few small stones orbit its root.
   const debris = clamp(2 + Math.round(workScale(project) - 5), 2, 6);
-  let landLeft = 0, landRight = 0;
-  for (let i = 0; i < size; i += 1) for (let j = 0; j < size; j += 1) if (land[i][j]) { landLeft = Math.min(landLeft, (i - j) * TILE_W); landRight = Math.max(landRight, (i - j) * TILE_W); }
+  const orbitY = frontGround[Math.round(span / 2)] + Math.round(rootDepth * .3);
+  let orbitReach = 0;
+  for (let k = 0; k < span; k += 1) if (frontGround[k] + drops[k] > orbitY) orbitReach = Math.max(orbitReach, Math.abs(landLeft - TILE_W + k - rootMid));
+  anim({ type: 'orbit', x: originX + rootMid, y: originY + orbitY, rx: orbitReach + 10, ry: Math.max(6, orbitReach * .18), stones: 3 + Math.floor(hash2(seed, 8, 97) * 3), phase: hash2(seed, 9, 98) * Math.PI * 2, colours: [rocks[0], rocks[2], rocks[4]] });
   for (let chunk = 0; chunk < debris; chunk += 1) {
     const side = chunk % 2 ? 1 : -1;
     const half = 4 + Math.round(hash2(seed, chunk, 91) * 6);
@@ -943,7 +1113,7 @@ function renderIslandArt(project) {
       const edge = left ? top + Math.floor((x + half) / 2) + Math.floor(half / 2) : top + half - 1 - Math.floor(x / 2);
       const taper = Math.round(depthPx * (1 - Math.abs(x + .5) / half) + 2);
       for (let y = edge; y < edge + taper; y += 1) {
-        const rock = y - edge < 2 ? biome.grass[left ? 1 : 0] : y - edge < 4 ? biome.dirt[left ? 0 : 1] : ROCK[clamp(Math.floor((y - edge) / 5) + (left ? 0 : 1), 0, 5)];
+        const rock = y - edge < 2 ? biome.grass[left ? 1 : 0] : y - edge < 4 ? biome.dirt[left ? 0 : 1] : rocks[clamp(Math.floor((y - edge) / 5) + (left ? 0 : 1), 0, 5)];
         put(cx + x, y, rock);
       }
     }
@@ -978,21 +1148,38 @@ function renderIslandArt(project) {
   art.getContext('2d').drawImage(full, -minX, -minY);
   const depthMap = new Uint16Array(art.width * art.height);
   for (let y = 0; y < art.height; y += 1) depthMap.set(surface.depth.subarray((y + minY) * width + minX, (y + minY) * width + minX + art.width), y * art.width);
+  // Light is summed at half resolution, then posterized into a few hard alpha bands, so every glow is a
+  // stack of pixel rings rather than a blur.
   const glow = document.createElement('canvas');
-  glow.width = Math.ceil(art.width / 2); glow.height = Math.ceil(art.height / 2);
-  const glowContext = glow.getContext('2d');
+  const glowWidth = Math.ceil(art.width / 2), glowHeight = Math.ceil(art.height / 2);
+  glow.width = glowWidth; glow.height = glowHeight;
+  const sum = new Float32Array(glowWidth * glowHeight * 3);
   lights.forEach(({ x, y, color, radius, strength }) => {
+    const rgb = color.startsWith('#') ? hexRgb(color) : color.match(/\d+/g).slice(0, 3).map(Number);
     const gx = (x - minX) / 2, gy = (y - minY) / 2, r = radius / 2 + 1;
-    const gradient = glowContext.createRadialGradient(gx, gy, 0, gx, gy, r);
-    gradient.addColorStop(0, hexAlpha(color, strength)); gradient.addColorStop(1, hexAlpha(color, 0));
-    glowContext.fillStyle = gradient;
-    glowContext.fillRect(gx - r, gy - r, r * 2, r * 2);
+    for (let py = Math.max(0, Math.floor(gy - r)); py <= Math.min(glowHeight - 1, Math.ceil(gy + r)); py += 1) {
+      for (let px = Math.max(0, Math.floor(gx - r)); px <= Math.min(glowWidth - 1, Math.ceil(gx + r)); px += 1) {
+        const falloff = 1 - Math.hypot(px + .5 - gx, py + .5 - gy) / r;
+        if (falloff <= 0) continue;
+        const index = (py * glowWidth + px) * 3, amount = strength * falloff;
+        sum[index] += rgb[0] * amount; sum[index + 1] += rgb[1] * amount; sum[index + 2] += rgb[2] * amount;
+      }
+    }
   });
+  const glowImage = new ImageData(glowWidth, glowHeight);
+  for (let index = 0, out = 0; index < sum.length; index += 3, out += 4) {
+    const peak = Math.max(sum[index], sum[index + 1], sum[index + 2]);
+    const band = Math.min(1, Math.round(peak / 255 / GLOW_BAND) * GLOW_BAND);
+    if (band <= 0) continue;
+    glowImage.data[out] = sum[index] / peak * 255; glowImage.data[out + 1] = sum[index + 1] / peak * 255; glowImage.data[out + 2] = sum[index + 2] / peak * 255;
+    glowImage.data[out + 3] = band * 255;
+  }
+  glow.getContext('2d').putImageData(glowImage, 0, 0);
   const centreY = originY + (size - 1) * TILE_H + TILE_H - minY;
   relicBoxes.forEach((box) => { box.x -= minX; box.y -= minY; });
   anims.forEach((entry) => { entry.x -= minX; if (entry.y !== undefined) entry.y -= minY; if (entry.y0 !== undefined) { entry.y0 -= minY; entry.y1 -= minY; } });
   const half = pixelDownsample(art);
-  return { art, glow, anims, relicBoxes, depth: depthMap, mips: [art, half, pixelDownsample(half)], anchorX: originX - minX, anchorY: centreY, recipe, gridWidth: size * TILE_W * 2, falls: falls.length, buildings: placed.length };
+  return { art, glow, anims, relicBoxes, depth: depthMap, mips: [art, half, pixelDownsample(half)], anchorX: originX - minX, anchorY: centreY, root: rootDepth, recipe, gridWidth: size * TILE_W * 2, falls: falls.length, buildings: placed.length };
 }
 
 // Halve a pixel-art canvas without inventing colours: each 2x2 block keeps its most common opaque
@@ -1042,51 +1229,51 @@ function pixelDownsample(source) {
 function drawIslandArtCrisp(context, art, left, top, scale, options = {}) {
   const level = scale >= 1 ? 0 : scale >= .5 ? 1 : 2;
   const haze = options.haze || 0;
-  const mips = haze ? hazedMips(art, haze) : art.mips;
-  const source = mips[level];
+  const source = haze ? hazedMip(art, haze, level) : art.mips[level];
   const step = scale * (1 << level);
   const x = Math.round(left), y = Math.round(top);
   context.imageSmoothingEnabled = step < .98;
   context.imageSmoothingQuality = 'high';
   context.drawImage(source, x, y, Math.round(source.width * step), Math.round(source.height * step));
   if (options.glow !== false) {
+    // Lights glow less under a day sky; the glow's pixels stay snapped to the art's grid.
     context.globalCompositeOperation = 'lighter';
-    context.globalAlpha = 1 - haze * 1.4;
-    context.imageSmoothingEnabled = true;
-    if (context.globalAlpha > 0) context.drawImage(art.glow, x, y, art.art.width * scale, art.art.height * scale);
+    context.globalAlpha = (1 - haze * 1.4) * skyNow().glow;
+    context.imageSmoothingEnabled = scale * 2 < 1;
+    if (context.globalAlpha > 0) context.drawImage(art.glow, x, y, Math.round(art.glow.width * 2 * scale), Math.round(art.glow.height * 2 * scale));
     context.globalAlpha = 1;
     context.globalCompositeOperation = 'source-over';
   }
   return { x, y };
 }
 
-// Distant islands sink into the night air: their colours drift toward the sky and lose contrast.
-const HAZE_COLOUR = [44, 72, 122];
-function hazedMips(art, haze) {
+// Distant islands sink into the air: their colours drift toward the sky's haze and lose contrast.
+function hazedMip(art, haze, level) {
+  // Only the mip level actually on screen is hazed, and haze comes in a few fixed steps, so this stays small.
   art.hazed = art.hazed || new Map();
-  const key = haze.toFixed(2);
+  const HAZE_COLOUR = skyNow().haze;
+  const key = `${skyNow().name}|${haze.toFixed(2)}|${level}`;
   if (!art.hazed.has(key)) {
-    art.hazed.set(key, art.mips.map((mip) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = mip.width; canvas.height = mip.height;
-      const context = canvas.getContext('2d');
-      context.drawImage(mip, 0, 0);
-      const image = context.getImageData(0, 0, mip.width, mip.height);
-      const data = image.data;
-      for (let index = 0; index < data.length; index += 4) {
-        if (!data[index + 3]) continue;
-        for (let channel = 0; channel < 3; channel += 1) data[index + channel] += (HAZE_COLOUR[channel] - data[index + channel]) * haze;
-      }
-      context.putImageData(image, 0, 0);
-      return canvas;
-    }));
+    const mip = art.mips[level];
+    const canvas = document.createElement('canvas');
+    canvas.width = mip.width; canvas.height = mip.height;
+    const context = canvas.getContext('2d');
+    context.drawImage(mip, 0, 0);
+    const image = context.getImageData(0, 0, mip.width, mip.height);
+    const data = image.data;
+    for (let index = 0; index < data.length; index += 4) {
+      if (!data[index + 3]) continue;
+      for (let channel = 0; channel < 3; channel += 1) data[index + channel] += (HAZE_COLOUR[channel] - data[index + channel]) * haze;
+    }
+    context.putImageData(image, 0, 0);
+    art.hazed.set(key, canvas);
   }
   return art.hazed.get(key);
 }
 
 // Living details drawn on top of the static art every frame: water, smoke, sails, flags, ships.
 function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue = 1) {
-  const t = time / 1000;
+  const t = time / 1000, lit = skyNow().glow;
   const cell = (x, y, w, h, color, alpha = 1) => {
     context.globalAlpha = alpha;
     context.fillStyle = Array.isArray(color) ? `rgb(${color[0] | 0},${color[1] | 0},${color[2] | 0})` : color;
@@ -1117,13 +1304,30 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
         cell(sx, sy - 1, 1, 1, entry.colour, a * .6); cell(sx, sy + 1, 1, 1, entry.colour, a * .6);
       }
     } else if (entry.type === 'smoke') {
+      // Opaque two-tone puffs that swell as they rise and shrink away, never fading through alpha.
       for (let puff = 0; puff < entry.puffs; puff += 1) {
         const life = ((t * .35 + entry.phase + puff / entry.puffs) % 1);
-        const radius = 1.4 + life * 4;
-        const x = entry.x + Math.sin(life * 5 + entry.phase * 6) * 2.5 + life * 5, y = entry.y - life * 26;
+        const radius = Math.round(.6 + Math.sin(life * Math.PI) * (1.6 + life * 2.2));
+        if (radius < 1) continue;
+        const x = Math.round(entry.x + Math.sin(life * 5 + entry.phase * 6) * 2.5 + life * 5), y = Math.round(entry.y - life * 26);
         for (let dy = -radius; dy <= radius; dy += 1) {
-          const w = Math.sqrt(Math.max(0, radius * radius - dy * dy));
-          cell(x - w, y + dy, w * 2, 1, dy < 0 ? [236, 240, 250] : [178, 186, 210], (.55 - life * .5));
+          const w = Math.round(Math.sqrt(Math.max(0, radius * radius - dy * dy + radius * .5)));
+          const split = clamp(-dy, -w, w + 1);
+          if (split > -w) cell(x - w, y + dy, split + w, 1, [236, 240, 250]);
+          if (split <= w) cell(x + split, y + dy, w - split + 1, 1, [170, 178, 204]);
+        }
+      }
+    } else if (entry.type === 'orbit') {
+      // Loose stones circling the root; on the far side they pass behind the rock.
+      const covered = (x, y) => x >= 0 && y >= 0 && x < art.art.width && y < art.art.height && art.depth[y * art.art.width + x] > 0;
+      for (let k = 0; k < entry.stones; k += 1) {
+        const angle = entry.phase + k / entry.stones * Math.PI * 2 + t * (.14 + k * .02);
+        const x = Math.round(entry.x + Math.cos(angle) * entry.rx * (1 - k * .07)), y = Math.round(entry.y + Math.sin(angle) * entry.ry + (k - 1) * 7 + Math.sin(t * .8 + k) * 1.5);
+        const behind = Math.sin(angle) < 0, r = 2 + (k * 7 % 3);
+        for (let dy = -r - 1; dy <= r + 1; dy += 1) for (let dx = -r - 2; dx <= r + 2; dx += 1) {
+          const v = Math.abs(dx) / (r + 1.5) + Math.abs(dy) / (r + .7);
+          if (v > 1 || (behind && covered(x + dx, y + dy))) continue;
+          cell(x + dx, y + dy, 1, 1, v > .74 ? OUTLINE : dx + dy < -1 ? entry.colours[0] : dx + dy > 0 ? entry.colours[2] : entry.colours[1]);
         }
       }
     } else if (entry.type === 'windmill') {
@@ -1152,15 +1356,22 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
         const wave = Math.round(Math.sin(x * .7 - t * 5 + entry.x) * 1.2 * (x / entry.length + .3));
         for (let y = 0; y < 5; y += 1) cell(entry.x + x, entry.y + y + wave, 1, 1, tone(entry.color, y < 2 ? .2 : y > 3 ? -.25 : 0));
       }
+    } else if (entry.type === 'pennant') {
+      for (let x = 0; x < entry.length; x += 1) {
+        const wave = Math.round(Math.sin(x * .6 - t * 4 + entry.x) * 1.3 * (x / entry.length + .2));
+        const half = Math.max(0, Math.round(3.4 * (1 - x / entry.length)));
+        cell(entry.x + x, entry.y + 3 - half + wave, 1, half + 1, tone(entry.color, .22));
+        cell(entry.x + x, entry.y + 4 + wave, 1, half + 1, tone(entry.color, x < 2 ? -.1 : -.28));
+      }
     } else if (entry.type === 'beacon') {
-      const pulse = .55 + Math.sin(t * 3 + entry.x) * .35;
+      const pulse = (.55 + Math.sin(t * 3 + entry.x) * .35) * (.5 + lit * .5);
       cell(entry.x - 1, entry.y - 1, 3, 3, entry.color || [255, 236, 160], pulse);
     } else if (entry.type === 'beam') {
       const angle = t * 1.2;
       const reach = 70;
       const dx = Math.cos(angle), dy = Math.sin(angle) * .45;
       if (dx !== 0) {
-        context.globalAlpha = .16 + Math.abs(Math.cos(angle)) * .14;
+        context.globalAlpha = (.16 + Math.abs(Math.cos(angle)) * .14) * lit;
         const gradient = context.createLinearGradient(left + entry.x * px, top + entry.y * px, left + (entry.x + dx * reach) * px, top + (entry.y + dy * reach) * px);
         gradient.addColorStop(0, 'rgba(255,240,180,.9)'); gradient.addColorStop(1, 'rgba(255,240,180,0)');
         context.fillStyle = gradient;
@@ -1199,7 +1410,7 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
         const r = hash2(seedValue, k, 3);
         const x = entry.x + Math.cos(a) * entry.rx * r, y = entry.y + Math.sin(a * 1.3) * entry.ry * r - 6;
         const blink = Math.sin(t * 2.5 + k) * .5 + .5;
-        if (blink > .3) cell(x, y, 1, 1, [255, 246, 160], blink);
+        if (blink > .3 && lit > .5) cell(x, y, 1, 1, [255, 246, 160], blink);
       }
     }
   });
