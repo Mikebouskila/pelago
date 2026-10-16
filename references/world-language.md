@@ -76,6 +76,8 @@ The story has up to nine slides (ten in a team world), and a slide is skipped wh
 8. The archetype reveal, over the top islands: two reels spin through every first word and title and lock on yours, your keeper (one pixel character per title, `keeperFor()` in `assets/relics.js`) dithers in, then the two clues. With reduced motion everything appears at once.
 9. The share card, with share, post, more formats, and explore actions.
 
+The tokens, relics and archetype slides carry a *Share this* pill, and a relic's popover a *Share this relic* button: each opens the export studio on a moment card (`renderMomentCard()`), the moment big over the dimmed world with the brand and call to action inside a story's safe zones. The video is the rise reel (`renderReelFrame(canvas, t, format)`, a pure function of t over 12 seconds): the capital is there from the first frame, the other islands rise from the cloud sea in founding order (`foundingOrder()`, `riseAt()`) through a Bayer-dither dissolve and a hard-pixel cloud puff while the golden route draws and the counters tick; then the camera pulls back, the archetype and keeper slam in, and it holds on the brand and the call to action. None of these owner surfaces appear in the sample world.
+
 Rhythm data is stored only as 24 hour buckets, 7 weekday buckets, the active-day count, the longest streak, and the first, last, and busiest dates.
 
 ## Team worlds

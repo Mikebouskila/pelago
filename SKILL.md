@@ -12,7 +12,7 @@ Pelago turns local AI coding history into a living world. Every project becomes 
 - **The story**: a nine-slide recap (sessions, capital island, tokens, busiest hour, longest streak, agents, relics with the next one to unlock, archetype, card).
 - **The relics**: 31 collectible items earned by technologies, scale, tools and time, standing on the islands and collected in the Field Guide.
 - **The archetype**: a playful title such as *The Midnight Harbormaster* or *The Dawn Stargazer*.
-- **The cards**: PNG cards and 8-second videos for Story, Square, X/LinkedIn, and GitHub, with copy, native share, and post-to-X.
+- **The cards**: PNG cards and a 12-second rise reel (islands rise from the clouds in the order you founded them) for Story, Square, X/LinkedIn, and GitHub; moment cards for your tokens, a relic or your archetype; copy, native share, and post buttons for X, LinkedIn, Bluesky and Threads that copy the image and open the composer.
 - **Team worlds**: several people's exports merged into one archipelago, every builder in their own colour.
 
 ## Run it

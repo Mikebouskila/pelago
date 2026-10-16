@@ -970,8 +970,10 @@ def demo_team() -> dict[str, Any]:
             share = (.62, .28, .1)[(index - owner) % 3] if position < 5 else (1.0 if owner == index else 0)
             if not share:
                 continue
+            # A field the sample never had stays absent: a made-up techSample of 1 would put a relic in 4000% of messages.
             for field_name in ("sessions", "messages", "activity", "prompts", "techSample"):
-                project[field_name] = max(1, round((project.get(field_name) or 0) * share))
+                if field_name in project:
+                    project[field_name] = max(1, round((project[field_name] or 0) * share))
             project["tokens"] = {k: round(v * share) for k, v in project["tokens"].items()}
             project["tools"] = {k: max(1, round(v * share)) for k, v in project["tools"].items()}
             project["sessionSizes"] = project["sessionSizes"][index::3] or project["sessionSizes"][:1]

@@ -218,7 +218,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .map-controls { right: 9px; bottom: 111px; }.map-controls button { width: 36px; height: 34px; }
   .map-key { top: 8px; left: 8px; width: calc(100vw - 16px); max-height: calc(100% - 110px); padding: 18px; }.key-grid { grid-template-columns: 1fr; }.key-item { min-height: 78px; }.key-item:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
   .island-sheet { top: auto; left: 8px; right: 8px; bottom: 108px; width: auto; max-height: min(67vh, 570px); transform: translateY(16px); }.island-sheet.open { transform: none; }.sheet-preview { height: 145px; }.sheet-content { padding: 17px; }
-  .export-layout { grid-template-columns: 1fr; }.export-options { border-right: 0; border-bottom: 1px solid var(--line); }.format-list { grid-template-columns: repeat(3, 1fr); }.format-option { grid-template-columns: 1fr; place-items: center; text-align: center; padding: 7px; }.format-option .ratio, .format-option i { display: none; }.export-stage { min-height: 300px; }.export-stage canvas { max-height: 270px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -234,7 +233,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .primary-action { gap: 10px; }
 .action-icon.play { border: 0; font-size: 11.5px; color: var(--sun); }
 .story-action { border-color: rgba(255,214,111,.36); }
-.share-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.share-row { display: flex; gap: 6px; margin-top: 6px; }.share-row .share-mini { flex: 1 1 0; }
 .share-mini { min-height: 38px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,.03); color: var(--ink); font-size: 11.5px; font-weight: 850; cursor: pointer; }
 .share-mini:hover { background: rgba(255,255,255,.08); }
 
@@ -643,3 +642,43 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .keeper-tile .relic-icon { max-width: none; max-height: none; }
 .keeper-tile figcaption { color: rgba(220,232,248,.82); font-size: 11px; font-weight: 800; line-height: 1.2; text-align: center; }
 .keeper-tile.mine figcaption { color: var(--accent); }
+
+/* ---------- Share studio: post buttons, the tip, moments, and the phone layout ---------- */
+.format-option { min-height: 50px; }
+.edit-toggle { display: none; }
+.post-label { margin: 16px 0 8px; }
+.post-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.share-tip { margin: 10px 0 0; color: var(--muted); font-size: 11px; font-weight: 700; line-height: 1.4; }
+.share-bar { display: none; }
+.share-pill { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; margin-top: 4px; padding: 0 16px; border: 1px solid rgba(255,214,111,.5); border-radius: 999px; background: rgba(255,214,111,.1); color: #ffe7a8; font-size: 13px; font-weight: 850; text-shadow: none; cursor: pointer; transition: background .16s, transform .16s cubic-bezier(.22,1,.36,1); }
+.share-pill:hover { background: rgba(255,214,111,.2); transform: translateY(-1px); }
+.slide-persona .share-pill:not(.shown) { visibility: hidden; }
+.relic-share { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 42px; margin-top: 14px; border: 1px solid color-mix(in srgb, var(--rarity) 55%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--rarity) 12%, transparent); color: #fff6dc; font-size: 12.5px; font-weight: 850; cursor: pointer; }
+.relic-share:hover { background: color-mix(in srgb, var(--rarity) 22%, transparent); }
+@media (max-width: 680px) {
+  /* The preview comes first and large, formats are a strip of chips, editing folds away, and the two actions stay in reach. */
+  .share-dialog { width: 100%; max-width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; border-radius: 0; overscroll-behavior: contain; }
+  .share-dialog .dialog-head { align-items: center; padding: 10px 10px 10px 16px; }
+  .share-dialog .dialog-head h2 { font-size: 21px; }
+  .share-dialog .dialog-head .overline, .share-dialog .dialog-head > div > p:last-child { display: none; }
+  .export-layout { display: flex; flex-direction: column; min-height: 0; }
+  .export-stage { order: -1; min-height: 0; padding: 14px 16px 4px; background: transparent; }
+  .export-stage canvas { max-height: max(240px, calc(100dvh - 330px)); }
+  .export-options { padding: 10px 16px 18px; border: 0; }
+  .export-options > .field-label:first-child { display: none; }
+  .format-list { display: flex; gap: 6px; margin: 0 -16px 10px; padding: 2px 16px; overflow-x: auto; scrollbar-width: none; }
+  .format-list::-webkit-scrollbar { display: none; }
+  .format-option { flex: 0 0 auto; display: inline-flex; min-height: 40px; padding: 0 15px; border-radius: 999px; white-space: nowrap; }
+  .format-option > span:nth-child(2) small, .format-option .ratio, .format-option i, .format-option.active i { display: none; }
+  .edit-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; margin-bottom: 10px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,.03); color: var(--ink-2); font-size: 12.5px; font-weight: 850; cursor: pointer; }
+  .edit-toggle i { font-style: normal; transition: transform .16s; }
+  .edit-toggle[aria-expanded="true"] i { transform: rotate(180deg); }
+  .card-edit:not(.open) { display: none; }
+  #cardTitle { font-size: 16px; }
+  .export-options > [data-video] { display: none; }
+  .share-bar { position: sticky; bottom: 0; z-index: 2; display: grid; gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: rgba(9,17,35,.96); backdrop-filter: blur(12px); }
+  .share-bar .download-action { min-height: 48px; justify-content: center; gap: 10px; font-size: 13px; }
+  .share-bar .video-action { min-height: 42px; margin: 0; justify-content: center; gap: 10px; }
+  .share-dialog .toast { bottom: calc(126px + env(safe-area-inset-bottom, 0px)); }
+}
+.toast { width: max-content; max-width: calc(100vw - 32px); }

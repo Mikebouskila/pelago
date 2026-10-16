@@ -83,6 +83,7 @@
         <p class="relic-pop-why" id="relicPopReason"></p>
         <p class="relic-pop-meta"><strong>How it is earned</strong><span id="relicPopHow"></span></p>
         <p class="relic-pop-meta" id="relicPopWhere"></p>
+        <button class="relic-share" id="relicPopShare">Share this relic <span aria-hidden="true">↗</span></button>
       </section>
 
       <div class="map-controls" aria-label="Map controls">
@@ -107,9 +108,9 @@
     </main>
   </div>
 
-  <dialog class="share-dialog" id="shareDialog">
+  <dialog class="share-dialog" id="shareDialog" aria-labelledby="shareTitle">
     <div class="dialog-head">
-      <div><p class="overline">EXPORT STUDIO</p><h2>Make your world travel.</h2><p>Rendered locally as a high-resolution PNG or an 8-second video.</p></div>
+      <div><p class="overline">EXPORT STUDIO</p><h2 id="shareTitle">Make your world travel.</h2><p>Rendered locally as a high-resolution PNG or a 12-second video.</p></div>
       <button class="icon-button" data-close-dialog aria-label="Close export studio">×</button>
     </div>
     <div class="export-layout">
@@ -121,19 +122,33 @@
           <button class="format-option" data-format="social"><span class="ratio ratio-social"></span><span><strong>X / LinkedIn</strong><small>1600 × 900</small></span><i>✓</i></button>
           <button class="format-option" data-format="github"><span class="ratio ratio-github"></span><span><strong>GitHub</strong><small>1280 × 640</small></span><i>✓</i></button>
         </div>
-        <label class="field-label" for="cardTitle">Card headline</label>
-        <input id="cardTitle" maxlength="48" value="">
-        <label class="check-row"><input type="checkbox" id="includeNames" checked><span>Show project names</span></label>
+        <button class="edit-toggle" id="editToggle" aria-expanded="false" aria-controls="cardEdit"><span>Edit headline and names</span><i aria-hidden="true">▾</i></button>
+        <div class="card-edit" id="cardEdit">
+          <div id="headlineField"><label class="field-label" for="cardTitle">Card headline</label>
+          <input id="cardTitle" maxlength="48" value=""></div>
+          <label class="check-row"><input type="checkbox" id="includeNames" checked><span>Show project names</span></label>
+        </div>
         <button class="download-action" id="downloadCard">Download PNG <span aria-hidden="true">↓</span></button>
-        <button class="video-action" id="downloadVideo"><span>Download video</span> <i aria-hidden="true">▶</i></button>
+        <button class="video-action" id="downloadVideo" data-video><span>Download video</span> <i aria-hidden="true">▶</i></button>
+        <p class="field-label post-label" id="postLabel">Post it</p>
+        <div class="post-row" role="group" aria-labelledby="postLabel">
+          <button class="share-mini" data-post="x" aria-label="Copy the image and post on X">X</button>
+          <button class="share-mini" data-post="linkedin" aria-label="Copy the image and post on LinkedIn">LinkedIn</button>
+          <button class="share-mini" data-post="bluesky" aria-label="Copy the image and post on Bluesky">Bluesky</button>
+          <button class="share-mini" data-post="threads" aria-label="Copy the image and post on Threads">Threads</button>
+        </div>
         <div class="share-row">
           <button class="share-mini" id="copyCard">Copy image</button>
-          <button class="share-mini" id="postCard">Post on X</button>
           <button class="share-mini" id="nativeShare">Share…</button>
         </div>
+        <p class="share-tip">Tip: post the image and put the link in the first comment.</p>
         <p class="local-note"><i></i>Nothing is uploaded</p>
       </div>
       <div class="export-stage"><canvas id="exportCanvas"></canvas></div>
+      <div class="share-bar">
+        <button class="download-action" id="shareImage">Share image <span aria-hidden="true">↗</span></button>
+        <button class="video-action" data-video><span>Download video</span> <i aria-hidden="true">▶</i></button>
+      </div>
     </div>
   </dialog>
 

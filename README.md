@@ -161,7 +161,7 @@ Press **▶ Play your story** for a nine-slide recap filmed over your own world.
 - your **relics**, rarest first, and the next one you're closest to
 - your **archetype**
 
-It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post, or **download it as an 8-second video** of your world in motion.
+It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post (X, LinkedIn, Bluesky and Threads get the image on your clipboard and the words in the composer), or **download a 12-second video** of your islands rising from the clouds in the order you founded them. The tokens, relics and archetype slides each have a *Share this* button that makes a card of just that moment.
 
 <img src="docs/card-story-v2.jpg" alt="A Pelago story card: The Midnight Harbormaster over a full archipelago, with islands, sessions, tokens and relics" width="48%">&nbsp;<img src="docs/card-square-v2.jpg" alt="A square Pelago card" width="48%">
 
@@ -218,7 +218,7 @@ Your archetype is earned from your real rhythm and project mix. The title comes 
 
 The first word comes from how you build: **Midnight** (a lot after 10 PM), **Dawn**, **Weekend**, **Two-Tide** (real work with both agents), **Unbroken** (a 30-day streak), **Hive** (heavy subagent use), **Wandering** (many projects, no favourite), or otherwise the part of the day you build in: **Morning**, **Sunlit** or **Twilight** (**Steady** when there is no clock to read).
 
-88 combinations. Post yours with **#pelago**.
+88 combinations. Post yours: the post buttons put the card on your clipboard and the words in the composer.
 
 <br>
 

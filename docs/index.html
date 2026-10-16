@@ -232,7 +232,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .map-controls { right: 9px; bottom: 111px; }.map-controls button { width: 36px; height: 34px; }
   .map-key { top: 8px; left: 8px; width: calc(100vw - 16px); max-height: calc(100% - 110px); padding: 18px; }.key-grid { grid-template-columns: 1fr; }.key-item { min-height: 78px; }.key-item:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
   .island-sheet { top: auto; left: 8px; right: 8px; bottom: 108px; width: auto; max-height: min(67vh, 570px); transform: translateY(16px); }.island-sheet.open { transform: none; }.sheet-preview { height: 145px; }.sheet-content { padding: 17px; }
-  .export-layout { grid-template-columns: 1fr; }.export-options { border-right: 0; border-bottom: 1px solid var(--line); }.format-list { grid-template-columns: repeat(3, 1fr); }.format-option { grid-template-columns: 1fr; place-items: center; text-align: center; padding: 7px; }.format-option .ratio, .format-option i { display: none; }.export-stage { min-height: 300px; }.export-stage canvas { max-height: 270px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -248,7 +247,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .primary-action { gap: 10px; }
 .action-icon.play { border: 0; font-size: 11.5px; color: var(--sun); }
 .story-action { border-color: rgba(255,214,111,.36); }
-.share-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.share-row { display: flex; gap: 6px; margin-top: 6px; }.share-row .share-mini { flex: 1 1 0; }
 .share-mini { min-height: 38px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,.03); color: var(--ink); font-size: 11.5px; font-weight: 850; cursor: pointer; }
 .share-mini:hover { background: rgba(255,255,255,.08); }
 
@@ -657,6 +656,46 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .keeper-tile .relic-icon { max-width: none; max-height: none; }
 .keeper-tile figcaption { color: rgba(220,232,248,.82); font-size: 11px; font-weight: 800; line-height: 1.2; text-align: center; }
 .keeper-tile.mine figcaption { color: var(--accent); }
+
+/* ---------- Share studio: post buttons, the tip, moments, and the phone layout ---------- */
+.format-option { min-height: 50px; }
+.edit-toggle { display: none; }
+.post-label { margin: 16px 0 8px; }
+.post-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.share-tip { margin: 10px 0 0; color: var(--muted); font-size: 11px; font-weight: 700; line-height: 1.4; }
+.share-bar { display: none; }
+.share-pill { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; margin-top: 4px; padding: 0 16px; border: 1px solid rgba(255,214,111,.5); border-radius: 999px; background: rgba(255,214,111,.1); color: #ffe7a8; font-size: 13px; font-weight: 850; text-shadow: none; cursor: pointer; transition: background .16s, transform .16s cubic-bezier(.22,1,.36,1); }
+.share-pill:hover { background: rgba(255,214,111,.2); transform: translateY(-1px); }
+.slide-persona .share-pill:not(.shown) { visibility: hidden; }
+.relic-share { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 42px; margin-top: 14px; border: 1px solid color-mix(in srgb, var(--rarity) 55%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--rarity) 12%, transparent); color: #fff6dc; font-size: 12.5px; font-weight: 850; cursor: pointer; }
+.relic-share:hover { background: color-mix(in srgb, var(--rarity) 22%, transparent); }
+@media (max-width: 680px) {
+  /* The preview comes first and large, formats are a strip of chips, editing folds away, and the two actions stay in reach. */
+  .share-dialog { width: 100%; max-width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; border-radius: 0; overscroll-behavior: contain; }
+  .share-dialog .dialog-head { align-items: center; padding: 10px 10px 10px 16px; }
+  .share-dialog .dialog-head h2 { font-size: 21px; }
+  .share-dialog .dialog-head .overline, .share-dialog .dialog-head > div > p:last-child { display: none; }
+  .export-layout { display: flex; flex-direction: column; min-height: 0; }
+  .export-stage { order: -1; min-height: 0; padding: 14px 16px 4px; background: transparent; }
+  .export-stage canvas { max-height: max(240px, calc(100dvh - 330px)); }
+  .export-options { padding: 10px 16px 18px; border: 0; }
+  .export-options > .field-label:first-child { display: none; }
+  .format-list { display: flex; gap: 6px; margin: 0 -16px 10px; padding: 2px 16px; overflow-x: auto; scrollbar-width: none; }
+  .format-list::-webkit-scrollbar { display: none; }
+  .format-option { flex: 0 0 auto; display: inline-flex; min-height: 40px; padding: 0 15px; border-radius: 999px; white-space: nowrap; }
+  .format-option > span:nth-child(2) small, .format-option .ratio, .format-option i, .format-option.active i { display: none; }
+  .edit-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; margin-bottom: 10px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,.03); color: var(--ink-2); font-size: 12.5px; font-weight: 850; cursor: pointer; }
+  .edit-toggle i { font-style: normal; transition: transform .16s; }
+  .edit-toggle[aria-expanded="true"] i { transform: rotate(180deg); }
+  .card-edit:not(.open) { display: none; }
+  #cardTitle { font-size: 16px; }
+  .export-options > [data-video] { display: none; }
+  .share-bar { position: sticky; bottom: 0; z-index: 2; display: grid; gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: rgba(9,17,35,.96); backdrop-filter: blur(12px); }
+  .share-bar .download-action { min-height: 48px; justify-content: center; gap: 10px; font-size: 13px; }
+  .share-bar .video-action { min-height: 42px; margin: 0; justify-content: center; gap: 10px; }
+  .share-dialog .toast { bottom: calc(126px + env(safe-area-inset-bottom, 0px)); }
+}
+.toast { width: max-content; max-width: calc(100vw - 32px); }
 </style>
 </head>
 <body>
@@ -733,6 +772,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
         <p class="relic-pop-why" id="relicPopReason"></p>
         <p class="relic-pop-meta"><strong>How it is earned</strong><span id="relicPopHow"></span></p>
         <p class="relic-pop-meta" id="relicPopWhere"></p>
+        <button class="relic-share" id="relicPopShare">Share this relic <span aria-hidden="true">↗</span></button>
       </section>
 
       <div class="map-controls" aria-label="Map controls">
@@ -757,9 +797,9 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
     </main>
   </div>
 
-  <dialog class="share-dialog" id="shareDialog">
+  <dialog class="share-dialog" id="shareDialog" aria-labelledby="shareTitle">
     <div class="dialog-head">
-      <div><p class="overline">EXPORT STUDIO</p><h2>Make your world travel.</h2><p>Rendered locally as a high-resolution PNG or an 8-second video.</p></div>
+      <div><p class="overline">EXPORT STUDIO</p><h2 id="shareTitle">Make your world travel.</h2><p>Rendered locally as a high-resolution PNG or a 12-second video.</p></div>
       <button class="icon-button" data-close-dialog aria-label="Close export studio">×</button>
     </div>
     <div class="export-layout">
@@ -771,19 +811,33 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
           <button class="format-option" data-format="social"><span class="ratio ratio-social"></span><span><strong>X / LinkedIn</strong><small>1600 × 900</small></span><i>✓</i></button>
           <button class="format-option" data-format="github"><span class="ratio ratio-github"></span><span><strong>GitHub</strong><small>1280 × 640</small></span><i>✓</i></button>
         </div>
-        <label class="field-label" for="cardTitle">Card headline</label>
-        <input id="cardTitle" maxlength="48" value="">
-        <label class="check-row"><input type="checkbox" id="includeNames" checked><span>Show project names</span></label>
+        <button class="edit-toggle" id="editToggle" aria-expanded="false" aria-controls="cardEdit"><span>Edit headline and names</span><i aria-hidden="true">▾</i></button>
+        <div class="card-edit" id="cardEdit">
+          <div id="headlineField"><label class="field-label" for="cardTitle">Card headline</label>
+          <input id="cardTitle" maxlength="48" value=""></div>
+          <label class="check-row"><input type="checkbox" id="includeNames" checked><span>Show project names</span></label>
+        </div>
         <button class="download-action" id="downloadCard">Download PNG <span aria-hidden="true">↓</span></button>
-        <button class="video-action" id="downloadVideo"><span>Download video</span> <i aria-hidden="true">▶</i></button>
+        <button class="video-action" id="downloadVideo" data-video><span>Download video</span> <i aria-hidden="true">▶</i></button>
+        <p class="field-label post-label" id="postLabel">Post it</p>
+        <div class="post-row" role="group" aria-labelledby="postLabel">
+          <button class="share-mini" data-post="x" aria-label="Copy the image and post on X">X</button>
+          <button class="share-mini" data-post="linkedin" aria-label="Copy the image and post on LinkedIn">LinkedIn</button>
+          <button class="share-mini" data-post="bluesky" aria-label="Copy the image and post on Bluesky">Bluesky</button>
+          <button class="share-mini" data-post="threads" aria-label="Copy the image and post on Threads">Threads</button>
+        </div>
         <div class="share-row">
           <button class="share-mini" id="copyCard">Copy image</button>
-          <button class="share-mini" id="postCard">Post on X</button>
           <button class="share-mini" id="nativeShare">Share…</button>
         </div>
+        <p class="share-tip">Tip: post the image and put the link in the first comment.</p>
         <p class="local-note"><i></i>Nothing is uploaded</p>
       </div>
       <div class="export-stage"><canvas id="exportCanvas"></canvas></div>
+      <div class="share-bar">
+        <button class="download-action" id="shareImage">Share image <span aria-hidden="true">↗</span></button>
+        <button class="video-action" data-video><span>Download video</span> <i aria-hidden="true">▶</i></button>
+      </div>
     </div>
   </dialog>
 
@@ -806,7 +860,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="sr-only" id="srAnnounce" aria-live="polite"></div>
-  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-16T13:37:43.832932+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-18T13:37:43.832932+00:00","lastActive":"2026-10-16T13:37:43.832932+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-07-01T13:37:43.832932+00:00","lastActive":"2026-10-14T13:37:43.832932+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-14T13:37:43.832932+00:00","lastActive":"2026-10-10T13:37:43.832932+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-28T13:37:43.832932+00:00","lastActive":"2026-10-05T13:37:43.832932+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-11T13:37:43.832932+00:00","lastActive":"2026-08-02T13:37:43.832932+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-24T13:37:43.832932+00:00","lastActive":"2026-09-27T13:37:43.832932+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-07T13:37:43.832932+00:00","lastActive":"2026-06-08T13:37:43.832932+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-21T13:37:43.832932+00:00","lastActive":"2026-09-20T13:37:43.832932+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-04T13:37:43.832932+00:00","lastActive":"2026-10-13T13:37:43.832932+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-15T13:37:43.832932+00:00","lastActive":"2026-10-07T13:37:43.832932+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-29T13:37:43.832932+00:00","lastActive":"2026-10-15T13:37:43.832932+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-12T13:37:43.832932+00:00","lastActive":"2026-09-06T13:37:43.832932+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-26T13:37:43.832932+00:00","lastActive":"2026-08-07T13:37:43.832932+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-09T13:37:43.832932+00:00","lastActive":"2026-10-14T13:37:43.832932+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22,"clues":[{"label":"Midnight","why":"39% of your building happened after 10 PM"},{"label":"Harbormaster","why":"36% of your work was web"}]},"archetypes":{"prefixes":["Midnight","Dawn","Weekend","Two-Tide","Unbroken","Hive","Wandering","Morning","Sunlit","Twilight","Steady"],"titles":["Harbormaster","Gardener","Wayfinder","Stargazer","Toolsmith","Archivist","Castle Builder","Cartographer"]}}</script>
+  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-16T14:32:19.271997+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-18T14:32:19.271997+00:00","lastActive":"2026-10-16T14:32:19.271997+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-07-01T14:32:19.271997+00:00","lastActive":"2026-10-14T14:32:19.271997+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-14T14:32:19.271997+00:00","lastActive":"2026-10-10T14:32:19.271997+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-28T14:32:19.271997+00:00","lastActive":"2026-10-05T14:32:19.271997+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-11T14:32:19.271997+00:00","lastActive":"2026-08-02T14:32:19.271997+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-24T14:32:19.271997+00:00","lastActive":"2026-09-27T14:32:19.271997+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-07T14:32:19.271997+00:00","lastActive":"2026-06-08T14:32:19.271997+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-21T14:32:19.271997+00:00","lastActive":"2026-09-20T14:32:19.271997+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-04T14:32:19.271997+00:00","lastActive":"2026-10-13T14:32:19.271997+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-15T14:32:19.271997+00:00","lastActive":"2026-10-07T14:32:19.271997+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-29T14:32:19.271997+00:00","lastActive":"2026-10-15T14:32:19.271997+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-12T14:32:19.271997+00:00","lastActive":"2026-09-06T14:32:19.271997+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-26T14:32:19.271997+00:00","lastActive":"2026-08-07T14:32:19.271997+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-09T14:32:19.271997+00:00","lastActive":"2026-10-14T14:32:19.271997+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22,"clues":[{"label":"Midnight","why":"39% of your building happened after 10 PM"},{"label":"Harbormaster","why":"36% of your work was web"}]},"archetypes":{"prefixes":["Midnight","Dawn","Weekend","Two-Tide","Unbroken","Hive","Wandering","Morning","Sunlit","Twilight","Steady"],"titles":["Harbormaster","Gardener","Wayfinder","Stargazer","Toolsmith","Archivist","Castle Builder","Cartographer"]}}</script>
   <script>/* ---------- Procedural islands: every island is built from its own work ---------- */
 // Isometric pixel art, painted pixel by pixel into a buffer with one light source (upper left),
 // warm highlights, cool shadows, dithered materials and a dark silhouette outline.
@@ -2831,7 +2885,7 @@ const state = {
   scale: 1, panX: 0, panY: 0, dragging: false, moved: false, pointerX: 0, pointerY: 0,
   startX: 0, startY: 0, filter: 'all', selected: null, hovered: null, format: 'story',
   exportSelected: null, showNames: true, entered: false, items: [], viewWidth: 0, viewHeight: 0,
-  hideNames: false,
+  hideNames: false, moment: null,
 };
 // Hide names: for screenshots and screen shares, no project name appears anywhere on the page or on
 // cards. Where words are needed, an island is called by its kind ("Meadow harbor") instead.
@@ -2897,6 +2951,13 @@ function agentShares() {
   const claude = PROJECTS.reduce((sum, project) => sum + project.activity * (crewsOf(project).claude || 0), 0);
   return { claude: Math.round(claude / total * 100), codex: 100 - Math.round(claude / total * 100) };
 }
+// The agents a post names, in the words people search for: each one that did at least a tenth of the work.
+function agentPhrase() {
+  const { claude, codex } = agentShares();
+  return claude >= 10 && codex >= 10 ? 'Claude Code + Codex' : claude >= codex ? 'Claude Code' : 'Codex';
+}
+// A name a share may carry: none when the page hides names or the card's "Show project names" is off.
+function sharedName(project) { return state.showNames ? nameOf(project) : ''; }
 function personaParts(title = PERSONA.title) {
   const words = title.split(' ');
   return { lead: words.slice(0, -1).join(' ') || title, accent: words.length > 1 ? words[words.length - 1] : '' };
@@ -3009,12 +3070,12 @@ function islandLine(project) {
   return `${plural(recipe.buildings.count, 'building')}, ${plural(recipe.trees.count, 'tree')} and ${plural(recipe.waterfalls, 'waterfall')}, all built from ${compact(project.sessions)} sessions${totalTokens(project) ? ` and ${compact(totalTokens(project))} tokens` : ''}.`;
 }
 
-function cardCopy(selected) {
+function cardCopy(selected, showNames = state.showNames) {
   if (selected) {
     return {
       overline: DATA.demo ? 'A SAMPLE ISLAND' : TEAM ? 'AN ISLAND WE BUILT WITH AI' : 'AN ISLAND I BUILT WITH AI',
       accent: keeperFor(CATEGORY_REALM[selected.category] || 'wilds').accent,
-      title: nameOf(selected) || kindOf(selected),
+      title: (showNames ? nameOf(selected) : '') || kindOf(selected),
       line: islandLine(selected),
       stats: [[compact(selected.sessions), 'sessions'], [compact(selected.prompts ?? selected.messages), selected.prompts !== undefined ? 'requests' : 'messages'], totalTokens(selected) ? [compact(totalTokens(selected)), 'tokens'] : [`${activeSpan(selected)}d`, 'lifespan']],
     };
@@ -3033,7 +3094,7 @@ function cardCopy(selected) {
   };
 }
 
-function drawTitle(context, title, x, y, maxWidth, size, align = 'left') {
+function drawTitle(context, title, x, y, maxWidth, size, align = 'left', draw = true) {
   context.textAlign = align;
   const { lead, accent } = personaParts(title);
   const isPersona = title === PERSONA.title && accent;
@@ -3042,7 +3103,7 @@ function drawTitle(context, title, x, y, maxWidth, size, align = 'left') {
   while (isPersona && size > full * .8 && wrapLines(context, lead, maxWidth).length > 1) { size *= .95; context.font = `700 ${size}px ${SERIF}`; }
   const lines = isPersona ? [...wrapLines(context, lead, maxWidth), accent] : wrapLines(context, title, maxWidth);
   const shown = lines.slice(0, 3);
-  shown.forEach((line, index) => {
+  if (draw) shown.forEach((line, index) => {
     const last = isPersona && index === shown.length - 1;
     context.font = `${last ? 'italic 400' : '700'} ${size}px ${SERIF}`;
     context.fillStyle = last ? COLORS.sun : COLORS.paper;
@@ -3051,26 +3112,14 @@ function drawTitle(context, title, x, y, maxWidth, size, align = 'left') {
   return y + (shown.length - 1) * size * .98;
 }
 
-function renderCard(canvas, format = state.format, selected = state.exportSelected, showNames = state.showNames, options = {}) {
-  // The card is the same night scene as the desktop map: the whole archipelago fills the frame and the
-  // words sit on dark scrims at the top and bottom. A video records the 'scene' layer every frame and
-  // lays one 'overlay' render of the words on top.
+// The card's layout: the capital as the hero, the next biggest islands packed tight around it. The still card,
+// the rise reel and the moment cards all stand on it.
+function cardScene(format, selected = null) {
   const [width, height] = FORMATS[format] || FORMATS.story;
-  const layer = options.layer || 'all';
-  if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
-  const context = canvas.getContext('2d');
-  context.clearRect(0, 0, width, height);
   const tall = height / width > 1.4;
   const square = !tall && height / width > .9;
   const wide = !tall && !square;
   const scale = tall || square ? width / 1080 : height / 900;
-  const pad = (wide ? 60 : 68) * scale;
-  const copy = cardCopy(selected);
-  const year = new Date(NOW).getFullYear();
-  const time = options.time ?? 2400;
-  const zoom = options.zoom || 1;
-
-  // 1. The archipelago: the capital as the hero, the next biggest islands packed tight around it.
   const ranked = [...PROJECTS].sort((a, b) => b.activity - a.activity);
   const shown = selected ? [selected] : ranked;
   const hero = selected || ranked[0];
@@ -3080,29 +3129,38 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     : square ? { left: -bleed, right: -bleed, top: height * .31, bottom: height * .26 }
       : { left: width * .4, right: -bleed, top: -height * .04, bottom: 20 * scale };
   const items = makeLayout(width, height, shown, { ...box, hang: selected ? .8 : .32, maxSize: 4000, factors });
-  const flat = { transform: { x: 0, y: 0, scale: 1 }, detail: true, selected: false, hovered: false };
-  const pixel = items[0]?.px || 1;
-  const heroItem = items.find((item) => item.project.id === hero.id);
-  if (layer !== 'overlay') {
-  context.save();
-  if (zoom !== 1) {
-    const centreX = heroItem ? heroItem.x : width / 2, centreY = heroItem ? heroItem.y : height / 2;
-    context.translate(centreX, centreY); context.scale(zoom, zoom); context.translate(-centreX, -centreY);
-  }
+  return { width, height, tall, square, wide, scale, selected, items, heroItem: items.find((item) => item.project.id === hero?.id) };
+}
+
+// The night scene behind a card. In the reel `rise` is the time in seconds: islands still to come stay under the
+// cloud sea, rising ones climb through a puff of cloud, and the route and bridges only reach islands that are up.
+function drawCardScene(context, scene, { time = 2400, camera = null, rise = null, showNames = false } = {}) {
+  const { width, height, tall, wide, scale, selected, items, heroItem } = scene;
+  const view = camera || { x: 0, y: 0, scale: 1 };
+  const flat = { transform: view, detail: true, selected: false, hovered: false, label: false, time };
+  const pixel = (items[0]?.px || 1) * view.scale;
+  const up = rise === null ? null : (item) => riseAt(item, rise);
   // A persona card's keeper stands where the moon would, so the moon rises higher and further left.
   drawOcean(context, width, height, selected ? selected.seed : 73, time, selected || wide ? null : tall ? [.6, .062] : [.6, .08]);
   drawCloudSea(context, width, height, time);
   if (heroItem) {
     // A warm halo behind the capital gives the card a centre.
-    const radius = heroItem.size * 2.4;
-    const halo = context.createRadialGradient(heroItem.x, heroItem.y - heroItem.size * .3, 0, heroItem.x, heroItem.y - heroItem.size * .3, radius);
+    const radius = heroItem.size * 2.4 * view.scale;
+    const x = view.x + heroItem.x * view.scale, y = view.y + (heroItem.y - heroItem.size * .3) * view.scale;
+    const halo = context.createRadialGradient(x, y, 0, x, y, radius);
     halo.addColorStop(0, 'rgba(255,214,111,.28)'); halo.addColorStop(.45, 'rgba(125,190,240,.1)'); halo.addColorStop(1, 'rgba(125,190,240,0)');
-    context.fillStyle = halo; context.fillRect(heroItem.x - radius, heroItem.y - radius * 1.2, radius * 2, radius * 2.2);
+    context.fillStyle = halo; context.fillRect(x - radius, view.y + heroItem.y * view.scale - radius * 1.2, radius * 2, radius * 2.2);
   }
-  if (!selected) drawConnections(context, items, flat.transform, time, pixel, 'route');
-  [...items].sort((a, b) => a.y - b.y).forEach((item) => drawIsland(context, item, { ...flat, label: false, time }));
-  if (!selected) drawConnections(context, items, flat.transform, time, pixel, 'bridges');
+  if (!selected) drawConnections(context, items, view, time, pixel, 'route', up);
+  const rising = [];
+  [...items].sort((a, b) => a.y - b.y).forEach((item) => {
+    const shown = up ? up(item) : 1;
+    if (shown >= 1) drawIsland(context, item, flat);
+    else if (shown > 0) { drawRisingIsland(context, item, flat, shown); rising.push([item, shown]); }
+  });
+  if (!selected) drawConnections(context, items, view, time, pixel, 'bridges', up);
   drawCloudSea(context, width, height, time, true);
+  rising.forEach(([item, shown]) => drawPuff(context, view.x + item.x * view.scale, view.y + (item.y + item.size * .28) * view.scale, item.size * .8 * view.scale, shown, Math.max(4, Math.round(7 * scale)), item.project.seed));
   if (showNames && !selected) {
     // Label the biggest islands whose name fits fully inside the card.
     const labelScale = (item) => scale * (item === heroItem ? 1.35 : 1) * (tall ? 2.6 : wide ? 1.6 : 2.1);
@@ -3112,21 +3170,126 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
       const half = (context.measureText(nameOf(item.project)).width + size * 2) / 2;
       return item.x - half > 12 * scale && item.x + half < width - 12 * scale;
     };
-    items.filter((item) => item === heroItem || fits(item)).sort((a, b) => b.project.activity - a.project.activity).slice(0, tall ? 5 : 4)
+    items.filter((item) => (item === heroItem || fits(item)) && (!up || up(item) >= 1)).sort((a, b) => b.project.activity - a.project.activity).slice(0, tall ? 5 : 4)
       .forEach((item) => drawIslandLabel(context, item, { ...flat, labelScale: labelScale(item) }));
   }
-  const hidden = PROJECTS.length - shown.length;
-  if (hidden > 0 && !selected && !wide) {
-    const bottom = Math.max(...items.map((item) => item.y + item.size * .9));
-    context.textAlign = 'center'; context.fillStyle = 'rgba(220,232,248,.75)'; context.font = `800 ${(tall ? 20 : 15) * scale}px ${SANS}`;
-    if ('letterSpacing' in context) context.letterSpacing = `${2 * scale}px`;
-    const centreX = wide ? (box.left + width - box.right) / 2 : width / 2;
-    context.fillText(`+ ${hidden} MORE ISLANDS`, centreX, Math.min(bottom + 26 * scale, height - (tall ? 410 : wide ? 70 : 250) * scale));
-    if ('letterSpacing' in context) context.letterSpacing = '0px';
+}
+
+// The order the islands were founded in. The golden route follows it and the rise reel raises them in it; the
+// capital (or a card's only island) is up from the first frame, so it takes no turn.
+function foundingOrder(items) {
+  const order = [...items].sort((a, b) => (Date.parse(a.project.firstActive || '') || 0) - (Date.parse(b.project.firstActive || '') || 0));
+  const first = items.length > 1 ? capital()?.id : items[0]?.project.id;
+  const founders = order.length - (order.some((item) => item.project.id === first) ? 1 : 0);
+  let turn = 0;
+  order.forEach((item) => { item.founding = item.project.id === first ? -1 : turn++; item.founders = founders; });
+  return order;
+}
+// How far an island has risen t seconds into the reel: 0 under the cloud sea, 1 in its place. The turns are spread
+// over the first 7.5 seconds; an island foundingOrder() has not numbered is simply there.
+const RISE = { from: .3, to: 7.5, each: 1.2 };
+function riseAt(item, t) {
+  if (!(item.founding >= 0)) return 1;
+  const begin = RISE.from + (item.founders > 1 ? item.founding / (item.founders - 1) : 0) * (RISE.to - RISE.each - RISE.from);
+  return clamp((t - begin) / RISE.each, 0, 1);
+}
+// A 4×4 Bayer screen: at `level` (0 to 16) the cells whose threshold is under level/16 are solid.
+const ditherTiles = new Map();
+function ditherTile(level, cell) {
+  const key = `${level}|${cell}`;
+  if (!ditherTiles.has(key)) {
+    const tile = document.createElement('canvas');
+    tile.width = tile.height = 4 * cell;
+    const context = tile.getContext('2d');
+    context.fillStyle = '#000';
+    for (let y = 0; y < 4; y += 1) for (let x = 0; x < 4; x += 1) if (BAYER[(y << 2) | x] < level / 16) context.fillRect(x * cell, y * cell, cell, cell);
+    ditherTiles.set(key, tile);
   }
-  context.restore();
+  return ditherTiles.get(key);
+}
+// An island coming up through the cloud sea: it climbs in whole art pixels and dithers in through a Bayer screen
+// laid on its own art grid, so it arrives as hard pixels and is never half transparent.
+const riseCanvas = document.createElement('canvas');
+function drawRisingIsland(context, item, options, progress) {
+  const view = options.transform;
+  const risen = { ...item, y: item.y + Math.round(Math.pow(1 - progress, 3) * item.size * 1.1 / item.px) * item.px };
+  const { art } = islandMetrics(item.project);
+  const step = item.px * view.scale, margin = Math.ceil(24 * step);
+  const left = Math.round(view.x + (risen.x - art.anchorX * item.px) * view.scale) - margin;
+  const top = Math.round(view.y + (risen.y - art.anchorY * item.px) * view.scale) - margin;
+  const width = Math.ceil(art.art.width * step) + margin * 2, height = Math.ceil(art.art.height * step) + margin * 2;
+  if (riseCanvas.width < width || riseCanvas.height < height) { riseCanvas.width = Math.max(riseCanvas.width, width); riseCanvas.height = Math.max(riseCanvas.height, height); }
+  const scratch = riseCanvas.getContext('2d');
+  scratch.clearRect(0, 0, width, height);
+  drawIsland(scratch, risen, { ...options, transform: { x: view.x - left, y: view.y - top, scale: view.scale } });
+  const pattern = scratch.createPattern(ditherTile(Math.min(16, Math.floor(progress / .6 * 17)), Math.max(3, Math.round(step * 3))), 'repeat');
+  pattern.setTransform(new DOMMatrix([1, 0, 0, 1, margin, margin]));
+  scratch.globalCompositeOperation = 'destination-in';
+  scratch.fillStyle = pattern; scratch.fillRect(0, 0, width, height);
+  scratch.globalCompositeOperation = 'source-over';
+  context.drawImage(riseCanvas, 0, 0, width, height, left, top, width, height);
+}
+// The puff of cloud an island breaks through: hard pixel lobes that swell, then wear away in Bayer order.
+function drawPuff(context, x, y, radius, progress, cell, seed) {
+  const random = seeded(seed ^ 0x5f3759df);
+  const lobes = Array.from({ length: 5 }, (_, index) => ({ x: (index - 2) * .38 + (random() - .5) * .12, y: -(index % 2) * .1 - (index === 2) * .16, r: .3 + random() * .12 + (index === 2 ? .16 : index % 2 ? .08 : 0) }));
+  const swell = .5 + .5 * Math.min(1, progress / .3), wear = clamp((progress - .25) / .75, 0, 1);
+  // Round lobes on a flat underside, like the cloud sea's own sprites.
+  const inside = (u, v) => v < .2 && lobes.some((lobe) => Math.hypot(u - lobe.x, (v - lobe.y) * 1.25) < lobe.r * swell);
+  const reach = Math.ceil(radius * 1.3 / cell), rows = Math.ceil(radius * .75 / cell);
+  const ox = Math.round(x), oy = Math.round(y), step = cell / radius;
+  for (let gy = -rows; gy <= rows; gy += 1) for (let gx = -reach; gx <= reach; gx += 1) {
+    const u = gx * step, v = gy * step;
+    if (BAYER[((gy & 3) << 2) | (gx & 3)] < wear || !inside(u, v)) continue;
+    context.fillStyle = !inside(u, v - step) ? '#dfe8fb' : !inside(u, v + step) ? '#6f86ba' : v > .02 ? '#93a9d6' : '#b9c9ec';
+    context.fillRect(ox + gx * cell, oy + gy * cell, cell, cell);
   }
-  if (layer === 'scene') return canvas;
+}
+
+// The beats of the rise reel, in seconds.
+const REEL = { seconds: 12, rise: 7.5, pull: 10, title: 7.7, keeper: 8.05, line: 8.45, badge: 9, cta: 10 };
+// A slam: nothing before `from`, then a scale that drops hard from 1 + lift (2.4 by default) to 1.
+function slam(t, from, length = .28, lift = 1.4) {
+  return t < from ? 0 : 1 + Math.pow(1 - Math.min(1, (t - from) / length), 3) * lift;
+}
+const CTA_TEXT = `Map yours  →  ${REPO_URL}`;
+// The call to action: a coral pill whose words sit on `baseline`. Returns its width; with `draw` off it only measures.
+function drawCta(context, x, baseline, scale, big, draw = true) {
+  context.font = `800 ${(big ? 22 : 16) * scale}px ${SANS}`;
+  const width = context.measureText(CTA_TEXT).width + 40 * scale;
+  if (!draw) return width;
+  context.fillStyle = 'rgba(255,120,88,.9)';
+  context.beginPath(); context.roundRect(x, baseline - (big ? 36 : 27) * scale, width, (big ? 52 : 38) * scale, 999); context.fill();
+  context.fillStyle = '#fff'; context.textAlign = 'left'; context.fillText(CTA_TEXT, x + 20 * scale, baseline - 2 * scale);
+  return width;
+}
+
+function renderCard(canvas, format = state.format, selected = state.exportSelected, showNames = state.showNames, options = {}) {
+  // The card is the same night scene as the desktop map: the whole archipelago fills the frame and the words sit on
+  // dark scrims at the top and bottom. The rise reel passes its time as `reel`: then every word arrives on its beat
+  // and the counters show `stats`.
+  const scene = options.scene || cardScene(format, selected);
+  const { width, height, tall, square, wide, scale } = scene;
+  if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+  const context = canvas.getContext('2d');
+  context.clearRect(0, 0, width, height);
+  const pad = (wide ? 60 : 68) * scale;
+  const copy = cardCopy(selected, showNames);
+  const year = new Date(NOW).getFullYear();
+  const beat = options.reel ?? null;
+  const arrive = (from, lift) => (beat === null ? 1 : slam(beat, from, undefined, lift));
+  const after = (from) => beat === null || beat >= from;
+  // Draws at `size` around (x, y), and nothing while the size is 0.
+  const sized = (size, x, y, draw) => {
+    if (!size) return;
+    context.save();
+    if (size !== 1) { context.translate(x, y); context.scale(size, size); context.translate(-x, -y); }
+    draw();
+    context.restore();
+  };
+
+  // 1. The archipelago.
+  drawCardScene(context, scene, { time: options.time ?? 2400, camera: options.camera, rise: beat, showNames });
 
   // 2. Scrims so the words always read.
   const scrim = (y0, y1, from, to) => {
@@ -3150,23 +3313,30 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   const textWidth = wide ? width * .36 - pad : width - pad * 2;
   const top = wide ? height * .2 : pad + 92 * scale;
   drawPixelFrame(context, width, height, copy.accent, scale);
-  context.textAlign = 'left'; context.fillStyle = copy.accent; context.font = `900 ${(wide ? 16 : 19) * scale}px ${SANS}`;
-  context.fillText(copy.overline, pad, top);
+  const titleIn = arrive(REEL.title);
+  if (titleIn === 1) {
+    context.textAlign = 'left'; context.fillStyle = copy.accent; context.font = `900 ${(wide ? 16 : 19) * scale}px ${SANS}`;
+    context.fillText(copy.overline, pad, top);
+  }
   const titleSize = (tall ? 92 : square ? 66 : 62) * scale;
   // The keeper stands at the end of the title, in whole pixels.
   const cell = selected ? 0 : Math.max(3, Math.round((tall ? 8 : square ? 6 : 7) * scale));
-  if (cell) {
+  const keeperIn = arrive(REEL.keeper);
+  if (cell && keeperIn) {
     const keeperX = pad + textWidth - 16 * cell, keeperBottom = top + titleSize * 2.1;
     const halo = context.createRadialGradient(keeperX + 8 * cell, keeperBottom - 10 * cell, 0, keeperX + 8 * cell, keeperBottom - 10 * cell, 16 * cell);
     halo.addColorStop(0, `${copy.accent}38`); halo.addColorStop(1, `${copy.accent}00`);
     context.fillStyle = halo; context.fillRect(keeperX - 8 * cell, keeperBottom - 26 * cell, 32 * cell, 32 * cell);
-    drawKeeper(context, PERSONA.realm, keeperX, keeperBottom, cell);
+    const size = Math.round(cell * keeperIn);
+    drawKeeper(context, PERSONA.realm, keeperX + 8 * (cell - size), keeperBottom, size);
   }
-  const end = drawTitle(context, copy.title, pad, top + titleSize * 1.04, textWidth - (cell ? 16 * cell + 20 * scale : 0), titleSize);
-  context.fillStyle = '#d2e1f0'; context.font = `600 ${(tall ? 28 : 22) * scale}px ${SANS}`;
+  const titleWidth = textWidth - (cell ? 16 * cell + 20 * scale : 0);
+  const end = drawTitle(context, copy.title, pad, top + titleSize * 1.04, titleWidth, titleSize, 'left', false);
+  sized(titleIn, pad + titleWidth / 2, (top + titleSize * .6 + end) / 2, () => drawTitle(context, copy.title, pad, top + titleSize * 1.04, titleWidth, titleSize));
+  context.textAlign = 'left'; context.fillStyle = '#d2e1f0'; context.font = `600 ${(tall ? 28 : 22) * scale}px ${SANS}`;
   const lines = wrapLines(context, copy.line, textWidth).slice(0, 2);
-  lines.forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
-  if (TEAM && !selected) {
+  if (after(REEL.line)) lines.forEach((line, index) => context.fillText(line, pad, end + (tall ? 58 : 44) * scale + index * (tall ? 38 : 30) * scale));
+  if (TEAM && !selected && after(REEL.line)) {
     // The crew, each in their colour.
     let chipX = pad;
     const chipY = end + (tall ? 58 : 44) * scale + lines.length * (tall ? 38 : 30) * scale + (tall ? 8 : 4) * scale;
@@ -3185,7 +3355,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   // 4. Footer: a glass panel of stat tiles, the rarest relic, rhythm and the call to action.
   const relicsFound = earnedRelics();
   const rarest = RELICS.filter((relic) => relicsFound.has(relic.id)).sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity])[0];
-  const stats = selected ? copy.stats : [...copy.stats, [`${relicsFound.size}/${RELICS.length}`, 'relics']];
+  const stats = options.stats || (selected ? copy.stats : [...copy.stats, [`${relicsFound.size}/${RELICS.length}`, 'relics']]);
   const glass = (x, y, w, h, radius) => {
     context.save();
     context.beginPath(); context.roundRect(x, y, w, h, radius);
@@ -3218,7 +3388,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     });
   };
   const badge = (x, y, h) => {
-    if (!rarest || selected) return 0;
+    if (!rarest || selected || !after(REEL.badge)) return 0;
     const iconSize = h - 12 * scale;
     context.font = `800 ${(tall ? 20 : 15) * scale}px ${SANS}`;
     const text = `Rarest relic · ${rarest.name}`;
@@ -3249,87 +3419,290 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
       drawRhythmBars(context, pad, height - 196 * scale, width - pad * 2, 44 * scale);
       context.textAlign = 'left'; context.fillStyle = '#9fbad4'; context.font = `800 ${15 * scale}px ${SANS}`;
       context.fillText(`BUSIEST HOUR · ${hourLabel(peakHour())}${RHYTHM.longestStreak ? `   ·   ${RHYTHM.longestStreak}-DAY STREAK` : ''}`, pad, height - 124 * scale);
-    } else if (!selected) {
-      badge(width - pad - 0, -1000, 0);
     }
   }
-  context.font = `800 ${(tall ? 22 : 16) * scale}px ${SANS}`;
-  const cta = `Map yours  →  ${REPO_URL}`;
-  const ctaWidth = context.measureText(cta).width + 40 * scale;
-  context.fillStyle = 'rgba(255,120,88,.9)';
-  context.beginPath(); context.roundRect(pad, footerY - (tall ? 36 : 27) * scale, ctaWidth, (tall ? 52 : 38) * scale, 999); context.fill();
-  context.fillStyle = '#fff'; context.textAlign = 'left'; context.fillText(cta, pad + 20 * scale, footerY - 2 * scale);
-  if (!wide) {
+  // The call to action lands softer than the title and grows from its left end, so it never spills past the frame.
+  const ctaIn = arrive(REEL.cta, .35);
+  sized(ctaIn, pad, footerY - 10 * scale, () => drawCta(context, pad, footerY, scale, tall));
+  if (!wide && ctaIn === 1) {
     context.textAlign = 'right'; context.fillStyle = '#9fbad4'; context.font = `700 ${(tall ? 19 : 14) * scale}px ${SANS}`;
     context.fillText('made locally · nothing uploaded', width - pad, footerY - 2 * scale);
   }
   return canvas;
 }
 
-function shareText(selected = state.exportSelected) {
-  if (selected) return `${nameOf(selected) || 'This island'} is one of ${PROJECTS.length} islands I built with AI. Map your own Claude Code + Codex history 🏝️ ${REPO_URL}`;
-  if (TEAM) return `We're ${PERSONA.title} 🏝️ ${TEAM.members.length} builders, ${PROJECTS.length} islands and ${compact(TOTAL_SESSIONS)} sessions built with Claude Code + Codex. Map yours: https://${REPO_URL} #pelago`;
-  return `I'm ${PERSONA.title} 🏝️ ${PROJECTS.length} islands and ${compact(TOTAL_SESSIONS)} sessions built with Claude Code + Codex. Map yours: https://${REPO_URL} #pelago`;
+// The rise reel: 12 seconds, a pure function of t. The capital is there from the first frame; the other islands rise
+// from the cloud sea in the order you founded them while the golden route draws and the counters tick (0-7.5 s); the
+// camera pulls back as the archetype and its keeper slam in (7.5-10 s); then it holds on the brand and the call to action.
+function renderReelFrame(canvas, t, format = state.format, selected = state.exportSelected, showNames = state.showNames) {
+  const scene = cardScene(format, selected);
+  foundingOrder(scene.items);
+  const smooth = (k) => k * k * (3 - 2 * k);
+  const zoom = t < REEL.rise ? 1.2 - .06 * smooth(t / REEL.rise) : 1 + .14 * (1 - smooth(clamp((t - REEL.rise) / (REEL.pull - REEL.rise), 0, 1)));
+  const focus = scene.heroItem || { x: scene.width / 2, y: scene.height / 2 };
+  // The title lands with a short shake.
+  const landed = t - REEL.title - .28;
+  const shake = landed > 0 && landed < .24 ? Math.round(Math.sin(landed * 70) * (1 - landed / .24) * 8 * scene.scale) : 0;
+  const camera = { x: Math.round(focus.x * (1 - zoom)) + shake, y: Math.round(focus.y * (1 - zoom)), scale: zoom };
+  return renderCard(canvas, format, selected, showNames, { scene, time: 2400 + t * 1000, camera, reel: t, stats: selected ? null : reelStats(scene, t) });
+}
+// The reel's counters: what has risen so far.
+function reelStats(scene, t) {
+  let islands = 0, sessions = 0, tokens = 0;
+  const relics = new Set();
+  scene.items.forEach((item) => {
+    const up = riseAt(item, t);
+    if (up <= 0) return;
+    const grown = 1 - Math.pow(1 - up, 3);
+    islands += 1; sessions += item.project.sessions * grown; tokens += totalTokens(item.project) * grown;
+    if (up >= 1) relicsOf(item.project).forEach(({ relic }) => relics.add(relic.id));
+  });
+  return [[String(islands), islands === 1 ? 'island' : 'islands'], [compact(Math.round(sessions)), 'sessions'],
+    TOTAL_TOKENS ? [compact(Math.round(tokens)), 'tokens'] : cardCopy(null).stats[2], [`${relics.size}/${RELICS.length}`, 'relics']];
+}
+
+// Moment cards: one thing worth posting, big, over the world dimmed behind it. Each kind says what it shows; lines
+// are [style, text] with the style one of label, body or note.
+const MOMENTS = {
+  tokens: () => ({
+    accent: '#ffd36b', overline: 'WHAT FLOWED THROUGH', number: compact(TOTAL_TOKENS), title: 'tokens.', italic: true,
+    lines: [['body', `That's ${tokenComparison(TOTAL_TOKENS)}.`],
+      ['note', [TOTAL_PROMPTS && `${compact(TOTAL_PROMPTS)} requests`, `${compact(TOTAL_SESSIONS)} sessions`, plural(PROJECTS.length, 'island')].filter(Boolean).join(' · ')],
+      ['note', `Built with ${agentPhrase()}.`]],
+  }),
+  relic: ({ relic, project }) => {
+    const owners = earnedRelics().get(relic.id) || [project];
+    // The reason, less any "Built with …:" that repeats the hint.
+    const reason = relicsOf(project).find((entry) => entry.relic.id === relic.id)?.reason.replace(/^[^:]+: (.)/, (_, first) => first.toUpperCase());
+    return {
+      accent: RARITY[relic.rarity].color, overline: `${RARITY[relic.rarity].label.toUpperCase()} RELIC · ${relic.group.toUpperCase()}`, sprite: relic.sprite, title: relic.name,
+      lines: [['label', 'EARNED BY'], ['body', relic.hint], reason && ['note', reason],
+        ['note', `Found on ${sharedName(project) || `a ${kindOf(project).toLowerCase()}`}${owners.length > 1 ? ` and ${plural(owners.length - 1, 'other island')}` : ''}.`]].filter(Boolean),
+    };
+  },
+  archetype: () => ({
+    accent: keeperFor(PERSONA.realm).accent, sprite: keeperFor(PERSONA.realm).sprite, title: PERSONA.title,
+    overline: DATA.demo ? 'SAMPLE ARCHETYPE' : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    lines: [['body', PERSONA.line]], clues: (PERSONA.clues || []).map((clue) => [clue.label, clue.why.replace(/\byour\b/g, TEAM ? 'our' : 'my')]),
+  }),
+};
+// A box with stepped corners: a `cell`-wide border in `stroke` around a `fill`.
+function drawPixelBox(context, x, y, w, h, cell, stroke, fill) {
+  [x, y, w, h] = [x, y, w, h].map(Math.round);
+  context.fillStyle = stroke;
+  context.fillRect(x + cell, y, w - 2 * cell, h); context.fillRect(x, y + cell, w, h - 2 * cell);
+  context.fillStyle = fill; context.fillRect(x + cell, y + cell, w - 2 * cell, h - 2 * cell);
+}
+// The moment's picture, as big as its box allows in whole pixels: a pixel number, a relic or a keeper.
+function drawMomentVisual(context, spec, box, scale) {
+  const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
+  const reach = Math.min(box.w, box.h) * .75;
+  const glow = context.createRadialGradient(cx, cy, 0, cx, cy, reach);
+  glow.addColorStop(0, hexAlpha(spec.accent, .28)); glow.addColorStop(1, hexAlpha(spec.accent, 0));
+  context.fillStyle = glow; context.fillRect(cx - reach, cy - reach, reach * 2, reach * 2);
+  if (spec.number) {
+    const cell = Math.max(2, Math.floor(Math.min(box.w * .86 / pixelTextWidth(spec.number, 1), box.h / 7, 34 * scale)));
+    const x = Math.round(cx - pixelTextWidth(spec.number, cell) / 2), y = Math.round(cy + 3.5 * cell), drop = Math.max(2, Math.round(cell / 4));
+    drawPixelText(context, spec.number, x + drop, y + drop, cell, 'rgba(2,6,18,.75)');
+    drawPixelText(context, spec.number, x, y, cell, spec.accent);
+    return;
+  }
+  const sprite = RELIC_SPRITES[spec.sprite];
+  const columns = Math.max(...sprite.rows.map((row) => row.length)), rows = sprite.rows.length;
+  const cell = Math.max(2, Math.floor(Math.min(box.w / columns, box.h / rows, 34 * scale)));
+  const left = Math.round(cx - columns * cell / 2), top = Math.round(cy - rows * cell / 2);
+  paintSprite(spec.sprite, (px, py, colour) => { context.fillStyle = `rgb(${colour.join(',')})`; context.fillRect(left + px * cell, top + py * cell, cell, cell); });
+  // A few pixel glints around it.
+  const glint = Math.max(2, Math.round(cell / 3));
+  [[-.66, -.34], [.62, -.46], [.7, .2], [-.6, .3]].forEach(([dx, dy], index) => {
+    const x = Math.round(cx + dx * columns * cell), y = Math.round(cy + dy * rows * cell);
+    context.fillStyle = index % 2 ? '#fff6dc' : spec.accent;
+    context.fillRect(x - glint, y, glint * 3, glint); context.fillRect(x, y - glint, glint, glint * 3);
+  });
+}
+// On a story the brand and the call to action keep out of the top and bottom bands the apps cover.
+function renderMomentCard(canvas, kind, format = state.format, moment = state.moment) {
+  const scene = cardScene(format, null);
+  const { width, height, tall, square, wide, scale } = scene;
+  if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+  const context = canvas.getContext('2d');
+  const spec = (MOMENTS[kind] || MOMENTS.archetype)(moment || { kind });
+  drawCardScene(context, scene);
+  context.fillStyle = 'rgba(4,9,26,.72)'; context.fillRect(0, 0, width, height);
+  const pad = (wide ? 64 : 72) * scale;
+  const safeTop = tall ? 250 * scale : pad, safeBottom = tall ? 270 * scale : pad;
+  drawPixelFrame(context, width, height, spec.accent, scale);
+  drawBrandMark(context, pad, safeTop - 8 * scale, 4.4 * scale);
+  if (!wide) {
+    context.textAlign = 'right'; context.fillStyle = '#9fbad4'; context.font = `800 ${15 * scale}px ${SANS}`;
+    context.fillText(`${TEAM ? 'OUR' : 'MY'} PELAGO · ${new Date(NOW).getFullYear()}`, width - pad, safeTop + 26 * scale);
+  }
+  // Stacked and centred on tall and square cards; words left and picture right on wide ones.
+  const visual = wide ? { x: width * .56, y: height * .14, w: width * .44 - pad, h: height * .64 }
+    : tall ? { x: pad, y: safeTop + 170 * scale, w: width - pad * 2, h: 580 * scale }
+      : { x: pad, y: safeTop + 90 * scale, w: width - pad * 2, h: 320 * scale };
+  drawMomentVisual(context, spec, visual, scale);
+  const center = !wide, x = center ? width / 2 : pad, column = center ? width - pad * 2 : width * .52 - pad;
+  const align = center ? 'center' : 'left';
+  // Sizes for tall, square and wide cards.
+  const pick = (tallSize, squareSize, wideSize) => (tall ? tallSize : wide ? wideSize : squareSize) * scale;
+  let y = wide ? height * .29 : visual.y + visual.h + pick(96, 60, 0);
+  const say = (text, font, color, spacing = 0) => {
+    context.textAlign = align; context.font = font; context.fillStyle = color;
+    if ('letterSpacing' in context) context.letterSpacing = `${spacing * scale}px`;
+    context.fillText(text, x, y, column);
+    if ('letterSpacing' in context) context.letterSpacing = '0px';
+  };
+  say(spec.overline, `900 ${pick(22, 17, 20)}px ${SANS}`, spec.accent, 3);
+  const size = pick(96, 62, 84);
+  y += size * 1.08;
+  if (spec.title === PERSONA.title) y = drawTitle(context, spec.title, x, y, column, size, align);
+  else {
+    context.font = `${spec.italic ? 'italic 400' : '700'} ${size}px ${SERIF}`;
+    wrapLines(context, spec.title, column).slice(0, 2).forEach((line, index) => { if (index) y += size * .98; say(line, context.font, spec.italic ? spec.accent : COLORS.paper); });
+  }
+  y += pick(22, 12, 16);
+  const styles = {
+    label: [`900 ${pick(18, 13, 16)}px ${SANS}`, spec.accent, 2, pick(40, 28, 36)],
+    body: [`600 ${pick(30, 21, 28)}px ${SANS}`, '#e6eef8', 0, pick(42, 29, 38)],
+    note: [`700 ${pick(23, 16, 21)}px ${SANS}`, '#9fbad4', 0, pick(36, 25, 31)],
+  };
+  spec.lines.forEach(([style, text]) => {
+    const [font, color, spacing, lead] = styles[style];
+    context.font = font;
+    wrapLines(context, text, column).slice(0, 2).forEach((line) => { y += lead; say(line, font, color, spacing); });
+  });
+  // The clues that decided an archetype, as stepped chips in its accent.
+  (spec.clues || []).forEach(([label, why]) => {
+    y += pick(22, 12, 16);
+    const labelFont = `900 ${pick(17, 12, 15)}px ${SANS}`, whyFont = `700 ${pick(23, 16, 20)}px ${SANS}`;
+    const h = pick(56, 38, 50), inset = 18 * scale, gap = 14 * scale;
+    context.font = labelFont; const labelWidth = context.measureText(label.toUpperCase()).width;
+    context.font = whyFont; const w = Math.min(column, labelWidth + gap + context.measureText(why).width + inset * 2);
+    const left = center ? x - w / 2 : x;
+    drawPixelBox(context, left, y, w, h, Math.max(2, Math.round(3 * scale)), spec.accent, 'rgba(5,11,28,.88)');
+    context.textAlign = 'left';
+    context.font = labelFont; context.fillStyle = spec.accent; context.fillText(label.toUpperCase(), left + inset, y + h * .6);
+    context.font = whyFont; context.fillStyle = '#e8f0fc'; context.fillText(why, left + inset + labelWidth + gap, y + h * .63, w - inset * 2 - labelWidth - gap);
+    y += h;
+  });
+  const ctaWidth = drawCta(context, 0, 0, scale, tall, false);
+  drawCta(context, center ? (width - ctaWidth) / 2 : pad, height - safeBottom, scale, tall);
+  return canvas;
+}
+
+function shareText(selected = state.exportSelected, moment = state.moment) {
+  const agents = agentPhrase(), we = Boolean(TEAM);
+  const tail = ` Map yours: ${DEMO_URL}${agents.includes('Claude') ? ' #ClaudeCode' : ''}`;
+  if (moment?.kind === 'tokens') return `${compact(TOTAL_TOKENS)} tokens through ${agents} became ${plural(PROJECTS.length, 'island')} in ${we ? 'our' : 'my'} pixel-art world.${tail}`;
+  if (moment?.kind === 'relic') {
+    const rarity = RARITY[moment.relic.rarity].label.toLowerCase(), where = sharedName(moment.project);
+    return `${we ? 'We' : 'I'} found the ${moment.relic.name}, ${/^[aeiou]/.test(rarity) ? 'an' : 'a'} ${rarity} relic${where ? ` on ${where}` : ''}, in ${we ? 'our' : 'my'} ${agents} world.${tail}`;
+  }
+  if (selected) return `${sharedName(selected) || `This ${kindOf(selected).toLowerCase()}`} is ${PROJECTS.length > 1 ? `one of the ${plural(PROJECTS.length, 'island')}` : 'the island'} ${we ? 'we' : 'I'} built with ${agents}.${tail}`;
+  return `${we ? "We're" : "I'm"} ${PERSONA.title}: ${TEAM ? `${plural(TEAM.members.length, 'builder')}, ` : ''}${plural(PROJECTS.length, 'island')} and ${compact(TOTAL_SESSIONS)} sessions built with ${agents}.${tail}`;
+}
+function renderShareCard(canvas) { return state.moment ? renderMomentCard(canvas, state.moment.kind, state.format, state.moment) : renderCard(canvas); }
+// The finished PNG for the card as it looks now. Posting and sharing must start inside the click, so the PNG is made
+// 250 ms after the preview settles and kept until the format, headline, names, island, moment or sky change.
+const cardCache = { key: '', promise: null, blob: null, timer: 0 };
+function cardKey() {
+  const moment = state.moment && [state.moment.kind, state.moment.relic?.id ?? null, state.moment.project?.id ?? null];
+  // `sky` arrives with painted skies; until then every card is night.
+  return JSON.stringify([state.format, ($('#cardTitle').value || '').trim(), state.showNames && !state.hideNames, state.exportSelected?.id ?? null, moment, typeof sky === 'object' && sky ? sky.name : 'night']);
 }
 function cardBlob() {
-  return new Promise((resolve) => renderCard(document.createElement('canvas')).toBlob(resolve, 'image/png'));
+  const key = cardKey();
+  if (cardCache.key !== key || !cardCache.promise) {
+    // The open studio's preview already shows this card; anywhere else it is drawn fresh.
+    const canvas = $('#shareDialog').open ? $('#exportCanvas') : renderShareCard(document.createElement('canvas'));
+    cardCache.key = key; cardCache.blob = null;
+    cardCache.promise = new Promise((resolve) => canvas.toBlob(resolve, 'image/png')).then((blob) => { if (cardCache.key === key) cardCache.blob = blob; return blob; });
+  }
+  return cardCache.promise;
 }
+function readyBlob() { return cardCache.key === cardKey() ? cardCache.blob : null; }
+function primeCardBlob() { clearTimeout(cardCache.timer); cardCache.timer = setTimeout(cardBlob, 250); }
 function cardFileName() {
-  return `pelago-${state.exportSelected ? (nameOf(state.exportSelected) || 'island').toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'world'}-${state.format}.png`;
+  const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const moment = state.moment;
+  const subject = moment ? [moment.kind, moment.relic?.id].filter(Boolean).join('-') : state.exportSelected ? slug(sharedName(state.exportSelected)) || 'island' : 'world';
+  return `pelago-${subject}-${state.format}.png`;
 }
-async function downloadCard() {
-  const blob = await cardBlob();
+function saveBlob(blob, name) {
   const anchor = document.createElement('a');
-  anchor.download = cardFileName();
+  anchor.download = name;
   anchor.href = URL.createObjectURL(blob);
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(anchor.href), 4000);
+}
+async function downloadCard() {
+  const name = cardFileName();
+  saveBlob(readyBlob() || await cardBlob(), name);
   toast('Your world is ready to travel ✦');
 }
-async function copyCard() {
+// Starts the clipboard write inside the click, where Safari allows it: the item is built at once around the PNG or a
+// promise of it. Resolves true once the image is on the clipboard.
+function copyImage() {
   try {
-    const blob = await cardBlob();
-    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    toast('Card copied. Paste it anywhere ✦');
+    return navigator.clipboard.write([new ClipboardItem({ 'image/png': readyBlob() || cardBlob() })]).then(() => true, () => false);
   } catch {
-    toast('Copy is blocked here. Use Download instead.');
+    return Promise.resolve(false);
   }
+}
+async function copyCard() {
+  toast(await copyImage() ? 'Card copied. Paste it anywhere ✦' : 'Copy is blocked here. Use Download instead.');
 }
 async function nativeShare() {
-  const blob = await cardBlob();
-  const file = new File([blob], cardFileName(), { type: 'image/png' });
-  if (navigator.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], text: shareText() }); } catch { /* user closed the sheet */ }
-  } else {
-    await downloadCard();
+  const name = cardFileName();
+  const blob = readyBlob() || await cardBlob();
+  const file = new File([blob], name, { type: 'image/png' });
+  if (!navigator.canShare?.({ files: [file] })) { saveBlob(blob, name); toast('Your world is ready to travel ✦'); return; }
+  try {
+    await navigator.share({ files: [file], text: shareText() });
+  } catch (error) {
+    if (error?.name === 'AbortError') return;
+    saveBlob(blob, name);
+    toast('Sharing is blocked here, so the image was downloaded.');
   }
 }
-const VIDEO_SECONDS = 8;
+const POST_TO = {
+  x: 'https://x.com/intent/post?text=',
+  linkedin: 'https://www.linkedin.com/feed/?shareActive=true&text=',
+  bluesky: 'https://bsky.app/intent/compose?text=',
+  threads: 'https://www.threads.net/intent/post?text=',
+};
+// A post button puts the image on the clipboard and opens the platform's composer with the words, so the post is one
+// paste away. Where the clipboard cannot take an image the PNG is downloaded first, and the toast says so.
+function postTo(platform) {
+  const url = `${POST_TO[platform]}${encodeURIComponent(shareText())}`, name = cardFileName(), blob = readyBlob();
+  const canCopy = Boolean(window.ClipboardItem && navigator.clipboard?.write);
+  if (!canCopy && blob) saveBlob(blob, name);
+  const copied = canCopy ? copyImage() : Promise.resolve(false);
+  window.open(url, '_blank', 'noopener');
+  copied.then(async (ok) => {
+    if (ok) { toast('Image copied — paste it into your post'); return; }
+    if (canCopy || !blob) saveBlob(blob || await cardBlob(), name);
+    toast('The image could not be copied here, so it was downloaded — attach it to your post');
+  });
+}
+const VIDEO_SECONDS = REEL.seconds;
 function videoType() {
   // MP4 posts everywhere; browsers that can only record WebM still get a working file.
   const types = ['video/mp4;codecs=avc1.640033', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
   return window.MediaRecorder ? types.find((type) => MediaRecorder.isTypeSupported(type)) : null;
 }
 async function downloadVideo() {
-  const button = $('#downloadVideo');
+  const buttons = $$('[data-video]');
   const type = videoType();
   const frame = document.createElement('canvas');
   if (!type || !frame.captureStream) { toast('Video needs a recent Chrome, Edge or Safari.'); return; }
-  if (button.disabled) return;
-  button.disabled = true;
-  const label = button.querySelector('span');
+  if (buttons.some((button) => button.disabled)) return;
+  buttons.forEach((button) => { button.disabled = true; });
+  const label = (text) => buttons.forEach((button) => { button.querySelector('span').textContent = text; });
   const format = state.format, selected = state.exportSelected, names = state.showNames;
-  const overlay = renderCard(document.createElement('canvas'), format, selected, names, { layer: 'overlay' });
-  const scene = document.createElement('canvas');
-  frame.width = overlay.width; frame.height = overlay.height;
-  const context = frame.getContext('2d');
-  const paint = (elapsed) => {
-    const progress = elapsed / (VIDEO_SECONDS * 1000);
-    // A slow push in towards the capital while the world keeps moving.
-    renderCard(scene, format, selected, names, { layer: 'scene', time: 2400 + elapsed, zoom: 1 + .1 * (1 - Math.cos(Math.min(1, progress) * Math.PI)) / 2 });
-    context.drawImage(scene, 0, 0);
-    context.drawImage(overlay, 0, 0);
-  };
+  const name = cardFileName().replace(/\.png$/, type.includes('mp4') ? '.mp4' : '.webm');
+  const paint = (elapsed) => renderReelFrame(frame, Math.min(VIDEO_SECONDS, elapsed / 1000), format, selected, names);
   paint(0);
   const recorder = new MediaRecorder(frame.captureStream(30), { mimeType: type, videoBitsPerSecond: 12_000_000 });
   const chunks = [];
@@ -3337,30 +3710,23 @@ async function downloadVideo() {
   const done = new Promise((resolve) => { recorder.onstop = resolve; });
   recorder.start();
   const start = performance.now();
-  // Paced by timers rather than animation frames, which some embedded browsers throttle.
+  // Paced by timers rather than animation frames, which some embedded browsers throttle. Each frame is drawn for
+  // the time on the clock, so a slow frame never stretches the reel.
   await new Promise((resolve) => {
     const step = () => {
       const elapsed = performance.now() - start;
       paint(elapsed);
-      label.textContent = `Recording… ${Math.max(1, Math.ceil(VIDEO_SECONDS - elapsed / 1000))}s`;
+      label(`Recording… ${Math.max(1, Math.ceil(VIDEO_SECONDS - elapsed / 1000))}s`);
       if (elapsed < VIDEO_SECONDS * 1000) setTimeout(step, 1000 / 30); else resolve();
     };
     step();
   });
   recorder.stop();
   await done;
-  const blob = new Blob(chunks, { type: type.split(';')[0] });
-  const anchor = document.createElement('a');
-  anchor.download = cardFileName().replace(/\.png$/, type.includes('mp4') ? '.mp4' : '.webm');
-  anchor.href = URL.createObjectURL(blob);
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(anchor.href), 4000);
-  label.textContent = 'Download video';
-  button.disabled = false;
+  saveBlob(new Blob(chunks, { type: type.split(';')[0] }), name);
+  label('Download video');
+  buttons.forEach((button) => { button.disabled = false; });
   toast('Your world, in motion ✦');
-}
-function postToX() {
-  window.open(`https://x.com/intent/post?text=${encodeURIComponent(shareText())}`, '_blank', 'noopener');
 }
 
 
@@ -3905,20 +4271,27 @@ function curvePoints(a, b, sag, steps) {
   }
   return points;
 }
-function drawConnections(context, items, transform, time, pixel, layer = 'all') {
+// `shownAt(item)`, when given, is how far each island has risen (the rise reel): the route then reaches each island
+// as it rises and stops there, and bridges wait until both ends are up.
+function drawConnections(context, items, transform, time, pixel, layer = 'all', shownAt = null) {
   const byId = new Map(items.map((item) => [item.project.id, item]));
   const unit = Math.max(2, Math.round(pixel * 3));
   const block = (x, y, w, h, color, alpha = 1) => { context.globalAlpha = alpha; context.fillStyle = color; context.fillRect(Math.round(x), Math.round(y), w, h); };
 
   // The route: islands in the order you founded them.
-  const route = [...items].sort((a, b) => (Date.parse(a.project.firstActive || '') || 0) - (Date.parse(b.project.firstActive || '') || 0)).map((item) => islandScreen(item, transform));
-  if (route.length > 1 && layer !== 'bridges') {
-    const samples = [];
-    route.slice(1).forEach((point, index) => {
-      const from = route[index];
-      const lift = -Math.min(160 * unit, Math.hypot(point.x - from.x, point.y - from.y) * .22);
-      curvePoints(from, point, lift, 24).forEach((sample, k) => { if (k || !index) samples.push(sample); });
-    });
+  const route = foundingOrder(items).map((item) => ({ ...islandScreen(item, transform), shown: shownAt ? shownAt(item) : 1, first: item.founding < 0 }));
+  const samples = [];
+  let open = layer !== 'bridges';
+  route.slice(1).forEach((point, index) => {
+    if (!open) return;
+    const from = route[index];
+    const lift = -Math.min(160 * unit, Math.hypot(point.x - from.x, point.y - from.y) * .22);
+    // The line into the capital, which is up from the start, draws as the island before it rises.
+    const reach = Math.round((point.first ? from.shown : point.shown) * 24);
+    curvePoints(from, point, lift, 24).forEach((sample, k) => { if ((k || !index) && k <= reach) samples.push(sample); });
+    if (reach < 24) open = false;
+  });
+  if (samples.length > 1) {
     context.save();
     context.lineCap = 'round';
     const trace = () => { context.beginPath(); samples.forEach((sample, index) => (index ? context.lineTo(sample.x, sample.y) : context.moveTo(sample.x, sample.y))); };
@@ -3931,7 +4304,8 @@ function drawConnections(context, items, transform, time, pixel, layer = 'all') 
     const distance = (time * .05 * unit) % total;
     let at = lengths.findIndex((length) => length >= distance);
     if (at < 1) at = 1;
-    const head = samples[at];
+    // While the route is still being drawn its spark rides the tip.
+    const head = open ? samples[at] : samples[samples.length - 1];
     const glow = context.createRadialGradient(head.x, head.y, 0, head.x, head.y, 10 * unit);
     glow.addColorStop(0, 'rgba(255,220,130,.55)'); glow.addColorStop(1, 'rgba(255,220,130,0)');
     context.globalAlpha = 1; context.fillStyle = glow;
@@ -3945,7 +4319,7 @@ function drawConnections(context, items, transform, time, pixel, layer = 'all') 
     const wanted = link.kind === 'nest' ? 'bridges' : 'route';
     if (layer !== 'all' && layer !== wanted) return;
     const first = byId.get(link.a), second = byId.get(link.b);
-    if (!first || !second) return;
+    if (!first || !second || (shownAt && (shownAt(first) < 1 || shownAt(second) < 1))) return;
     if (link.kind === 'nest' && first.tier !== undefined && first.tier !== second.tier) return;
     const a = islandScreen(first, transform), b = islandScreen(second, transform);
     const distance = Math.hypot(b.x - a.x, b.y - a.y);
@@ -4226,6 +4600,7 @@ function showRelicCard(hit, clientX, clientY) {
   $('#relicPopHow').textContent = relic.hint;
   const owners = earnedRelics().get(relic.id) || [];
   $('#relicPopWhere').textContent = owners.length > 1 ? `On ${calledOf(item.project)} and ${plural(owners.length - 1, 'other island')}.` : `Only on ${calledOf(item.project)}.`;
+  card.hit = hit;
   card.hidden = false;
   const bounds = $('#atlas').getBoundingClientRect();
   if (innerWidth <= 680) { card.style.left = ''; card.style.top = ''; card.classList.add('docked'); return; }
@@ -4648,7 +5023,7 @@ function markDemo() {
   const watch = $('.mast-actions [data-play-story]');
   if (watch) { watch.setAttribute('aria-label', 'Watch the story'); watch.title = 'Watch the story'; watch.lastElementChild.textContent = 'The story'; }
   $('#guideButton')?.classList.add('icon-only');
-  ['#shareButton', '#shareSelected', '#openGuide', '#welcome .privacy'].forEach((selector) => { const node = $(selector); if (node) node.hidden = true; });
+  ['#shareButton', '#shareSelected', '#relicPopShare', '#openGuide', '#welcome .privacy'].forEach((selector) => { const node = $(selector); if (node) node.hidden = true; });
   const get = element('button', 'get-action');
   get.innerHTML = 'Get your own world in one prompt <span aria-hidden="true">→</span>';
   get.addEventListener('click', () => openGetYours('welcome'));
@@ -4872,14 +5247,28 @@ world.addEventListener('wheel', (event) => {
   zoomTo(state.scale * Math.exp(-event.deltaY * .0016), point, false);
 }, { passive: false });
 
-function openShare(selected = null) {
-  state.exportSelected = selected;
-  $('#cardTitle').value = selected ? nameOf(selected) || kindOf(selected) : PERSONA.title;
-  renderExport(); $('#shareDialog').showModal();
+// The export studio, for the whole world, one island, or a moment ({ kind: 'tokens' | 'relic' | 'archetype', ... }).
+function openShare(selected = null, moment = null) {
+  state.exportSelected = selected; state.moment = moment;
+  $('#cardTitle').value = selected ? sharedName(selected) || kindOf(selected) : PERSONA.title;
+  // A moment card has no headline to edit and no reel; names stay off while the page hides them.
+  $('#headlineField').hidden = Boolean(moment);
+  $('#editToggle span').textContent = moment ? 'Project names' : 'Edit headline and names';
+  $$('[data-video]').forEach((button) => { button.hidden = Boolean(moment); });
+  $('#includeNames').disabled = state.hideNames;
+  $$('.format-option').forEach((item) => item.classList.toggle('active', item.dataset.format === state.format));
+  toggleCardEdit(false);
+  renderExport();
+  if (!$('#shareDialog').open) $('#shareDialog').showModal();
 }
-function renderExport() { renderCard($('#exportCanvas')); }
+function renderExport() { renderShareCard($('#exportCanvas')); primeCardBlob(); }
+// Phones fold the headline and names away under one button; wider screens always show them.
+function toggleCardEdit(open = !$('#cardEdit').classList.contains('open')) {
+  $('#cardEdit').classList.toggle('open', open);
+  $('#editToggle').setAttribute('aria-expanded', String(open));
+}
 
-function toast(message) { const node = $('#toast'); const host = $('#getYours')?.open ? $('#getYours') : document.body; if (node.parentNode !== host) host.append(node); node.textContent = message; node.classList.add('show'); clearTimeout(node.timeout); node.timeout = setTimeout(() => node.classList.remove('show'), 2300); }
+function toast(message) { const node = $('#toast'); const host = $('#getYours')?.open ? $('#getYours') : $('#shareDialog').open ? $('#shareDialog') : document.body; if (node.parentNode !== host) host.append(node); node.textContent = message; node.classList.add('show'); clearTimeout(node.timeout); node.timeout = setTimeout(() => node.classList.remove('show'), 2300); }
 
 $('#enterWorld').addEventListener('click', enterWorld);
 $('#openGuide').addEventListener('click', showGuide);
@@ -4946,10 +5335,17 @@ document.addEventListener('keydown', (event) => {
 $('#cardTitle').addEventListener('input', renderExport);
 $('#includeNames').addEventListener('change', (event) => { state.showNames = event.target.checked; renderExport(); });
 $('#downloadCard').addEventListener('click', downloadCard);
-$('#downloadVideo').addEventListener('click', downloadVideo);
+$$('[data-video]').forEach((button) => button.addEventListener('click', downloadVideo));
 $('#copyCard').addEventListener('click', copyCard);
-$('#postCard').addEventListener('click', postToX);
+$$('[data-post]').forEach((button) => button.addEventListener('click', () => postTo(button.dataset.post)));
 $('#nativeShare').addEventListener('click', nativeShare);
+$('#shareImage').addEventListener('click', nativeShare);
+$('#editToggle').addEventListener('click', () => toggleCardEdit());
+$('#relicPopShare').addEventListener('click', () => {
+  const { relic, item } = $('#relicPop').hit;
+  hideRelicCard();
+  openShare(null, { kind: 'relic', relic, project: item.project });
+});
 window.addEventListener('resize', () => { resizeWorld(); fitSummary(); refreshThumbnails(); drawDetail(PROJECTS.find((project) => project.id === state.selected)); if (!$('#story').hidden) { sizeStoryScene(); const build = story.slides[story.index]; if (build?.camera) setStoryCamera(build.camera); } });
 
 /* ---------- Story: a Wrapped-style recap that ends on the share card ---------- */
@@ -5015,6 +5411,16 @@ function countUp(node, target, format = (value) => value.toLocaleString('en-US')
   requestAnimationFrame(step);
 }
 
+// A "Share this" pill on a story slide: it pauses the story and opens the studio on that moment. Never in the sample.
+function sharePill(slide, moment) {
+  if (DATA.demo) return null;
+  const pill = element('button', 'share-pill');
+  pill.innerHTML = 'Share this <span aria-hidden="true">↗</span>';
+  pill.addEventListener('click', (event) => { event.stopPropagation(); toggleStoryPause(true); openShare(null, moment); });
+  slide.append(pill);
+  return pill;
+}
+
 function buildSlides() {
   const top = capital();
   const at = (camera, build) => Object.assign(build, { camera });
@@ -5069,6 +5475,7 @@ function buildSlides() {
     const fresh = TOTAL_TOKENS - cached;
     slide.append(element('p', 'story-copy', `That's ${tokenComparison(TOTAL_TOKENS)}. ${cached > TOTAL_TOKENS * .5 ? `${Math.round(cached / TOTAL_TOKENS * 100)}% were your agents re-reading context they already had; ${compact(fresh)} were brand new.` : ''}`));
     if (TOTAL_PROMPTS) slide.append(element('p', 'story-copy', `You typed ${TOTAL_PROMPTS.toLocaleString('en-US')} requests. Each one planted part of a forest.`));
+    sharePill(slide, { kind: 'tokens' });
     return slide;
   }));
 
@@ -5129,6 +5536,7 @@ function buildSlides() {
     slide.append(element('p', 'story-copy', `Rarest: ${rarest.name}, ${rarest.rarity === 'epic' ? 'an' : 'a'} ${RARITY[rarest.rarity].label.toLowerCase()} relic on ${calledOf(relicsFound.get(rarest.id)[0])}.`));
     const next = nextRelics(1)[0];
     if (next) slide.append(element('p', 'story-next', `Next up: ${next.relic.name}, ${progressText(next)}.`));
+    sharePill(slide, { kind: 'relic', relic: rarest, project: relicsFound.get(rarest.id)[0] });
     return slide;
   }));
 
@@ -5138,8 +5546,10 @@ function buildSlides() {
     const slide = element('div', `slide slide-share${DATA.demo ? ' demo' : ''}`);
     slide.append(element('p', 'story-over', DATA.demo ? 'YOUR TURN' : 'YOUR CARD IS READY'));
     const preview = element('canvas', 'story-card');
-    state.format = 'story'; state.exportSelected = null;
+    // The headline goes back to the archetype: an island's name left in it from an earlier card must not end the story.
+    state.format = 'story'; state.exportSelected = null; state.moment = null; $('#cardTitle').value = PERSONA.title;
     renderCard(preview, 'story', null, state.showNames);
+    primeCardBlob();
     preview.setAttribute('role', 'img'); preview.setAttribute('aria-label', `${DATA.demo ? 'Sample card' : 'Share card'}: ${PERSONA.title}`);
     slide.append(preview);
     if (DATA.demo) slide.append(element('h2', 'story-title end-title', `That was a sample. Which of ${ARCHETYPE_COUNT} builders are you?`));
@@ -5215,12 +5625,13 @@ function personaSlide() {
     chips.append(chip);
   });
   slide.append(chips);
+  const pill = sharePill(slide, { kind: 'archetype' });
   // Long words shrink the title rather than spill past the frame.
   requestAnimationFrame(() => {
     const widest = Math.max(0, ...[...title.querySelectorAll('.reel-line, em.reel')].map((child) => child.scrollWidth));
     if (spinning && widest > title.clientWidth) title.style.fontSize = `${parseFloat(getComputedStyle(title).fontSize) * title.clientWidth / widest * .98}px`;
   });
-  if (still) { portrait.reveal(); chips.classList.add('shown'); return slide; }
+  if (still) { portrait.reveal(); chips.classList.add('shown'); pill?.classList.add('shown'); return slide; }
   const later = (ms, run) => setTimeout(() => { if (slide.isConnected) run(); }, ms);
   const lock = (reel) => {
     reel.classList.add('locked');
@@ -5240,7 +5651,7 @@ function personaSlide() {
   })));
   reels.forEach((reel, index) => later(index ? 2100 : 1300, () => lock(reel)));
   for (let step = 1; step <= 16; step += 1) later(2250 + step * 40, () => portrait.reveal(step));
-  later(2950, () => chips.classList.add('shown'));
+  later(2950, () => { chips.classList.add('shown'); pill?.classList.add('shown'); });
   return slide;
 }
 
@@ -5259,7 +5670,7 @@ function storyEndActions(slide) {
     add('story-ghost', 'Explore the map', explore);
   } else {
     add('primary-action', 'Share my card', nativeShare);
-    add('story-ghost', 'Post on X', postToX);
+    add('story-ghost', 'Post on X', () => postTo('x'));
     add('story-ghost', 'More formats', () => { closeStory(); openShare(); });
     add('story-ghost', 'Explore the map', explore);
   }
@@ -5447,7 +5858,7 @@ $('#storyNext').addEventListener('click', () => stepStory(1));
 $('#storyClose').addEventListener('click', closeStory);
 $('#storyPause').addEventListener('click', () => toggleStoryPause());
 document.addEventListener('keydown', (event) => {
-  if ($('#story').hidden) return;
+  if ($('#story').hidden || $('#shareDialog').open) return;
   if (event.key === 'Escape') closeStory();
   else if (event.key === 'ArrowRight') stepStory(1);
   else if (event.key === 'ArrowLeft') stepStory(-1);

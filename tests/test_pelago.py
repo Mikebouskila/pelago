@@ -392,6 +392,38 @@ class PelagoTests(unittest.TestCase):
             crew.append((name, pelago.enrich(data)))
         return crew
 
+    def test_share_loop_posts_the_picture_and_keeps_the_demo_clean(self):
+        root = Path(__file__).parents[1]
+        script = (root / "assets" / "world.js").read_text(encoding="utf-8")
+        template = (root / "assets" / "world-template.html").read_text(encoding="utf-8")
+        for intent in ("https://x.com/intent/post?text=", "https://www.linkedin.com/feed/?shareActive=true&text=",
+                       "https://bsky.app/intent/compose?text=", "https://www.threads.net/intent/post?text="):
+            self.assertIn(intent, script)
+        for platform in ("x", "linkedin", "bluesky", "threads"):
+            self.assertIn(f'data-post="{platform}"', template)
+        self.assertIn("Tip: post the image and put the link in the first comment.", template)
+        # Posts link to the live demo, name the agents in words people search, and carry at most one hashtag.
+        share = re.search(r"function shareText\(.*?\n}\n", script, re.S).group(0)
+        self.assertIn("DEMO_URL", share)
+        self.assertNotIn("REPO_URL", share)
+        self.assertEqual(set(re.findall(r"#\w+", share)), {"#ClaudeCode"})
+        self.assertIn("'Claude Code + Codex' : claude >= codex ? 'Claude Code' : 'Codex'", script)
+        # Names in posts and file names go through sharedName(), which honours hide-names and the card's checkbox.
+        file_name = re.search(r"function cardFileName\(\).*?\n}\n", script, re.S).group(0)
+        for source in (share, file_name):
+            self.assertIn("sharedName(", source)
+            self.assertNotIn("nameOf(", source)
+        self.assertIn("function sharedName(project) { return state.showNames ? nameOf(project) : ''; }", script)
+        # The reel dissolves islands in whole pixels; nothing in the rise helpers fades with globalAlpha.
+        for name in ("renderReelFrame", "foundingOrder", "riseAt", "renderMomentCard", "drawRisingIsland", "drawPuff"):
+            self.assertIn(f"function {name}(", script)
+        rise = script[script.index("function foundingOrder("):script.index("// The beats of the rise reel")]
+        self.assertNotIn("globalAlpha", rise)
+        self.assertIn("seconds: 12", script)
+        # Owner share surfaces never appear in the sample world.
+        self.assertIn("'#relicPopShare'", re.search(r"function markDemo\(\).*?\n}\n", script, re.S).group(0))
+        self.assertIn("if (DATA.demo) return null;", re.search(r"function sharePill\(.*?\n}\n", script, re.S).group(0))
+
     def test_demo_team_world_renders(self):
         team = pelago.demo_team()
         self.assertEqual([member["name"] for member in team["team"]["members"]], ["Maya", "Noam", "Dana"])
@@ -400,6 +432,9 @@ class PelagoTests(unittest.TestCase):
             output = Path(directory) / "team.html"
             pelago.render_html(team, output)
             self.assertIn("Lighthouse Labs", output.read_text(encoding="utf-8"))
+        # Relic reasons quote a technology's share of the messages read, so no count may outgrow its sample.
+        for project in team["projects"]:
+            self.assertGreaterEqual(project["techSample"], max(project["tech"].values(), default=0), project["name"])
 
     def test_readme_prompt_is_the_one_the_demo_copies(self):
         root = Path(__file__).parents[1]
