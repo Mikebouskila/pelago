@@ -423,7 +423,8 @@ def build_worlds(folder: Path, year: int | None) -> dict[str, Path]:
 
 
 def capture(browser: Browser, worlds: dict[str, Path], wanted: set[str], out: Path, ffmpeg: str | None) -> tuple[list[str], list[str]]:
-    solo, team = worlds["solo"].as_uri(), worlds["team"].as_uri()
+    # The sky follows the viewer's clock; README media always show the night sky.
+    solo, team = worlds["solo"].as_uri() + "#sky=midnight", worlds["team"].as_uri() + "#sky=midnight"
     notes, failed = [], []
     hero = [1280, 720]
 

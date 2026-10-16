@@ -439,9 +439,10 @@ class PelagoTests(unittest.TestCase):
         self.assertIn("reducedMotion.matches", intro)
         self.assertIn("try { if (localStorage.getItem('pelago-intro-seen') === '1') return;", intro)
         self.assertIn("riseAt(item, rise)", script)
-        # Cards carry no golden route (only the reel draws it) and every scene has exactly one capital halo.
+        # World cards and the map keep the whole golden route; every scene has exactly one capital halo.
         card = re.search(r"function drawCardScene\(.*?\n}\n", script, re.S).group(0)
-        self.assertIn("if (!selected && up) drawRoute(", card)
+        self.assertIn("if (!selected) drawRoute(", card)
+        self.assertIn("drawRoute(worldContext, state.items, view, now, pixel, up);", script)
         self.assertEqual(script.count("function drawCapitalHalo("), 1)
         self.assertIn("halo: item !== capitalItem", script)
         # Explore glides back over the whole archipelago.

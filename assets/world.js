@@ -294,7 +294,7 @@ function drawCardScene(context, scene, { time = 2400, camera = null, rise = null
   drawOcean(context, width, height, selected ? selected.seed : 73, time, { moon: false });
   drawCloudSea(context, width, height, time);
   if (heroItem) drawCapitalHalo(context, heroItem, view);
-  if (!selected && up) drawRoute(context, items, view, time, pixel, up);
+  if (!selected) drawRoute(context, items, view, time, pixel, up);
   const rising = [];
   paintIslands(context, items, view, time, pixel, (item) => {
     const shown = up ? up(item) : 1;
@@ -545,11 +545,16 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     context.fillStyle = 'rgba(8,15,34,.8)'; context.fill();
     context.strokeStyle = copy.accent; context.lineWidth = 3 * scale; context.stroke();
     context.restore();
-    const sprite = RELIC_SPRITES[rarest.sprite];
-    const cell = Math.floor(iconSize / Math.max(sprite.rows.length, sprite.rows[0].length));
-    paintSprite(rarest.sprite, (px, py, colour) => { context.fillStyle = `rgb(${colour.join(',')})`; context.fillRect(x + 12 * scale + px * cell, y + 6 * scale + py * cell, cell, cell); });
-    context.textAlign = 'left'; context.fillStyle = '#fff6dc';
-    context.fillText(text, x + iconSize + 26 * scale, y + h * .64);
+    // Centre the pixels the relic actually paints, so sprites with empty rows or columns still sit level with the text.
+    const box = { x0: Infinity, y0: Infinity, x1: -1, y1: -1 };
+    paintSprite(rarest.sprite, (px, py) => { box.x0 = Math.min(box.x0, px); box.y0 = Math.min(box.y0, py); box.x1 = Math.max(box.x1, px); box.y1 = Math.max(box.y1, py); });
+    const cols = box.x1 - box.x0 + 1, rows = box.y1 - box.y0 + 1;
+    const cell = Math.max(1, Math.floor(iconSize / Math.max(rows, cols)));
+    const iconX = Math.round(x + 14 * scale + (iconSize - cols * cell) / 2 - box.x0 * cell), iconY = Math.round(y + (h - rows * cell) / 2 - box.y0 * cell);
+    paintSprite(rarest.sprite, (px, py, colour) => { context.fillStyle = `rgb(${colour.join(',')})`; context.fillRect(iconX + px * cell, iconY + py * cell, cell, cell); });
+    context.textAlign = 'left'; context.textBaseline = 'middle'; context.fillStyle = '#fff6dc';
+    context.fillText(text, x + iconSize + 26 * scale, y + h / 2 + scale);
+    context.textBaseline = 'alphabetic';
     return w;
   };
   const footerY = height - (tall ? 64 : 40) * scale;
@@ -987,7 +992,8 @@ function ellipse(context, x, y, radiusX, radiusY, color) {
 }
 
 // ---------- Sky at your hour ----------
-// The sky is painted for the hour you build in: the archetype's time of day, or the busiest hour.
+// The sky follows the clock where the page is opened: night after 8 PM, dawn, morning, golden afternoon, twilight.
+// '#sky=midnight' (or any preset name) in the address pins one, for screenshots.
 // Each preset sets the gradient, the glow on the horizon, how many stars show, a moon or a pixel sun,
 // the tint of the clouds, the air that hazes distant islands, and how brightly island lights glow.
 const SKIES = {
@@ -998,14 +1004,12 @@ const SKIES = {
   twilight: { label: 'Twilight', stops: ['#0d1135', '#28245e', '#7c4c8e', '#de7c6c', '#2c2a5c'], horizon: [255, 140, 120, .3], stars: .7, milky: .35, body: 'moon', clouds: ['#f7d4e2', '#c9a2cc', '#8f79b1', '#5d5590'], cloudAlpha: 1.15, sea: [110, 92, 160], mist: [200, 130, 170], haze: [84, 62, 122], glow: .85, scrim: [14, 9, 36] },
 };
 Object.entries(SKIES).forEach(([name, preset]) => { preset.name = name; });
-const SKY_FOR_PREFIX = { Midnight: 'midnight', Dawn: 'dawn', Morning: 'morning', Sunlit: 'golden', Twilight: 'twilight' };
 const sky = { name: null, phase: null };
 function skyFor() {
-  const prefix = PERSONA.title.replace(/^The /, '').split(' ')[0];
-  if (SKY_FOR_PREFIX[prefix]) return SKY_FOR_PREFIX[prefix];
-  const hour = PERSONA.peakHour ?? peakHour();
-  if (hour === null || hour === undefined) return 'midnight';
-  return hour >= 22 || hour < 5 ? 'midnight' : hour < 9 ? 'dawn' : hour < 12 ? 'morning' : hour < 17 ? 'golden' : 'twilight';
+  const pinned = (location.hash.match(/sky=(\w+)/) || [])[1];
+  if (SKIES[pinned]) return pinned;
+  const hour = new Date().getHours();
+  return hour >= 20 || hour < 5 ? 'midnight' : hour < 7 ? 'dawn' : hour < 12 ? 'morning' : hour < 18 ? 'golden' : 'twilight';
 }
 function skyNow() { sky.name = sky.name || skyFor(); return SKIES[sky.name]; }
 // The moon fills as you keep showing up: full after work on every one of the last 28 days, a crescent after a quiet month.
@@ -1742,13 +1746,14 @@ function drawWorld() {
   const topNamed = new Set([...PROJECTS].sort((a, b) => b.activity - a.activity).slice(0, 10).map((project) => project.id));
   const capitalItem = [...state.items].sort((a, b) => b.project.activity - a.project.activity)[0];
   // The intro raises the islands through the cloud sea in the order they were founded, along the whole golden route.
-  // Afterwards the map keeps the route quiet: only the legs into and out of the island under the pointer or in the sheet.
+  // Afterwards the whole route stays, and the island under the pointer or in the sheet has its own legs drawn on top.
   const rise = introRise(now);
   const up = rise === null ? null : (item) => riseAt(item, rise);
   if (up) foundingOrder(state.items);
   if (capitalItem) drawCapitalHalo(worldContext, capitalItem, view);
   const focus = state.hovered || state.selected;
-  if (up || focus) drawRoute(worldContext, state.items, view, now, pixel, up, up ? null : focus);
+  drawRoute(worldContext, state.items, view, now, pixel, up);
+  if (!up && focus) drawRoute(worldContext, state.items, view, now, pixel, null, focus);
   // Islands whose art misses the screen by more than 64 px are not drawn at all.
   const margin = 64 * ratio, rising = [];
   paintIslands(worldContext, state.items, view, now, pixel, (item) => {
@@ -1865,7 +1870,7 @@ const GUIDE = [
     ['lg-bedrock', 'Bedrock', 'Every island hangs from a root of its biome\'s own stone, nearly as deep as the island is wide: sandstone strata under data, geodes under AI, icicles under CLIs, lava seams under games, blossom vines under mobile, ivy under web and a lip of moss under the rest.'],
   ]],
   ['Sky and moon', [
-    ['lg-sky', `Sky at your hour · ${skyNow().label}`, 'The sky is painted for the hour you build in, read from your archetype or your busiest hour: midnight, dawn, morning, golden hour or twilight. By day the windows and lanterns glow softer.'],
+    ['lg-sky', `Sky · ${skyNow().label}`, 'The sky follows your clock: night after 8 PM, then dawn, morning, a golden afternoon and twilight. By day the windows and lanterns glow softer.'],
     ['lg-moon', Object.keys(RHYTHM.daily || {}).length ? `Moon phase · ${Math.round(moonPhase() * 28)} of 28 days` : 'Moon phase', `The moon fills as you keep showing up: full when you worked on every one of the last 28 days, a thin crescent after a quiet month.${Object.keys(RHYTHM.daily || {}).length ? '' : ' These transcripts carry no dates, so it simply shines full.'}${skyNow().body === 'sun' ? ' Your sky shows the sun, so the moon waits for night.' : ''}`],
   ]],
   ['The settlement', [
@@ -1888,7 +1893,7 @@ const GUIDE = [
   ['Between islands', [
     ['lg-rope', 'Rope bridge', 'One project lives inside the other’s folder.'],
     ['lg-light', 'Light bridge', 'Two projects share a distinctive name.'],
-    ['lg-route', 'Golden route', 'Threads the islands in the order you founded them. Point at or open an island to see the legs before and after it.'],
+    ['lg-route', 'Golden route', 'Threads the islands in the order you founded them. Point at or open an island to light up the legs before and after it.'],
   ]],
 ];
 

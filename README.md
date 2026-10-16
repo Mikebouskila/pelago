@@ -195,7 +195,7 @@ No two islands are alike, because no two projects are. And they're alive: waterf
 | **Subagents** | Airships circling overhead. |
 | **Recency** | Beacons and fireflies on anything you touched in the last three weeks. Snow on islands left alone for two months. |
 | **Claude Code / Codex** | Coral and sea-green flags. Built with both? One island, both flags. |
-| **When you build** | The sky, painted for your hour: midnight, dawn, morning, golden hour or twilight. The moon fills as you keep showing up, full when you built on each of the last 28 days. |
+| **When you look** | The sky follows your clock: midnight, dawn, morning, golden hour or twilight. The moon fills as you keep showing up, full when you built on each of the last 28 days. |
 
 <img src="docs/gallery.jpg" alt="Eight generated islands in eight different biomes, each captioned with the sessions, requests and tokens it was built from, such as 41 sessions to 41 buildings, 640 requests to 80 trees, 182M tokens to 3 waterfalls" width="100%">
 
