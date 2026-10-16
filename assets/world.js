@@ -627,6 +627,11 @@ const MOMENTS = {
         ['note', `Found on ${sharedName(project) || `a ${kindOf(project).toLowerCase()}`}${owners.length > 1 ? ` and ${plural(owners.length - 1, 'other island')}` : ''}.`]].filter(Boolean),
     };
   },
+  receipts: () => ({
+    accent: '#ffd36b', overline: 'THE RECEIPTS', rows: receiptLines(true), title: TEAM ? 'How we work with our agents.' : 'How I work with my agent.',
+    lines: [['note', TEAM ? 'Counted on each builder’s own computer. Only the numbers were shared, never anyone’s words.' : 'Counted on my computer. Only the numbers were kept, never the words.'],
+      ['note', `Built with ${agentPhrase()}.`]],
+  }),
   archetype: () => ({
     accent: keeperFor(PERSONA.realm).accent, sprite: keeperFor(PERSONA.realm).sprite, title: PERSONA.title,
     overline: EDITION?.label || (DATA.demo ? 'SAMPLE ARCHETYPE' : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE'),
@@ -640,13 +645,41 @@ function drawPixelBox(context, x, y, w, h, cell, stroke, fill) {
   context.fillRect(x + cell, y, w - 2 * cell, h); context.fillRect(x, y + cell, w, h - 2 * cell);
   context.fillStyle = fill; context.fillRect(x + cell, y + cell, w - 2 * cell, h - 2 * cell);
 }
-// The moment's picture, as big as its box allows in whole pixels: a pixel number, a relic or a keeper.
+// The receipts as a torn-off till slip in whole pixels: each row a pixel number in ink and what it counts.
+function drawReceiptSlip(context, rows, box, scale) {
+  const cell = Math.max(2, Math.round(3 * scale));
+  const w = Math.round(Math.min(box.w, 820 * scale) / cell) * cell, h = Math.round(box.h / cell) * cell;
+  const left = Math.round(box.x + (box.w - w) / 2), top = Math.round(box.y);
+  const columns = w / cell, tooth = [0, 1, 2, 1];
+  [['rgba(2,6,18,.55)', cell], ['#fff3d6', 0]].forEach(([colour, drop]) => {
+    context.fillStyle = colour;
+    for (let column = 0; column < columns; column += 1) {
+      const bite = tooth[column % 4] * cell;
+      context.fillRect(left + column * cell + drop, top + bite + drop, cell, h - bite * 2);
+    }
+  });
+  const inset = 26 * scale, rowH = (h - inset * 2) / rows.length;
+  const widest = Math.max(...rows.map(([number]) => pixelTextWidth(number, 1)));
+  const digit = Math.max(2, Math.floor(Math.min(rowH * .5 / 7, (w - inset * 2) * .42 / widest)));
+  const textX = left + inset + widest * digit + 24 * scale, textW = left + w - inset - textX;
+  const size = Math.min(rowH * .27, 30 * scale);
+  rows.forEach(([number, caption], index) => {
+    const y = top + inset + index * rowH;
+    if (index) for (let x = left + inset; x < left + w - inset; x += cell * 3) { context.fillStyle = '#d9c9a6'; context.fillRect(Math.round(x), Math.round(y), cell * 2, Math.max(1, Math.round(cell / 2))); }
+    drawPixelText(context, number, left + inset, Math.round(y + rowH / 2 + 3.5 * digit), digit, '#241d33');
+    context.font = `700 ${size}px ${SANS}`; context.fillStyle = '#4a4058'; context.textAlign = 'left';
+    const lines = wrapLines(context, caption, textW).slice(0, 2);
+    lines.forEach((line, row) => context.fillText(line, textX, y + rowH / 2 + size * (.36 + (row - (lines.length - 1) / 2) * 1.15), textW));
+  });
+}
+// The moment's picture, as big as its box allows in whole pixels: a pixel number, the receipts, a relic or a keeper.
 function drawMomentVisual(context, spec, box, scale) {
   const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
   const reach = Math.min(box.w, box.h) * .75;
   const glow = context.createRadialGradient(cx, cy, 0, cx, cy, reach);
   glow.addColorStop(0, hexAlpha(spec.accent, .28)); glow.addColorStop(1, hexAlpha(spec.accent, 0));
   context.fillStyle = glow; context.fillRect(cx - reach, cy - reach, reach * 2, reach * 2);
+  if (spec.rows) { drawReceiptSlip(context, spec.rows, box, scale); return; }
   if (spec.number) {
     const cell = Math.max(2, Math.floor(Math.min(box.w * .86 / pixelTextWidth(spec.number, 1), box.h / 7, 34 * scale)));
     const x = Math.round(cx - pixelTextWidth(spec.number, cell) / 2), y = Math.round(cy + 3.5 * cell), drop = Math.max(2, Math.round(cell / 4));
@@ -687,7 +720,7 @@ function renderMomentCard(canvas, kind, format = state.format, moment = state.mo
   // Stacked and centred on tall and square cards; words left and picture right on wide ones.
   const visual = wide ? { x: width * .56, y: height * .14, w: width * .44 - pad, h: height * .64 }
     : tall ? { x: pad, y: safeTop + 170 * scale, w: width - pad * 2, h: 580 * scale }
-      : { x: pad, y: safeTop + 90 * scale, w: width - pad * 2, h: 320 * scale };
+      : { x: pad, y: safeTop + 90 * scale, w: width - pad * 2, h: (spec.rows ? 420 : 320) * scale };
   drawMomentVisual(context, spec, visual, scale);
   const center = !wide, x = center ? width / 2 : pad, column = center ? width - pad * 2 : width * .52 - pad;
   const align = center ? 'center' : 'left';
@@ -742,6 +775,12 @@ function shareText(selected = state.exportSelected, moment = state.moment) {
   const agents = agentPhrase(), we = Boolean(TEAM);
   const tail = ` Map yours: ${DEMO_URL}${agents.includes('Claude') ? ' #ClaudeCode' : ''}`;
   if (moment?.kind === 'tokens') return `${compact(TOTAL_TOKENS)} tokens through ${agents} became ${plural(PROJECTS.length, 'island')} in ${we ? 'our' : 'my'} pixel-art world.${tail}`;
+  if (moment?.kind === 'receipts') {
+    const habit = (key) => Number(HABITS[key] || 0);
+    const said = [habit('interrupts') && `stopped ${we ? 'our agents' : 'my agent'} ${plural(habit('interrupts'), 'time')}`, habit('please') && `said please ${plural(habit('please'), 'time')}`,
+      habit('nudges') && `sent ${habit('nudges').toLocaleString('en-US')} one-word go-aheads`, habit('longestStretch') && `went ${stretchLabel(habit('longestStretch'))} without a break`].filter(Boolean);
+    return `${we ? 'Our' : 'My'} ${agents} receipts: ${we ? 'we' : 'I'} ${said.join(', ')}.${tail}`;
+  }
   if (moment?.kind === 'relic') {
     const rarity = RARITY[moment.relic.rarity].label.toLowerCase(), where = sharedName(moment.project);
     return `${we ? 'We' : 'I'} found the ${moment.relic.name}, ${/^[aeiou]/.test(rarity) ? 'an' : 'a'} ${rarity} relic${where ? ` on ${where}` : ''}, in ${we ? 'our' : 'my'} ${agents} world.${tail}`;
@@ -2448,7 +2487,7 @@ world.addEventListener('wheel', (event) => {
   zoomTo(state.scale * Math.exp(-event.deltaY * .0016), point, false);
 }, { passive: false });
 
-// The export studio, for the whole world, one island, or a moment ({ kind: 'tokens' | 'relic' | 'archetype', ... }).
+// The export studio, for the whole world, one island, or a moment ({ kind: 'tokens' | 'receipts' | 'relic' | 'archetype', ... }).
 function openShare(selected = null, moment = null) {
   state.exportSelected = selected; state.moment = moment;
   $('#cardTitle').value = selected ? sharedName(selected) || kindOf(selected) : PERSONA.title;
@@ -2652,14 +2691,15 @@ function stretchLabel(minutes) {
   const hours = Math.floor(minutes / 60), rest = minutes % 60;
   return hours ? `${hours}h${rest ? ` ${rest}m` : ''}` : `${rest}m`;
 }
-// Up to four honest lines, only from what was actually counted.
-function receiptLines() {
+// Up to four honest lines, only from what was actually counted. The story says "you"; a card (`mine`) says "I" or "we".
+function receiptLines(mine = false) {
   const lines = [];
   const count = (value) => Number(value || 0);
+  const who = mine ? (TEAM ? 'we' : 'I') : 'you', whose = mine ? (TEAM ? 'our agents' : 'my agent') : 'your agent';
   const [stops, please, thanks, nudges, stretch] = ['interrupts', 'please', 'thanks', 'nudges', 'longestStretch'].map((key) => count(HABITS[key]));
-  if (stops) lines.push([stops.toLocaleString('en-US'), `${stops === 1 ? 'time' : 'times'} you hit stop on your agent.`]);
-  if (please) lines.push([please.toLocaleString('en-US'), thanks ? `${please === 1 ? 'please' : 'pleases'}. And ${thanks.toLocaleString('en-US')} thank-you${thanks === 1 ? '' : 's'}.` : `${please === 1 ? 'time' : 'times'} you said please.`]);
-  else if (thanks) lines.push([thanks.toLocaleString('en-US'), `${thanks === 1 ? 'time' : 'times'} you said thank you.`]);
+  if (stops) lines.push([stops.toLocaleString('en-US'), `${stops === 1 ? 'time' : 'times'} ${who} hit stop on ${whose}.`]);
+  if (please) lines.push([please.toLocaleString('en-US'), thanks ? `${please === 1 ? 'please' : 'pleases'}. And ${thanks.toLocaleString('en-US')} thank-you${thanks === 1 ? '' : 's'}.` : `${please === 1 ? 'time' : 'times'} ${who} said please.`]);
+  else if (thanks) lines.push([thanks.toLocaleString('en-US'), `${thanks === 1 ? 'time' : 'times'} ${who} said thank you.`]);
   if (nudges) lines.push([`×${nudges.toLocaleString('en-US')}`, HABITS.nudgeWord ? `one-word go-aheads. Favourite: “${HABITS.nudgeWord}”.` : 'one-word go-aheads.']);
   if (stretch) lines.push([stretchLabel(stretch), 'longest stretch without a break.']);
   return lines.slice(0, 4);
@@ -2740,6 +2780,7 @@ function buildSlides() {
     });
     slide.append(list);
     slide.append(element('p', 'story-note', TEAM ? 'Counted on each builder’s own computer. Only the numbers were shared, never anyone’s words.' : 'Counted on this computer. Only the numbers were kept, never your words.'));
+    sharePill(slide, { kind: 'receipts' });
     return slide;
   }));
 

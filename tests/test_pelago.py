@@ -672,6 +672,16 @@ class PelagoTests(unittest.TestCase):
         self.assertEqual(team["habits"]["nudges"], 6)
         self.assertEqual(next(p for p in team["projects"] if p["name"] == "Old")["habits"]["longestStretch"], 0)
 
+    def test_receipts_slide_shares_a_moment_card(self):
+        script = (Path(__file__).parents[1] / "assets" / "world.js").read_text(encoding="utf-8")
+        slide = script[script.index("'slide slide-receipts'"):script.index("'slide slide-clock'")]
+        self.assertIn("sharePill(slide, { kind: 'receipts' })", slide)
+        moment = re.search(r"\n  receipts: \(\) => \(\{.*?\n  \}\),\n", script, re.S).group(0)
+        self.assertIn("rows: receiptLines(true)", moment)
+        # The card and the post speak in the first person and never quote what was typed.
+        self.assertIn("if (moment?.kind === 'receipts')", script)
+        self.assertNotIn("nameOf(", moment)
+
     def test_history_tip_only_when_claude_history_looks_cut_short(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)

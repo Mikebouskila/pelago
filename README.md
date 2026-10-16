@@ -162,7 +162,7 @@ Press **▶ Play your story** for a ten-slide recap filmed over your own world. 
 - your **relics**, rarest first, and the next one you're closest to
 - your **archetype**
 
-It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post (X, LinkedIn, Bluesky and Threads get the image on your clipboard and the words in the composer), or **download a 12-second video** of your islands rising from the clouds in the order you founded them. The tokens, relics and archetype slides each have a *Share this* button that makes a card of just that moment.
+It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post (X, LinkedIn, Bluesky and Threads get the image on your clipboard and the words in the composer), or **download a 12-second video** of your islands rising from the clouds in the order you founded them. The tokens, receipts, relics and archetype slides each have a *Share this* button that makes a card of just that moment.
 
 <img src="docs/card-story-v2.jpg" alt="A Pelago story card: The Midnight Harbormaster over a full archipelago, with islands, sessions, tokens and relics" width="48%">&nbsp;<img src="docs/card-square-v2.jpg" alt="A square Pelago card" width="48%">
 
