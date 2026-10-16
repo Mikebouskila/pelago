@@ -1725,35 +1725,111 @@ function fitSummary() {
   }
 }
 
-const GET_YOURS = `https://${REPO_URL}#-get-yours-in-one-prompt`;
+// The one prompt; it must stay identical to the "Just me" block in the README (a test checks).
+const GET_PROMPT = String.raw`Build my Pelago world from my local AI coding history.
+Clone https://github.com/Mikebouskila/pelago
+to ~/.claude/skills/pelago (Codex: ~/.codex/skills/pelago;
+if it exists, git pull) and run:
+python3 <that folder>/scripts/pelago.py \
+  --output ./pelago-world.html --open
+It only reads ~/.claude/projects and ~/.codex/sessions.
+Then tell me my archetype and to press "Play your story".
+Don't quote my prompts.`;
+const DEMO_URL = 'https://mikebouskila.github.io/pelago/';
+const DEMO_SHARE = 'Pelago turns your Claude Code + Codex history into a living pixel-art world. Fly over a sample:';
+const ARCHETYPE_COUNT = (DATA.archetypes?.prefixes?.length || 11) * (DATA.archetypes?.titles?.length || 8);
+function setText(selector, text) { const node = $(selector); if (node) node.textContent = text; }
 function markDemo() {
-  // The sample world doubles as the public live demo: say so, and point at the one prompt.
-  document.title = 'Pelago · a sample world';
-  $('#welcome .overline').textContent = 'A SAMPLE WORLD';
-  $('#personaChip span').textContent = 'This sample is';
-  $('.welcome-copy').textContent = 'Every project is an island built from its own work: a building for each session, a tree for each request, waterfalls from the tokens. This one is made up. Yours is built on your machine from your Claude Code and Codex history.';
-  const privacy = $('#welcome .privacy');
-  privacy.innerHTML = '';
-  const link = element('a', 'demo-link', 'Get your own world in one prompt →');
-  link.href = GET_YOURS; link.target = '_blank'; link.rel = 'noopener';
-  privacy.append(link);
-  const cta = element('a', 'demo-cta', 'Get yours');
-  cta.href = GET_YOURS; cta.target = '_blank'; cta.rel = 'noopener';
-  $('.mast-actions').prepend(cta);
+  // The sample world doubles as the public live demo: say so, and lead to one prompt. It never offers to post someone else's card.
+  document.title = 'Pelago · your AI coding history as a pixel-art world';
+  setText('.brand-edition', 'SAMPLE WORLD');
+  setText('#personaChip span', 'This builder is');
+  const play = $('.welcome .primary-action');
+  if (play) play.innerHTML = '<span aria-hidden="true">▶</span> Watch the story';
+  const watch = $('.mast-actions [data-play-story]');
+  if (watch) { watch.setAttribute('aria-label', 'Watch the story'); watch.title = 'Watch the story'; watch.lastElementChild.textContent = 'The story'; }
+  $('#guideButton')?.classList.add('icon-only');
+  ['#shareButton', '#shareSelected', '#openGuide', '#welcome .privacy'].forEach((selector) => { const node = $(selector); if (node) node.hidden = true; });
+  const get = element('button', 'get-action');
+  get.innerHTML = 'Get your own world in one prompt <span aria-hidden="true">→</span>';
+  get.addEventListener('click', () => openGetYours('welcome'));
+  $('.welcome-actions')?.after(get);
+  const star = element('a', 'star-link');
+  star.href = `https://${REPO_URL}`; star.target = '_blank'; star.rel = 'noopener'; star.setAttribute('aria-label', 'Star Pelago on GitHub');
+  star.innerHTML = '<span aria-hidden="true">★</span><span class="star-text">Star</span>';
+  const cta = element('button', 'demo-cta', 'Get yours');
+  cta.addEventListener('click', () => openGetYours('header'));
+  $('.mast-actions')?.append(star, cta);
+  buildGetYours();
+}
+function buildGetYours() {
+  const dialog = element('dialog', 'get-dialog'); dialog.id = 'getYours'; dialog.setAttribute('aria-labelledby', 'getYoursTitle');
+  dialog.innerHTML = `<div class="get-body">
+    <div class="get-head"><div><p class="overline">GET YOURS</p><h2 id="getYoursTitle">Your world, in about a minute.</h2></div><button class="icon-button" data-close-get aria-label="Close">×</button></div>
+    <ol class="get-steps">
+      <li><strong id="getStepOne">Copy this prompt</strong><textarea class="get-prompt" id="getPrompt" readonly spellcheck="false" aria-labelledby="getStepOne"></textarea>
+        <div class="get-buttons"><button class="primary-action" id="getShare">Send to my computer</button><a class="get-mini" id="getEmail">Email it to me</a><button class="primary-action" id="getCopy">Copy prompt</button></div></li>
+      <li><strong>Paste it into a new Claude Code or Codex session</strong></li>
+      <li><strong>Your world opens in your browser. Nothing leaves your machine.</strong></li>
+    </ol>
+    <details class="get-terminal"><summary>No agent? Two lines in a terminal</summary><pre><code>git clone https://github.com/Mikebouskila/pelago &amp;&amp;
+python3 pelago/scripts/pelago.py --open</code></pre></details>
+  </div>`;
+  document.body.append(dialog);
+  $('#getPrompt').value = GET_PROMPT;
+  $('#getEmail').href = `mailto:?subject=${encodeURIComponent('My Pelago prompt')}&body=${encodeURIComponent(`Paste this into Claude Code or Codex on your computer:\n\n${GET_PROMPT}\n\nSample world: ${DEMO_URL}`)}`;
+  $('#getCopy').addEventListener('click', copyPrompt);
+  $('#getShare').addEventListener('click', async () => {
+    try { await navigator.share({ title: 'Pelago', text: GET_PROMPT, url: DEMO_URL }); } catch (error) { if (error?.name !== 'AbortError') copyPrompt(); }
+  });
+  dialog.querySelector('[data-close-get]').addEventListener('click', () => dialog.close());
+  // A click that lands on the dialog itself is a click on the backdrop.
+  dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+}
+function openGetYours(source = 'header') {
+  const dialog = $('#getYours');
+  if (!dialog) return;
+  if (!$('#story').hidden) closeStory();
+  // Phones get a bottom sheet that sends the prompt to the computer where the agent lives.
+  const phone = coarsePointer.matches || innerWidth <= 680;
+  dialog.classList.toggle('sheet', phone); dialog.dataset.source = source;
+  $('#getStepOne').textContent = phone ? 'Send it to your computer' : 'Copy this prompt';
+  $('#getShare').hidden = !phone || !navigator.share;
+  $('#getEmail').hidden = !phone;
+  $('#getCopy').className = phone ? 'get-mini' : 'primary-action';
+  if (!dialog.open) dialog.showModal();
+  $('#getPrompt').scrollTop = 0;
+  ($('#getShare').hidden ? $('#getCopy') : $('#getShare')).focus();
+}
+async function copyPrompt() {
+  let copied = false;
+  try { await navigator.clipboard.writeText(GET_PROMPT); copied = true; } catch { /* blocked: fall back to a selection */ }
+  const area = $('#getPrompt');
+  if (!copied && area) { area.focus(); area.select(); area.setSelectionRange(0, area.value.length); try { copied = document.execCommand('copy'); } catch { copied = false; } }
+  toast(copied ? 'Copied. Paste it into Claude Code or Codex.' : 'Select the prompt and copy it.');
+  const button = $('#getCopy');
+  if (copied && button) { button.textContent = 'Copied ✓'; clearTimeout(button.reset); button.reset = setTimeout(() => { button.textContent = 'Copy prompt'; }, 2200); }
+}
+async function shareDemo() {
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Pelago', text: DEMO_SHARE, url: DEMO_URL }); return; } catch (error) { if (error?.name === 'AbortError') return; }
+  }
+  window.open(`https://x.com/intent/post?text=${encodeURIComponent(`${DEMO_SHARE} ${DEMO_URL}`)}`, '_blank', 'noopener');
 }
 function markTeam() {
   // A team world: several people's exports merged, shared islands built together.
   document.title = `${TEAM.name} · Pelago`;
-  $('.brand-edition').textContent = 'TEAM ATLAS';
-  $('#welcome .overline').textContent = `${TEAM.name.toUpperCase()} · ${plural(TEAM.members.length, 'BUILDER')}`;
-  $('#welcomeTitle').innerHTML = 'Everything we built <br>became a <em>place.</em>';
-  $('.welcome-copy').textContent = `Every project is an island built from its own work: a building for each session, a tree for each request, waterfalls from the tokens. Merged from ${TEAM.members.length} people's Claude Code and Codex history; the islands you share were built together.`;
-  $('#personaChip span').textContent = 'Together you are';
+  setText('.brand-edition', DATA.demo ? 'SAMPLE TEAM' : 'TEAM ATLAS');
+  setText('#welcome .overline', `${TEAM.name.toUpperCase()} · ${plural(TEAM.members.length, 'BUILDER')}`);
+  const title = $('#welcomeTitle');
+  if (title) title.innerHTML = 'Everything we built with AI became a <em>place.</em>';
+  setText('#personaChip span', 'Together you are');
   const play = $('.welcome .primary-action');
-  if (play) play.innerHTML = '<span aria-hidden="true">▶</span> Play the team story';
+  if (play) play.innerHTML = `<span aria-hidden="true">▶</span> ${DATA.demo ? 'Watch' : 'Play'} the team story`;
   const builders = element('div', 'sheet-builders'); builders.id = 'sheetBuilders';
-  $('#selectedFacts').after(builders);
+  $('#selectedFacts')?.after(builders);
   const filters = $('.agent-filters');
+  if (!filters) return;
   filters.innerHTML = '';
   filters.setAttribute('aria-label', 'Filter islands by builder');
   const all = element('button', 'agent-filter active', 'All'); all.dataset.filter = 'all'; filters.append(all);
@@ -1770,6 +1846,7 @@ function buildInterface() {
   document.title = `${PERSONA.title} · My Pelago`;
   if (DATA.demo) markDemo();
   if (TEAM) markTeam();
+  $$('.legend-sprite').forEach((node) => { if (!node.firstChild) node.append(relicIcon(node.dataset.sprite, 2)); });
   const sessions = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
   updateSummary();
   $('#indexCount').textContent = String(PROJECTS.length).padStart(2, '0');
@@ -1903,7 +1980,7 @@ function openShare(selected = null) {
 }
 function renderExport() { renderCard($('#exportCanvas')); }
 
-function toast(message) { const node = $('#toast'); node.textContent = message; node.classList.add('show'); clearTimeout(node.timeout); node.timeout = setTimeout(() => node.classList.remove('show'), 2300); }
+function toast(message) { const node = $('#toast'); const host = $('#getYours')?.open ? $('#getYours') : document.body; if (node.parentNode !== host) host.append(node); node.textContent = message; node.classList.add('show'); clearTimeout(node.timeout); node.timeout = setTimeout(() => node.classList.remove('show'), 2300); }
 
 $('#enterWorld').addEventListener('click', enterWorld);
 $('#openGuide').addEventListener('click', showGuide);
@@ -1962,7 +2039,7 @@ $('[data-close-dialog]').addEventListener('click', () => $('#shareDialog').close
 $('#relicPopClose').addEventListener('click', hideRelicCard);
 // Escape closes the topmost layer only: a relic card, then the island sheet, then the field guide. The story and the export dialog handle their own.
 document.addEventListener('keydown', (event) => {
-  if (event.key !== 'Escape' || !$('#story').hidden || $('#shareDialog').open) return;
+  if (event.key !== 'Escape' || !$('#story').hidden || $('#shareDialog').open || $('#getYours')?.open) return;
   if (!$('#relicPop').hidden) hideRelicCard();
   else if ($('#islandSheet').classList.contains('open')) closeSheet();
   else if ($('#mapKey').classList.contains('open')) hideGuide();
@@ -2048,9 +2125,9 @@ function buildSlides() {
 
   slides.push(at({ mode: 'wide', zoom: 1.08, shade: .2 }, () => {
     const slide = element('div', 'slide slide-intro');
-    slide.append(element('p', 'story-over', TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : 'YOUR AI CODING HISTORY'));
+    slide.append(element('p', 'story-over', TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : DATA.demo ? "A SAMPLE BUILDER'S AI CODING HISTORY" : 'YOUR AI CODING HISTORY'));
     const big = element('p', 'story-mega'); slide.append(big); countUp(big, TOTAL_SESSIONS);
-    slide.append(element('h2', 'story-title', 'sessions with your agents.'));
+    slide.append(element('h2', 'story-title', DATA.demo && !TEAM ? 'sessions with their agents.' : 'sessions with your agents.'));
     slide.append(element('p', 'story-copy', days ? `Across ${plural(days, 'day')} at sea${sinceLabel() ? ` since ${sinceLabel()}` : ''}, they quietly raised ${plural(PROJECTS.length, 'island')}.` : `Together they raised ${plural(PROJECTS.length, 'island')}.`));
     return slide;
   }));
@@ -2158,7 +2235,7 @@ function buildSlides() {
 
   slides.push(at({ mode: 'wide', zoom: .95, shade: .25, reveal: true }, () => {
     const slide = element('div', 'slide slide-persona');
-    slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : 'WHICH MAKES YOU'));
+    slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : DATA.demo ? 'THIS BUILDER IS' : 'WHICH MAKES YOU'));
     const title = element('h2', 'story-persona');
     const { lead, accent } = personaParts();
     title.append(document.createTextNode(`${lead} `));
@@ -2169,27 +2246,40 @@ function buildSlides() {
   }));
 
   slides.push(at({ mode: 'wide', zoom: .9, shade: .85 }, () => {
-    const slide = element('div', 'slide slide-share');
-    slide.append(element('p', 'story-over', 'YOUR CARD IS READY'));
+    const slide = element('div', `slide slide-share${DATA.demo ? ' demo' : ''}`);
+    slide.append(element('p', 'story-over', DATA.demo ? 'YOUR TURN' : 'YOUR CARD IS READY'));
     const preview = element('canvas', 'story-card');
     state.format = 'story'; state.exportSelected = null;
     renderCard(preview, 'story', null, state.showNames);
-    preview.setAttribute('role', 'img'); preview.setAttribute('aria-label', `Share card: ${PERSONA.title}`);
+    preview.setAttribute('role', 'img'); preview.setAttribute('aria-label', `${DATA.demo ? 'Sample card' : 'Share card'}: ${PERSONA.title}`);
     slide.append(preview);
-    const actions = element('div', 'story-actions');
-    const share = element('button', 'primary-action', 'Share my card');
-    share.addEventListener('click', (event) => { event.stopPropagation(); nativeShare(); });
-    const x = element('button', 'story-ghost', 'Post on X');
-    x.addEventListener('click', (event) => { event.stopPropagation(); postToX(); });
-    const more = element('button', 'story-ghost', 'More formats');
-    more.addEventListener('click', (event) => { event.stopPropagation(); closeStory(); openShare(); });
-    const explore = element('button', 'story-ghost', 'Explore the map');
-    explore.addEventListener('click', (event) => { event.stopPropagation(); closeStory(); enterWorld(); });
-    actions.append(share, x, more, explore);
-    slide.append(actions);
+    if (DATA.demo) slide.append(element('h2', 'story-title end-title', `That was a sample. Which of ${ARCHETYPE_COUNT} builders are you?`));
+    storyEndActions(slide);
     return slide;
   }));
   return slides;
+}
+// The last slide's buttons. A real world shares its card; the sample leads to the prompt and never posts someone else's card.
+function storyEndActions(slide) {
+  const actions = element('div', `story-actions${DATA.demo ? ' demo' : ''}`);
+  const add = (className, label, run) => {
+    const button = element('button', className, label);
+    button.addEventListener('click', (event) => { event.stopPropagation(); run(); });
+    actions.append(button);
+  };
+  const explore = () => { closeStory(); enterWorld(); };
+  if (DATA.demo) {
+    add('primary-action', 'Get yours in one prompt', () => openGetYours('story'));
+    add('story-ghost', 'Share this demo', shareDemo);
+    add('story-ghost', 'Explore the map', explore);
+  } else {
+    add('primary-action', 'Share my card', nativeShare);
+    add('story-ghost', 'Post on X', postToX);
+    add('story-ghost', 'More formats', () => { closeStory(); openShare(); });
+    add('story-ghost', 'Explore the map', explore);
+  }
+  slide.append(actions);
+  return actions;
 }
 
 

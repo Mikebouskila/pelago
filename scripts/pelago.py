@@ -12,6 +12,7 @@ import sys
 import webbrowser
 from urllib.parse import unquote, urlparse
 from collections import Counter
+from html import escape
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -478,11 +479,22 @@ REALM_LINES = {
     "atlas": "No single realm holds you: your islands span the whole map.",
 }
 # Strong rhythms and rare habits name you first; everyone else is named for the part of the day they build in.
-PERIODS = (
-    ("Morning", range(9, 12), "You do your best building in the bright first hours."),
-    ("Sunlit", range(12, 17), "Your islands rise in broad daylight."),
-    ("Twilight", range(17, 22), "Your best work arrives as the lamps come on."),
-)
+# Every archetype is one first word and one title: 11 × 8 = 88.
+PREFIXES = ("Midnight", "Dawn", "Weekend", "Two-Tide", "Unbroken", "Hive", "Wandering", "Morning", "Sunlit", "Twilight", "Steady")
+PREFIX_LINES = dict(zip(PREFIXES, (
+    "Your lamps stay lit long after the harbor sleeps.",
+    "You raise the sails before anyone else is awake.",
+    "Saturdays are when your islands rise.",
+    "You sail with two crews and know when to call each.",
+    "Day after day, you came back to the shore.",
+    "You rarely sail alone: subagents fan out from every harbor.",
+    "You leave a new island in your wake every few weeks.",
+    "You do your best building in the bright first hours.",
+    "Your islands rise in broad daylight.",
+    "Your best work arrives as the lamps come on.",
+    "You keep returning, and the islands keep growing.",
+)))
+PERIODS = dict(zip(PREFIXES[7:10], (range(9, 12), range(12, 17), range(17, 22))))
 
 
 def persona(data: dict[str, Any]) -> dict[str, Any]:
@@ -517,24 +529,11 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
     both = len(agent_weight) > 1 and min(agent_weight.values()) / total_agents > 0.25
     crew = tool_weight["crew"] / max(1, sum(tool_weight.values()))
 
-    if night > 0.3:
-        prefix, line = "Midnight", "Your lamps stay lit long after the harbor sleeps."
-    elif dawn > 0.25:
-        prefix, line = "Dawn", "You raise the sails before anyone else is awake."
-    elif weekend > 0.4:
-        prefix, line = "Weekend", "Saturdays are when your islands rise."
-    elif both:
-        prefix, line = "Two-Tide", "You sail with two crews and know when to call each."
-    elif (rhythm.get("longestStreak") or 0) >= 30:
-        prefix, line = "Unbroken", "Day after day, you came back to the shore."
-    elif crew > 0.12:
-        prefix, line = "Hive", "You rarely sail alone: subagents fan out from every harbor."
-    elif len(projects) >= 20 and top_share < 0.4:
-        prefix, line = "Wandering", "You leave a new island in your wake every few weeks."
-    elif total:
-        prefix, _, line = max(PERIODS, key=lambda period: sum(hours[hour] for hour in period[1]))
-    else:
-        prefix, line = "Steady", "You keep returning, and the islands keep growing."
+    signals = (night > 0.3, dawn > 0.25, weekend > 0.4, both, (rhythm.get("longestStreak") or 0) >= 30, crew > 0.12, len(projects) >= 20 and top_share < 0.4)
+    prefix = next((name for name, hit in zip(PREFIXES, signals) if hit), None)
+    if not prefix:
+        prefix = max(PERIODS, key=lambda name: sum(hours[hour] for hour in PERIODS[name])) if total else PREFIXES[-1]
+    line = PREFIX_LINES[prefix]
     if top_share > 0.6 and len(projects) > 1:
         line += " One island holds most of your heart."
     return {
@@ -550,6 +549,7 @@ def enrich(data: dict[str, Any]) -> dict[str, Any]:
     data.setdefault("rhythm", Rhythm().public())
     data.setdefault("links", [])
     data["persona"] = persona(data)
+    data["archetypes"] = {"prefixes": list(PREFIXES), "titles": list(TITLES.values())}
     return data
 
 
@@ -982,6 +982,10 @@ def render_html(data: dict[str, Any], destination: Path) -> None:
     template = asset_dir / "world-template.html"
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     html = template.read_text(encoding="utf-8")
+    team = (data.get("team") or {}).get("name") if (data.get("team") or {}).get("members") else None
+    title = f"{team} · Pelago" if team else "Pelago · your AI coding history as a pixel-art world" if data.get("demo") else None
+    if title:
+        html = re.sub(r"<title>.*?</title>", lambda _: f"<title>{escape(title, quote=False)}</title>", html, count=1)
     html = html.replace("__PELAGO_CSS__", (asset_dir / "world.css").read_text(encoding="utf-8"))
     script = "\n".join((asset_dir / name).read_text(encoding="utf-8") for name in ("island.js", "relics.js", "world.js"))
     html = html.replace("__PELAGO_JS__", script.replace("</script", "<\\/script"))

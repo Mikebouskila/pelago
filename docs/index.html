@@ -11,7 +11,7 @@
   <meta property="og:image" content="https://mikebouskila.github.io/pelago/hero.jpg">
   <meta property="og:url" content="https://mikebouskila.github.io/pelago/">
   <meta name="twitter:card" content="summary_large_image">
-  <title>My Pelago · The world I built with AI</title>
+  <title>Pelago · your AI coding history as a pixel-art world</title>
   <style>:root {
   --ink: #f5f3eb;
   --ink-2: #cbd8ec;
@@ -77,7 +77,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .welcome .overline { color: oklch(96% 0.035 184); text-shadow: 0 1px oklch(30% 0.06 210 / .25); }
 .welcome h1 { margin: 13px 0 17px; max-width: 520px; color: var(--paper); font-family: Georgia, "Times New Roman", serif; font-size: clamp(40px, min(5.4vw, 8.6vh), 76px); font-weight: 700; line-height: .9; letter-spacing: -.055em; text-shadow: 0 4px 0 oklch(35% 0.06 208 / .16); }
 .welcome h1 em { color: var(--sun); font-weight: 400; }
-.welcome-copy { max-width: 470px; margin: 0; color: oklch(97% 0.02 180 / .92); font-size: 14px; font-weight: 590; line-height: 1.65; text-shadow: 0 1px oklch(30% 0.06 210 / .28); }
 .welcome-actions { display: flex; align-items: center; gap: 18px; margin-top: 25px; }
 .primary-action { min-height: 49px; padding: 0 18px; border-radius: 4px; background: var(--coral); color: var(--paper); display: inline-flex; align-items: center; gap: 22px; font-size: 12.5px; font-weight: 900; box-shadow: 0 3px 0 var(--coral-deep); }
 .text-action { min-height: 44px; padding: 0; background: transparent; color: #dce8f6; font-size: 12.5px; font-weight: 820; text-decoration: underline; text-decoration-color: rgba(220,232,246,.38); text-decoration-thickness: 1px; text-underline-offset: 5px; }
@@ -188,7 +187,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .welcome { padding: 26px 28px 25px; border: 1px solid rgba(167,198,236,.18); border-radius: 14px; background: linear-gradient(135deg, rgba(8,17,39,.9), rgba(12,29,57,.68)); box-shadow: 0 28px 90px rgba(0,2,14,.4), inset 0 1px rgba(255,255,255,.06); backdrop-filter: blur(13px); }
 .welcome h1 { color: #fffaf0; text-shadow: 0 8px 32px rgba(0,0,0,.38); }
 .welcome h1 em { color: #ffd66f; text-shadow: 0 0 30px rgba(255,201,83,.2); }
-.welcome-copy { color: rgba(226,237,251,.83); }
 .welcome .overline { color: #70d8df; }
 .privacy { color: rgba(201,220,240,.68); }
 
@@ -228,7 +226,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
 @media (max-width: 680px) {
   .app { grid-template-rows: 58px 1fr; }.masthead { padding: 0 10px 0 13px; }.brand-word { font-size: 14px; }.brand-edition, .quiet-action span:last-child { display: none; }.quiet-action { width: 40px; padding: 0; justify-content: center; }.share-action { padding: 0 11px; }.share-action span:first-child { display: none; }
-  .welcome { left: 14px; right: 14px; bottom: 112px; top: auto; width: auto; padding: 18px; border: 1px solid oklch(94% 0.03 180 / .42); border-radius: 6px; background: oklch(38% 0.07 208 / .77); transform: none; backdrop-filter: blur(5px); }.welcome.dismissed { transform: translateY(16px); }.welcome h1 { margin-top: 9px; font-size: clamp(42px, 13vw, 58px); }.welcome-copy { font-size: 12.5px; }.welcome-actions { margin-top: 17px; }.text-action, .privacy { display: none; }
+  .welcome { left: 14px; right: 14px; bottom: 112px; top: auto; width: auto; padding: 18px; border: 1px solid oklch(94% 0.03 180 / .42); border-radius: 6px; background: oklch(38% 0.07 208 / .77); transform: none; backdrop-filter: blur(5px); }.welcome.dismissed { transform: translateY(16px); }.welcome h1 { margin-top: 9px; font-size: clamp(42px, 13vw, 58px); }.welcome-actions { margin-top: 17px; }.text-action, .privacy { display: none; }
   .welcome:not(.dismissed) ~ .map-controls { display: none; }
   .island-index { left: 8px; right: 8px; bottom: 8px; height: 94px; grid-template-columns: 46px 1fr; gap: 8px; padding: 8px; }.index-title > span:last-child { display: none; }.index-count { width: 42px; height: 42px; }.index-track { height: 76px; }.island-card { min-width: 135px; max-width: 135px; height: 61px; grid-template-columns: 46px 1fr; }.card-island { width: 46px; height: 45px; }
   .map-controls { right: 9px; bottom: 111px; }.map-controls button { width: 36px; height: 34px; }
@@ -409,7 +407,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .welcome { left: 10px; right: 10px; bottom: 92px; top: auto; width: auto; padding: 18px 18px 16px; transform: none; border-radius: 20px; }
   .welcome h1 { font-size: 36px; line-height: .95; margin: 8px 0 10px; }
   .welcome h1 br { display: none; }
-  .welcome-copy, .welcome .privacy, .welcome .text-action { display: none; }
+  .welcome .privacy, .welcome .text-action { display: none; }
   .persona-chip { margin-top: 0; padding: 7px 12px; font-size: 11px; }
   .welcome-actions { margin-top: 14px; gap: 8px; }
   .welcome-actions .primary-action, .welcome-actions .ghost-action { flex: 1; justify-content: center; min-height: 46px; }
@@ -503,14 +501,83 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .sheet-relics .next-relic { margin-top: 8px; }
 .story-next { margin: 14px 0 0; padding: 9px 14px; border: 1px dashed rgba(255,214,111,.45); border-radius: 999px; color: #ffe7a8; font-size: 13px; font-weight: 700; display: inline-block; }
 
-/* Live demo: the sample world points at the one prompt */
-.demo-cta { display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px; border-radius: 999px; background: linear-gradient(180deg, #ffd66f, #f2b544); color: #2a1a05; font-size: 12px; font-weight: 900; text-decoration: none; box-shadow: 0 3px 0 #b88220; white-space: nowrap; }
-.demo-cta:hover { transform: translateY(-1px); }
-.demo-link { color: #ffd66f; font-weight: 800; text-decoration: none; }
-.demo-link:hover { text-decoration: underline; }
-@media (max-width: 760px) { .welcome .privacy:has(.demo-link) { display: block !important; margin-top: 12px; } }
 .next-relic .relic-frame canvas { filter: grayscale(.55) brightness(.9); opacity: .78; }
-@media (max-width: 760px) { .masthead:has(.demo-cta) .brand-word, .masthead:has(.demo-cta) .brand-edition { display: none; } .demo-cta { min-height: 36px; padding: 0 12px; } }
+
+/* Welcome legend: three pixel chips say how history becomes a world */
+.welcome h1 { font-size: clamp(34px, min(3.9vw, 6.6vh), 56px); line-height: .92; }
+.welcome-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.welcome-legend li { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 7px 8px 7px 7px; border: 1px solid rgba(167,198,236,.15); border-radius: 12px; background: rgba(255,255,255,.035); }
+.legend-sprite { flex: 0 0 auto; display: grid; place-items: center; width: 26px; height: 22px; }
+.legend-sprite .relic-icon { max-width: none; max-height: none; image-rendering: pixelated; }
+.welcome-legend li > span:last-child { display: grid; min-width: 0; color: rgba(220,232,248,.74); font-size: 11px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+.welcome-legend b { color: #fff6dc; font-size: 12px; font-weight: 850; }
+@media (max-width: 680px) {
+  .welcome .overline { font-size: 10px; letter-spacing: .1em; }
+  .welcome h1 { font-size: 32px; }
+  .welcome-actions .primary-action, .welcome-actions .ghost-action { flex: 1 1 auto; gap: 8px; padding: 0 12px; white-space: nowrap; }
+  .welcome .persona-chip { margin-top: 9px; }
+  .welcome-legend li { flex-direction: column; align-items: flex-start; gap: 4px; padding: 7px 8px; }
+  .welcome-legend li > span:last-child { font-size: 10.5px; }
+  .welcome-legend b { font-size: 11.5px; }
+}
+
+/* Live demo: one filled button in the header, and every road leads to one prompt */
+.demo-cta { display: inline-flex; align-items: center; min-height: 42px; padding: 0 18px; border: 0; border-radius: 999px; background: linear-gradient(180deg, #ffd66f, #f2b544); color: #2a1a05; font-size: 12.5px; font-weight: 900; box-shadow: 0 3px 0 #b88220; white-space: nowrap; cursor: pointer; transition: transform .16s cubic-bezier(.22,1,.36,1); }
+.demo-cta:hover { transform: translateY(-1px); }
+.star-link { display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 8px; color: rgba(236,242,252,.84); font-size: 12px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.star-link span:first-child { color: #ffd66f; font-size: 13px; }
+.star-link:hover { color: #ffd66f; }
+.quiet-action.icon-only { position: relative; width: 42px; padding: 0; justify-content: center; }
+.quiet-action.icon-only > span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.get-action { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; margin-top: 10px; padding: 0 14px; border: 1px solid rgba(255,214,111,.3); border-radius: 10px; background: rgba(255,214,111,.08); color: #ffd66f; font-size: 12.5px; font-weight: 850; cursor: pointer; transition: background .16s, transform .16s cubic-bezier(.22,1,.36,1); }
+.get-action:hover { background: rgba(255,214,111,.15); transform: translateY(-1px); }
+@media (max-width: 760px) { .demo-cta { min-height: 38px; padding: 0 14px; } .star-link { padding: 0 4px; } }
+@media (max-width: 480px) { .star-link .star-text { display: none; } .star-link { min-width: 32px; justify-content: center; } .star-link span:first-child { font-size: 16px; } }
+@media (max-width: 400px) { .masthead:has(.demo-cta) { gap: 10px; } .masthead:has(.demo-cta) .mast-actions { gap: 4px; } .masthead:has(.demo-cta) .quiet-action { width: 38px; } .demo-cta { padding: 0 12px; } }
+@media (max-width: 350px) { .star-link { display: none; } }
+@media (max-width: 400px) { .welcome-actions .primary-action, .welcome-actions .ghost-action { padding: 0 10px; font-size: 12px; } .welcome-actions .ghost-action span { display: none; } }
+
+/* Get yours: a dialog on desktop, a bottom sheet on phones */
+.get-dialog { width: min(560px, calc(100vw - 28px)); max-height: calc(100vh - 28px); max-height: calc(100dvh - 28px); padding: 0; border: 1px solid rgba(167,198,236,.2); border-radius: 22px; background: linear-gradient(145deg, #0e1930, #091123); color: var(--ink); box-shadow: 0 28px 90px rgba(0,3,18,.6); overflow: auto; overscroll-behavior: contain; }
+.get-dialog::backdrop { background: rgba(1,4,14,.74); backdrop-filter: blur(4px); }
+.get-dialog[open] { animation: dialog-in .2s cubic-bezier(.22,1,.36,1); }
+.get-body { padding: 22px 24px 20px; }
+.get-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.get-head .overline { color: #70d8df; }
+.get-head h2 { margin: 6px 0 0; color: #fffaf0; font-family: Georgia, "Times New Roman", serif; font-size: 30px; line-height: 1.05; letter-spacing: -.035em; }
+.get-head .icon-button { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 999px; }
+.get-steps { display: grid; gap: 16px; margin: 20px 0 0; padding: 0; list-style: none; counter-reset: get; }
+.get-steps > li { position: relative; display: grid; gap: 10px; min-width: 0; padding-left: 38px; counter-increment: get; }
+.get-steps > li::before { content: counter(get); position: absolute; left: 0; top: -3px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: rgba(255,214,111,.13); color: #ffd66f; font-size: 13px; font-weight: 900; }
+.get-steps strong { color: #fff6dc; font-size: 14px; line-height: 1.4; }
+.get-prompt { width: 100%; height: 196px; margin: 0; padding: 12px 14px; resize: none; border: 1px solid rgba(167,198,236,.22); border-radius: 12px; background: rgba(0,0,0,.3); color: #dfe9f7; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.get-prompt:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.get-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.get-buttons .primary-action { min-height: 46px; justify-content: center; }
+.get-mini { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 16px; border: 1px solid rgba(167,198,236,.3); border-radius: 4px; background: rgba(255,255,255,.04); color: #fff6dc; font-size: 12.5px; font-weight: 850; text-decoration: none; cursor: pointer; }
+.get-mini:hover { background: rgba(255,255,255,.09); }
+.get-terminal { margin-top: 18px; padding-top: 10px; border-top: 1px solid rgba(167,198,236,.12); }
+.get-terminal summary { display: flex; align-items: center; gap: 8px; min-height: 40px; color: rgba(220,232,248,.8); font-size: 12.5px; font-weight: 800; cursor: pointer; list-style: none; }
+.get-terminal summary::-webkit-details-marker { display: none; }
+.get-terminal summary::before { content: "▸"; color: #ffd66f; }
+.get-terminal[open] summary::before { content: "▾"; }
+.get-terminal pre { margin: 4px 0 0; padding: 12px 14px; border-radius: 10px; background: rgba(0,0,0,.3); color: #dfe9f7; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.get-dialog.sheet { width: 100%; max-width: 100%; margin: auto 0 0; max-height: 90vh; max-height: 90dvh; border-bottom: 0; border-radius: 22px 22px 0 0; }
+.get-dialog.sheet[open] { animation: sheet-in .26s cubic-bezier(.22,1,.36,1); }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(48px); } }
+.get-dialog.sheet .get-body { padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); }
+.get-dialog.sheet .get-head h2 { font-size: 25px; }
+.get-dialog.sheet .get-steps { gap: 14px; margin-top: 16px; }
+.get-dialog.sheet .get-steps > li { padding-left: 34px; }
+.get-dialog.sheet .get-prompt { height: 132px; font-size: 11.5px; }
+.get-dialog.sheet .get-buttons { display: grid; grid-template-columns: 1fr 1fr; }
+.get-dialog.sheet .get-buttons > :only-child, .get-dialog.sheet .get-buttons .primary-action { grid-column: 1 / -1; }
+@media (prefers-reduced-motion: reduce) { .get-dialog[open] { animation: none; } }
+
+/* Story end in the sample: a small card, one question, the prompt */
+.slide-share.demo .story-card { flex: 0 0 auto; height: 38vh; height: 38dvh; width: auto; }
+.slide-share .end-title { margin: 2px 0 2px; font-size: clamp(24px, 6.8vw, 32px); line-height: 1.1; text-align: center; }
+.story-actions.demo { grid-template-columns: 1fr 1fr; }
 
 /* Team worlds: the crew slide, the builders on each island */
 .team-list { display: grid; gap: 14px; width: 100%; margin: 18px 0 4px; }
@@ -550,7 +617,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 @media (min-width: 681px) and (max-height: 900px) {
   .welcome { padding: 16px 22px 15px; }
   .welcome h1 { margin: 7px 0 10px; line-height: .88; }
-  .welcome-copy { font-size: 13px; line-height: 1.46; }
   .persona-chip { margin-top: 11px; padding: 7px 13px; }
   .welcome-actions { margin-top: 12px; gap: 4px 12px; }
   .welcome-actions .primary-action, .welcome-actions .ghost-action { min-height: 44px; }
@@ -586,9 +652,13 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
       <div class="ocean-vignette" aria-hidden="true"></div>
 
       <section class="welcome" id="welcome" aria-labelledby="welcomeTitle">
-        <p class="overline">YOUR AI CODING HISTORY, MAPPED</p>
-        <h1 id="welcomeTitle">Everything you built <br>became a <em>place.</em></h1>
-        <p class="welcome-copy">Every project is an island built from its own work: a building for each session, a tree for each request, waterfalls from the tokens. Made locally from your Claude Code and Codex history.</p>
+        <p class="overline">YOUR CLAUDE CODE + CODEX HISTORY, MAPPED</p>
+        <h1 id="welcomeTitle">Everything you built with AI became a <em>place.</em></h1>
+        <ul class="welcome-legend" aria-label="How your history becomes a world">
+          <li><span class="legend-sprite" data-sprite="lg-cottage"></span><span><b>1 session</b> <span>→ 1 building</span></span></li>
+          <li><span class="legend-sprite" data-sprite="lg-tree"></span><span><b>1 request</b> <span>→ 1 tree</span></span></li>
+          <li><span class="legend-sprite" data-sprite="lg-falls"></span><span><b>10× tokens</b> <span>→ a waterfall</span></span></li>
+        </ul>
         <p class="persona-chip" id="personaChip"><span>You are</span> <strong id="personaTitle"></strong></p>
         <div class="welcome-actions">
           <button class="primary-action" data-play-story><span aria-hidden="true">▶</span> Play your story</button>
@@ -707,7 +777,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="sr-only" id="srAnnounce" aria-live="polite"></div>
-  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-16T12:41:03.929616+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-18T12:41:03.929616+00:00","lastActive":"2026-10-16T12:41:03.929616+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-07-01T12:41:03.929616+00:00","lastActive":"2026-10-14T12:41:03.929616+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-14T12:41:03.929616+00:00","lastActive":"2026-10-10T12:41:03.929616+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-28T12:41:03.929616+00:00","lastActive":"2026-10-05T12:41:03.929616+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-11T12:41:03.929616+00:00","lastActive":"2026-08-02T12:41:03.929616+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-24T12:41:03.929616+00:00","lastActive":"2026-09-27T12:41:03.929616+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-07T12:41:03.929616+00:00","lastActive":"2026-06-08T12:41:03.929616+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-21T12:41:03.929616+00:00","lastActive":"2026-09-20T12:41:03.929616+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-04T12:41:03.929616+00:00","lastActive":"2026-10-13T12:41:03.929616+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-15T12:41:03.929616+00:00","lastActive":"2026-10-07T12:41:03.929616+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-29T12:41:03.929616+00:00","lastActive":"2026-10-15T12:41:03.929616+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-12T12:41:03.929616+00:00","lastActive":"2026-09-06T12:41:03.929616+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-26T12:41:03.929616+00:00","lastActive":"2026-08-07T12:41:03.929616+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-09T12:41:03.929616+00:00","lastActive":"2026-10-14T12:41:03.929616+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22}}</script>
+  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-16T13:02:34.689120+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-18T13:02:34.689120+00:00","lastActive":"2026-10-16T13:02:34.689120+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-07-01T13:02:34.689120+00:00","lastActive":"2026-10-14T13:02:34.689120+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-14T13:02:34.689120+00:00","lastActive":"2026-10-10T13:02:34.689120+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-28T13:02:34.689120+00:00","lastActive":"2026-10-05T13:02:34.689120+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-11T13:02:34.689120+00:00","lastActive":"2026-08-02T13:02:34.689120+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-24T13:02:34.689120+00:00","lastActive":"2026-09-27T13:02:34.689120+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-07T13:02:34.689120+00:00","lastActive":"2026-06-08T13:02:34.689120+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-21T13:02:34.689120+00:00","lastActive":"2026-09-20T13:02:34.689120+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-04T13:02:34.689120+00:00","lastActive":"2026-10-13T13:02:34.689120+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-15T13:02:34.689120+00:00","lastActive":"2026-10-07T13:02:34.689120+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-29T13:02:34.689120+00:00","lastActive":"2026-10-15T13:02:34.689120+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-12T13:02:34.689120+00:00","lastActive":"2026-09-06T13:02:34.689120+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-26T13:02:34.689120+00:00","lastActive":"2026-08-07T13:02:34.689120+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-09T13:02:34.689120+00:00","lastActive":"2026-10-14T13:02:34.689120+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22},"archetypes":{"prefixes":["Midnight","Dawn","Weekend","Two-Tide","Unbroken","Hive","Wandering","Morning","Sunlit","Twilight","Steady"],"titles":["Harbormaster","Gardener","Wayfinder","Stargazer","Toolsmith","Archivist","Castle Builder","Cartographer"]}}</script>
   <script>/* ---------- Procedural islands: every island is built from its own work ---------- */
 // Isometric pixel art, painted pixel by pixel into a buffer with one light source (upper left),
 // warm highlights, cool shadows, dithered materials and a dark silhouette outline.
@@ -4242,35 +4312,111 @@ function fitSummary() {
   }
 }
 
-const GET_YOURS = `https://${REPO_URL}#-get-yours-in-one-prompt`;
+// The one prompt; it must stay identical to the "Just me" block in the README (a test checks).
+const GET_PROMPT = String.raw`Build my Pelago world from my local AI coding history.
+Clone https://github.com/Mikebouskila/pelago
+to ~/.claude/skills/pelago (Codex: ~/.codex/skills/pelago;
+if it exists, git pull) and run:
+python3 <that folder>/scripts/pelago.py \
+  --output ./pelago-world.html --open
+It only reads ~/.claude/projects and ~/.codex/sessions.
+Then tell me my archetype and to press "Play your story".
+Don't quote my prompts.`;
+const DEMO_URL = 'https://mikebouskila.github.io/pelago/';
+const DEMO_SHARE = 'Pelago turns your Claude Code + Codex history into a living pixel-art world. Fly over a sample:';
+const ARCHETYPE_COUNT = (DATA.archetypes?.prefixes?.length || 11) * (DATA.archetypes?.titles?.length || 8);
+function setText(selector, text) { const node = $(selector); if (node) node.textContent = text; }
 function markDemo() {
-  // The sample world doubles as the public live demo: say so, and point at the one prompt.
-  document.title = 'Pelago · a sample world';
-  $('#welcome .overline').textContent = 'A SAMPLE WORLD';
-  $('#personaChip span').textContent = 'This sample is';
-  $('.welcome-copy').textContent = 'Every project is an island built from its own work: a building for each session, a tree for each request, waterfalls from the tokens. This one is made up. Yours is built on your machine from your Claude Code and Codex history.';
-  const privacy = $('#welcome .privacy');
-  privacy.innerHTML = '';
-  const link = element('a', 'demo-link', 'Get your own world in one prompt →');
-  link.href = GET_YOURS; link.target = '_blank'; link.rel = 'noopener';
-  privacy.append(link);
-  const cta = element('a', 'demo-cta', 'Get yours');
-  cta.href = GET_YOURS; cta.target = '_blank'; cta.rel = 'noopener';
-  $('.mast-actions').prepend(cta);
+  // The sample world doubles as the public live demo: say so, and lead to one prompt. It never offers to post someone else's card.
+  document.title = 'Pelago · your AI coding history as a pixel-art world';
+  setText('.brand-edition', 'SAMPLE WORLD');
+  setText('#personaChip span', 'This builder is');
+  const play = $('.welcome .primary-action');
+  if (play) play.innerHTML = '<span aria-hidden="true">▶</span> Watch the story';
+  const watch = $('.mast-actions [data-play-story]');
+  if (watch) { watch.setAttribute('aria-label', 'Watch the story'); watch.title = 'Watch the story'; watch.lastElementChild.textContent = 'The story'; }
+  $('#guideButton')?.classList.add('icon-only');
+  ['#shareButton', '#shareSelected', '#openGuide', '#welcome .privacy'].forEach((selector) => { const node = $(selector); if (node) node.hidden = true; });
+  const get = element('button', 'get-action');
+  get.innerHTML = 'Get your own world in one prompt <span aria-hidden="true">→</span>';
+  get.addEventListener('click', () => openGetYours('welcome'));
+  $('.welcome-actions')?.after(get);
+  const star = element('a', 'star-link');
+  star.href = `https://${REPO_URL}`; star.target = '_blank'; star.rel = 'noopener'; star.setAttribute('aria-label', 'Star Pelago on GitHub');
+  star.innerHTML = '<span aria-hidden="true">★</span><span class="star-text">Star</span>';
+  const cta = element('button', 'demo-cta', 'Get yours');
+  cta.addEventListener('click', () => openGetYours('header'));
+  $('.mast-actions')?.append(star, cta);
+  buildGetYours();
+}
+function buildGetYours() {
+  const dialog = element('dialog', 'get-dialog'); dialog.id = 'getYours'; dialog.setAttribute('aria-labelledby', 'getYoursTitle');
+  dialog.innerHTML = `<div class="get-body">
+    <div class="get-head"><div><p class="overline">GET YOURS</p><h2 id="getYoursTitle">Your world, in about a minute.</h2></div><button class="icon-button" data-close-get aria-label="Close">×</button></div>
+    <ol class="get-steps">
+      <li><strong id="getStepOne">Copy this prompt</strong><textarea class="get-prompt" id="getPrompt" readonly spellcheck="false" aria-labelledby="getStepOne"></textarea>
+        <div class="get-buttons"><button class="primary-action" id="getShare">Send to my computer</button><a class="get-mini" id="getEmail">Email it to me</a><button class="primary-action" id="getCopy">Copy prompt</button></div></li>
+      <li><strong>Paste it into a new Claude Code or Codex session</strong></li>
+      <li><strong>Your world opens in your browser. Nothing leaves your machine.</strong></li>
+    </ol>
+    <details class="get-terminal"><summary>No agent? Two lines in a terminal</summary><pre><code>git clone https://github.com/Mikebouskila/pelago &amp;&amp;
+python3 pelago/scripts/pelago.py --open</code></pre></details>
+  </div>`;
+  document.body.append(dialog);
+  $('#getPrompt').value = GET_PROMPT;
+  $('#getEmail').href = `mailto:?subject=${encodeURIComponent('My Pelago prompt')}&body=${encodeURIComponent(`Paste this into Claude Code or Codex on your computer:\n\n${GET_PROMPT}\n\nSample world: ${DEMO_URL}`)}`;
+  $('#getCopy').addEventListener('click', copyPrompt);
+  $('#getShare').addEventListener('click', async () => {
+    try { await navigator.share({ title: 'Pelago', text: GET_PROMPT, url: DEMO_URL }); } catch (error) { if (error?.name !== 'AbortError') copyPrompt(); }
+  });
+  dialog.querySelector('[data-close-get]').addEventListener('click', () => dialog.close());
+  // A click that lands on the dialog itself is a click on the backdrop.
+  dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+}
+function openGetYours(source = 'header') {
+  const dialog = $('#getYours');
+  if (!dialog) return;
+  if (!$('#story').hidden) closeStory();
+  // Phones get a bottom sheet that sends the prompt to the computer where the agent lives.
+  const phone = coarsePointer.matches || innerWidth <= 680;
+  dialog.classList.toggle('sheet', phone); dialog.dataset.source = source;
+  $('#getStepOne').textContent = phone ? 'Send it to your computer' : 'Copy this prompt';
+  $('#getShare').hidden = !phone || !navigator.share;
+  $('#getEmail').hidden = !phone;
+  $('#getCopy').className = phone ? 'get-mini' : 'primary-action';
+  if (!dialog.open) dialog.showModal();
+  $('#getPrompt').scrollTop = 0;
+  ($('#getShare').hidden ? $('#getCopy') : $('#getShare')).focus();
+}
+async function copyPrompt() {
+  let copied = false;
+  try { await navigator.clipboard.writeText(GET_PROMPT); copied = true; } catch { /* blocked: fall back to a selection */ }
+  const area = $('#getPrompt');
+  if (!copied && area) { area.focus(); area.select(); area.setSelectionRange(0, area.value.length); try { copied = document.execCommand('copy'); } catch { copied = false; } }
+  toast(copied ? 'Copied. Paste it into Claude Code or Codex.' : 'Select the prompt and copy it.');
+  const button = $('#getCopy');
+  if (copied && button) { button.textContent = 'Copied ✓'; clearTimeout(button.reset); button.reset = setTimeout(() => { button.textContent = 'Copy prompt'; }, 2200); }
+}
+async function shareDemo() {
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Pelago', text: DEMO_SHARE, url: DEMO_URL }); return; } catch (error) { if (error?.name === 'AbortError') return; }
+  }
+  window.open(`https://x.com/intent/post?text=${encodeURIComponent(`${DEMO_SHARE} ${DEMO_URL}`)}`, '_blank', 'noopener');
 }
 function markTeam() {
   // A team world: several people's exports merged, shared islands built together.
   document.title = `${TEAM.name} · Pelago`;
-  $('.brand-edition').textContent = 'TEAM ATLAS';
-  $('#welcome .overline').textContent = `${TEAM.name.toUpperCase()} · ${plural(TEAM.members.length, 'BUILDER')}`;
-  $('#welcomeTitle').innerHTML = 'Everything we built <br>became a <em>place.</em>';
-  $('.welcome-copy').textContent = `Every project is an island built from its own work: a building for each session, a tree for each request, waterfalls from the tokens. Merged from ${TEAM.members.length} people's Claude Code and Codex history; the islands you share were built together.`;
-  $('#personaChip span').textContent = 'Together you are';
+  setText('.brand-edition', DATA.demo ? 'SAMPLE TEAM' : 'TEAM ATLAS');
+  setText('#welcome .overline', `${TEAM.name.toUpperCase()} · ${plural(TEAM.members.length, 'BUILDER')}`);
+  const title = $('#welcomeTitle');
+  if (title) title.innerHTML = 'Everything we built with AI became a <em>place.</em>';
+  setText('#personaChip span', 'Together you are');
   const play = $('.welcome .primary-action');
-  if (play) play.innerHTML = '<span aria-hidden="true">▶</span> Play the team story';
+  if (play) play.innerHTML = `<span aria-hidden="true">▶</span> ${DATA.demo ? 'Watch' : 'Play'} the team story`;
   const builders = element('div', 'sheet-builders'); builders.id = 'sheetBuilders';
-  $('#selectedFacts').after(builders);
+  $('#selectedFacts')?.after(builders);
   const filters = $('.agent-filters');
+  if (!filters) return;
   filters.innerHTML = '';
   filters.setAttribute('aria-label', 'Filter islands by builder');
   const all = element('button', 'agent-filter active', 'All'); all.dataset.filter = 'all'; filters.append(all);
@@ -4287,6 +4433,7 @@ function buildInterface() {
   document.title = `${PERSONA.title} · My Pelago`;
   if (DATA.demo) markDemo();
   if (TEAM) markTeam();
+  $$('.legend-sprite').forEach((node) => { if (!node.firstChild) node.append(relicIcon(node.dataset.sprite, 2)); });
   const sessions = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
   updateSummary();
   $('#indexCount').textContent = String(PROJECTS.length).padStart(2, '0');
@@ -4420,7 +4567,7 @@ function openShare(selected = null) {
 }
 function renderExport() { renderCard($('#exportCanvas')); }
 
-function toast(message) { const node = $('#toast'); node.textContent = message; node.classList.add('show'); clearTimeout(node.timeout); node.timeout = setTimeout(() => node.classList.remove('show'), 2300); }
+function toast(message) { const node = $('#toast'); const host = $('#getYours')?.open ? $('#getYours') : document.body; if (node.parentNode !== host) host.append(node); node.textContent = message; node.classList.add('show'); clearTimeout(node.timeout); node.timeout = setTimeout(() => node.classList.remove('show'), 2300); }
 
 $('#enterWorld').addEventListener('click', enterWorld);
 $('#openGuide').addEventListener('click', showGuide);
@@ -4479,7 +4626,7 @@ $('[data-close-dialog]').addEventListener('click', () => $('#shareDialog').close
 $('#relicPopClose').addEventListener('click', hideRelicCard);
 // Escape closes the topmost layer only: a relic card, then the island sheet, then the field guide. The story and the export dialog handle their own.
 document.addEventListener('keydown', (event) => {
-  if (event.key !== 'Escape' || !$('#story').hidden || $('#shareDialog').open) return;
+  if (event.key !== 'Escape' || !$('#story').hidden || $('#shareDialog').open || $('#getYours')?.open) return;
   if (!$('#relicPop').hidden) hideRelicCard();
   else if ($('#islandSheet').classList.contains('open')) closeSheet();
   else if ($('#mapKey').classList.contains('open')) hideGuide();
@@ -4565,9 +4712,9 @@ function buildSlides() {
 
   slides.push(at({ mode: 'wide', zoom: 1.08, shade: .2 }, () => {
     const slide = element('div', 'slide slide-intro');
-    slide.append(element('p', 'story-over', TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : 'YOUR AI CODING HISTORY'));
+    slide.append(element('p', 'story-over', TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : DATA.demo ? "A SAMPLE BUILDER'S AI CODING HISTORY" : 'YOUR AI CODING HISTORY'));
     const big = element('p', 'story-mega'); slide.append(big); countUp(big, TOTAL_SESSIONS);
-    slide.append(element('h2', 'story-title', 'sessions with your agents.'));
+    slide.append(element('h2', 'story-title', DATA.demo && !TEAM ? 'sessions with their agents.' : 'sessions with your agents.'));
     slide.append(element('p', 'story-copy', days ? `Across ${plural(days, 'day')} at sea${sinceLabel() ? ` since ${sinceLabel()}` : ''}, they quietly raised ${plural(PROJECTS.length, 'island')}.` : `Together they raised ${plural(PROJECTS.length, 'island')}.`));
     return slide;
   }));
@@ -4675,7 +4822,7 @@ function buildSlides() {
 
   slides.push(at({ mode: 'wide', zoom: .95, shade: .25, reveal: true }, () => {
     const slide = element('div', 'slide slide-persona');
-    slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : 'WHICH MAKES YOU'));
+    slide.append(element('p', 'story-over', TEAM ? 'TOGETHER, YOU ARE' : DATA.demo ? 'THIS BUILDER IS' : 'WHICH MAKES YOU'));
     const title = element('h2', 'story-persona');
     const { lead, accent } = personaParts();
     title.append(document.createTextNode(`${lead} `));
@@ -4686,27 +4833,40 @@ function buildSlides() {
   }));
 
   slides.push(at({ mode: 'wide', zoom: .9, shade: .85 }, () => {
-    const slide = element('div', 'slide slide-share');
-    slide.append(element('p', 'story-over', 'YOUR CARD IS READY'));
+    const slide = element('div', `slide slide-share${DATA.demo ? ' demo' : ''}`);
+    slide.append(element('p', 'story-over', DATA.demo ? 'YOUR TURN' : 'YOUR CARD IS READY'));
     const preview = element('canvas', 'story-card');
     state.format = 'story'; state.exportSelected = null;
     renderCard(preview, 'story', null, state.showNames);
-    preview.setAttribute('role', 'img'); preview.setAttribute('aria-label', `Share card: ${PERSONA.title}`);
+    preview.setAttribute('role', 'img'); preview.setAttribute('aria-label', `${DATA.demo ? 'Sample card' : 'Share card'}: ${PERSONA.title}`);
     slide.append(preview);
-    const actions = element('div', 'story-actions');
-    const share = element('button', 'primary-action', 'Share my card');
-    share.addEventListener('click', (event) => { event.stopPropagation(); nativeShare(); });
-    const x = element('button', 'story-ghost', 'Post on X');
-    x.addEventListener('click', (event) => { event.stopPropagation(); postToX(); });
-    const more = element('button', 'story-ghost', 'More formats');
-    more.addEventListener('click', (event) => { event.stopPropagation(); closeStory(); openShare(); });
-    const explore = element('button', 'story-ghost', 'Explore the map');
-    explore.addEventListener('click', (event) => { event.stopPropagation(); closeStory(); enterWorld(); });
-    actions.append(share, x, more, explore);
-    slide.append(actions);
+    if (DATA.demo) slide.append(element('h2', 'story-title end-title', `That was a sample. Which of ${ARCHETYPE_COUNT} builders are you?`));
+    storyEndActions(slide);
     return slide;
   }));
   return slides;
+}
+// The last slide's buttons. A real world shares its card; the sample leads to the prompt and never posts someone else's card.
+function storyEndActions(slide) {
+  const actions = element('div', `story-actions${DATA.demo ? ' demo' : ''}`);
+  const add = (className, label, run) => {
+    const button = element('button', className, label);
+    button.addEventListener('click', (event) => { event.stopPropagation(); run(); });
+    actions.append(button);
+  };
+  const explore = () => { closeStory(); enterWorld(); };
+  if (DATA.demo) {
+    add('primary-action', 'Get yours in one prompt', () => openGetYours('story'));
+    add('story-ghost', 'Share this demo', shareDemo);
+    add('story-ghost', 'Explore the map', explore);
+  } else {
+    add('primary-action', 'Share my card', nativeShare);
+    add('story-ghost', 'Post on X', postToX);
+    add('story-ghost', 'More formats', () => { closeStory(); openShare(); });
+    add('story-ghost', 'Explore the map', explore);
+  }
+  slide.append(actions);
+  return actions;
 }
 
 

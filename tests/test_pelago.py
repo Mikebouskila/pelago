@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -235,6 +236,15 @@ class PelagoTests(unittest.TestCase):
         self.assertEqual(pelago.persona(builder("mobile", 19))["title"], "The Twilight Gardener")
         self.assertEqual(pelago.persona(builder("cli", 14, crew=40))["title"], "The Hive Toolsmith")
         self.assertEqual(pelago.persona(builder("other", 14, codex=0.4))["title"], "The Two-Tide Wayfinder")
+        streak = builder("web", 14); streak["rhythm"]["longestStreak"] = 30
+        self.assertEqual(pelago.persona(streak)["title"], "The Unbroken Harbormaster")
+        weekend = builder("web", 14); weekend["rhythm"]["weekdays"] = [1] * 5 + [9, 9]
+        self.assertEqual(pelago.persona(weekend)["title"], "The Weekend Harbormaster")
+        many = builder("web", 14); many["projects"] = [dict(many["projects"][0], name=f"P{index}") for index in range(20)]
+        self.assertEqual(pelago.persona(many)["title"], "The Wandering Harbormaster")
+        quiet = builder("web", 14); quiet["rhythm"] = {}
+        self.assertEqual(pelago.persona(quiet)["title"], "The Steady Harbormaster")
+        self.assertIn("returning", pelago.persona(quiet)["line"])
 
     def test_team_worlds_merge_shared_islands(self):
         def export(builder, projects, daily):
@@ -318,6 +328,40 @@ class PelagoTests(unittest.TestCase):
             output = Path(directory) / "team.html"
             pelago.render_html(team, output)
             self.assertIn("Lighthouse Labs", output.read_text(encoding="utf-8"))
+
+    def test_readme_prompt_is_the_one_the_demo_copies(self):
+        root = Path(__file__).parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        block = re.search(r"### 🧍 Just me\n\n```text\n(.*?)\n```", readme, re.S).group(1)
+        prompt = re.search(r"const GET_PROMPT = String\.raw`(.*?)`;", (root / "assets" / "world.js").read_text(encoding="utf-8"), re.S).group(1)
+        self.assertEqual(block, prompt)
+        self.assertNotIn("${", prompt)
+        self.assertTrue(all(len(line) <= 70 for line in prompt.splitlines()))
+        self.assertIn("It only reads ~/.claude/projects and ~/.codex/sessions.", prompt)
+        self.assertIn("## ⚡ Get yours in one prompt", readme)
+        self.assertIn(f"{len(pelago.PREFIXES) * len(pelago.TITLES)} combinations", readme)
+
+    def test_archetypes_are_listed_and_titles_name_the_world(self):
+        data = pelago.demo_data()
+        self.assertEqual(data["archetypes"]["prefixes"], list(pelago.PREFIXES))
+        self.assertEqual(len(data["archetypes"]["prefixes"]) * len(data["archetypes"]["titles"]), 88)
+        self.assertEqual(list(pelago.PERIODS), ["Morning", "Sunlit", "Twilight"])
+        self.assertIn(data["persona"]["title"].split()[1], pelago.PREFIXES)
+        self.assertEqual(len(data["projects"]), 14)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "world.html"
+            pelago.render_html(data, output)
+            html = output.read_text(encoding="utf-8")
+            self.assertIn("<title>Pelago · your AI coding history as a pixel-art world</title>", html)
+            self.assertIn("YOUR CLAUDE CODE + CODEX HISTORY, MAPPED", html)
+            self.assertIn('data-sprite="lg-falls"', html)
+            self.assertIn("function openGetYours", html)
+            self.assertNotIn('class="welcome-copy"', html)
+            pelago.render_html(pelago.demo_team(), output)
+            self.assertIn("<title>Lighthouse Labs · Pelago</title>", output.read_text(encoding="utf-8"))
+            data.pop("demo")
+            pelago.render_html(data, output)
+            self.assertIn("<title>My Pelago · The world I built with AI</title>", output.read_text(encoding="utf-8"))
 
     def test_old_exports_are_enriched(self):
         with tempfile.TemporaryDirectory() as directory:

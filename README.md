@@ -29,19 +29,14 @@ Open a new session in **Claude Code** or **Codex**, paste one of these, and wait
 
 ```text
 Build my Pelago world from my local AI coding history.
-
-1. Get the Pelago skill from https://github.com/Mikebouskila/pelago:
-   - Claude Code: clone it to ~/.claude/skills/pelago
-   - Codex: clone it to ~/.codex/skills/pelago
-   If that folder already exists, run `git pull` in it instead.
-2. Run its generator with Python 3 (standard library only, nothing to install):
-   python3 <skill folder>/scripts/pelago.py --output ./pelago-world.html --open
-   It only reads ~/.claude/projects and ~/.codex/sessions. If you need permission
-   to read those two folders, ask me for read access to just them.
-3. When it finishes, tell me in a few lines: my archetype, how many islands,
-   my capital island, and how many relics I found (and the rarest one).
-   Don't quote or summarise any of my prompts or code.
-4. Tell me to open pelago-world.html and press "Play your story".
+Clone https://github.com/Mikebouskila/pelago
+to ~/.claude/skills/pelago (Codex: ~/.codex/skills/pelago;
+if it exists, git pull) and run:
+python3 <that folder>/scripts/pelago.py \
+  --output ./pelago-world.html --open
+It only reads ~/.claude/projects and ~/.codex/sessions.
+Then tell me my archetype and to press "Play your story".
+Don't quote my prompts.
 ```
 
 ### 👥 With my team
@@ -221,9 +216,9 @@ Your archetype is earned from your real rhythm and project mix. The title comes 
 | 🧭 something no category fits | **Wayfinder** |
 | 🗺️ a bit of everything | **Cartographer** |
 
-The first word comes from how you build: **Midnight** (a lot after 10 PM), **Dawn**, **Weekend**, **Two-Tide** (real work with both agents), **Unbroken** (a 30-day streak), **Hive** (heavy subagent use), **Wandering** (many projects, no favourite), or otherwise the part of the day you build in: **Morning**, **Sunlit** or **Twilight**.
+The first word comes from how you build: **Midnight** (a lot after 10 PM), **Dawn**, **Weekend**, **Two-Tide** (real work with both agents), **Unbroken** (a 30-day streak), **Hive** (heavy subagent use), **Wandering** (many projects, no favourite), or otherwise the part of the day you build in: **Morning**, **Sunlit** or **Twilight** (**Steady** when there is no clock to read).
 
-80 combinations. Post yours with **#pelago**.
+88 combinations. Post yours with **#pelago**.
 
 <br>
 
