@@ -126,7 +126,7 @@ Your capital sits at the heart, related projects cluster as families, rope bridg
 
 What you built leaves treasures behind. Each relic stands on the island that earned it, glowing in its rarity colour. **Click one to see exactly why it's there.**
 
-<img src="docs/relic.jpg" alt="Clicking the Treasure Chest relic on an island opens a card explaining it was earned by building with payments" width="100%">
+<img src="docs/relic.jpg" alt="Clicking a relic on an island opens a card explaining what earned it and how to find more" width="100%">
 
 | | |
 |---|---|
@@ -164,13 +164,13 @@ Press **▶ Play your story** for a ten-slide recap filmed over your own world. 
 
 It ends on your share card. Story, Square, X/LinkedIn and GitHub sizes, one tap to share, copy or post (X, LinkedIn, Bluesky and Threads get the image on your clipboard and the words in the composer), or **download a 12-second video** of your islands rising from the clouds in the order you founded them. The tokens, receipts, relics and archetype slides each have a *Share this* button that makes a card of just that moment.
 
-<img src="docs/card-story-v2.jpg" alt="A Pelago story card: The Midnight Harbormaster over a full archipelago, with islands, sessions, tokens and relics" width="48%">&nbsp;<img src="docs/card-square-v2.jpg" alt="A square Pelago card" width="48%">
+<img src="docs/card-story.jpg" alt="A Pelago story card: The Midnight Harbormaster over a full archipelago, with islands, sessions, tokens and relics" width="48%">&nbsp;<img src="docs/card-square.jpg" alt="A square Pelago card" width="48%">
 
 </td>
 </tr>
 </table>
 
-<img src="docs/card-social-v2.jpg" alt="A wide Pelago card for X and LinkedIn" width="100%">
+<img src="docs/card-social.jpg" alt="A wide Pelago card for X and LinkedIn" width="100%">
 
 <br>
 
@@ -205,6 +205,8 @@ Islands merge by project name, ignoring case and punctuation. The exports hold o
 ## 🧭 Which one are you?
 
 Your archetype is earned from your real rhythm and project mix. The title comes from what you build most:
+
+<img src="docs/archetypes.png" alt="The eight Pelago keepers: Harbormaster, Gardener, Wayfinder, Stargazer, Toolsmith, Archivist, Castle Builder and Cartographer, each a pixel character" width="100%">
 
 | You build… | Title |
 |---|---|

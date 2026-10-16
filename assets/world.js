@@ -1866,7 +1866,7 @@ const GUIDE = [
   ]],
   ['Sky and moon', [
     ['lg-sky', `Sky at your hour · ${skyNow().label}`, 'The sky is painted for the hour you build in, read from your archetype or your busiest hour: midnight, dawn, morning, golden hour or twilight. By day the windows and lanterns glow softer.'],
-    ['lg-moon', `Moon phase · ${Math.round(moonPhase() * 28)} of 28 days`, `The moon fills as you keep showing up: full when you worked on every one of the last 28 days, a thin crescent after a quiet month.${skyNow().body === 'sun' ? ' Your sky shows the sun, so the moon waits for night.' : ''}`],
+    ['lg-moon', Object.keys(RHYTHM.daily || {}).length ? `Moon phase · ${Math.round(moonPhase() * 28)} of 28 days` : 'Moon phase', `The moon fills as you keep showing up: full when you worked on every one of the last 28 days, a thin crescent after a quiet month.${Object.keys(RHYTHM.daily || {}).length ? '' : ' These transcripts carry no dates, so it simply shines full.'}${skyNow().body === 'sun' ? ' Your sky shows the sun, so the moon waits for night.' : ''}`],
   ]],
   ['The settlement', [
     ['lg-cottage', 'A building for every session', 'Longer sessions build taller. Past 48 buildings, each one stands for several sessions.'],
@@ -2532,6 +2532,8 @@ function setHideNames(hide) {
   if (open) fillSheet(open);
   buildGuide();
   hideRelicCard();
+  // The screen reader's last announcement may still hold a name.
+  if (hide) $('#srAnnounce').textContent = '';
   drawWorld();
   toast(hide ? 'Project names hidden everywhere.' : 'Project names are back.');
 }
@@ -2947,7 +2949,8 @@ function personaSlide() {
       spark.style.animationDelay = `${index * 60}ms`;
       title.append(spark);
     }
-    navigator.vibrate?.(15);
+    // A tick on phones, once the person has touched the page (browsers refuse it before).
+    if (navigator.userActivation?.hasBeenActive !== false) navigator.vibrate?.(15);
   };
   requestAnimationFrame(() => requestAnimationFrame(() => reels.forEach((reel, index) => {
     const strip = reel.firstChild;

@@ -6,11 +6,20 @@
   <meta name="theme-color" content="#081126">
   <meta name="description" content="A personal archipelago built from local Claude Code and Codex history.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' shape-rendering='crispEdges'%3E%3Crect width='64' height='64' rx='12' fill='%23143247'/%3E%3Cpath fill='%236EC9CE' d='M8 38h48v14H8z'/%3E%3Cpath fill='%23F3EAD5' d='M14 34h36v10H14zM20 28h24v8H20z'/%3E%3Cpath fill='%238FC979' d='M18 30h28v8H18zM24 24h16v8H24z'/%3E%3Cpath fill='%23F26C5B' d='M30 10h6v18h-6zM36 10h14v10H36z'/%3E%3Cpath fill='%23FFF4AD' d='M12 14h6v6h-6z'/%3E%3C/svg%3E">
+  <meta property="og:site_name" content="Pelago">
+  <meta property="og:type" content="website">
   <meta property="og:title" content="Pelago: your AI coding history as a pixel-art world">
   <meta property="og:description" content="Every project becomes an island built from your Claude Code and Codex sessions, tokens and tools. Explore a sample world.">
-  <meta property="og:image" content="https://mikebouskila.github.io/pelago/hero.jpg">
   <meta property="og:url" content="https://mikebouskila.github.io/pelago/">
+  <meta property="og:image" content="https://mikebouskila.github.io/pelago/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Pelago: your Claude Code + Codex history as a pixel-art world of floating islands under a night sky">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pelago: your AI coding history as a pixel-art world">
+  <meta name="twitter:description" content="Every project becomes an island built from your Claude Code and Codex sessions, tokens and tools. Explore a sample world.">
+  <meta name="twitter:image" content="https://mikebouskila.github.io/pelago/og.jpg">
+  <meta name="twitter:image:alt" content="Pelago: your Claude Code + Codex history as a pixel-art world of floating islands under a night sky">
   <title>Pelago · your AI coding history as a pixel-art world</title>
   <style>:root {
   --ink: #f5f3eb;
@@ -465,6 +474,17 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .crew.claude { flex: 1 1 auto; min-width: 0; }
 .crew.codex { flex: 0 0 max(var(--share), 96px); min-width: 96px; }
 .crew { overflow: hidden; }
+/* Receipts: big pixel numbers on a torn-off till slip */
+.receipt-list { display: grid; width: 100%; border-block: 2px dashed rgba(255,246,220,.28); }
+.receipt-row { display: grid; justify-items: start; gap: 5px; padding: 9px 0 8px; animation: rise .7s var(--delay, .1s) cubic-bezier(.22,1,.36,1) both; }
+.receipt-row + .receipt-row { border-top: 1px dotted rgba(255,246,220,.24); }
+.pixel-number { display: block; max-width: 100%; image-rendering: pixelated; filter: drop-shadow(0 0 18px rgba(255,200,100,.22)); }
+.receipt-line { margin: 0; color: rgba(232,240,252,.92); font-size: 14.5px; font-weight: 650; line-height: 1.35; }
+.slide-receipts .story-note { margin-top: 2px; }
+@media (prefers-reduced-motion: reduce) { .receipt-row { animation: none !important; } }
+.key-tip { color: var(--ink-2); }
+.key-tip strong { color: #ffd66f; }
+.key-tip code { padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,.08); color: #fff6dc; font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
 
 /* ---------- Relic cards and popover ---------- */
 .relic-how { margin-top: 4px !important; color: rgba(232,240,252,.85) !important; }
@@ -865,7 +885,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="sr-only" id="srAnnounce" aria-live="polite"></div>
-  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-16T15:30:01.240417+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-18T15:30:01.240417+00:00","lastActive":"2026-10-16T15:30:01.240417+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-07-01T15:30:01.240417+00:00","lastActive":"2026-10-14T15:30:01.240417+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-14T15:30:01.240417+00:00","lastActive":"2026-10-10T15:30:01.240417+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-28T15:30:01.240417+00:00","lastActive":"2026-10-05T15:30:01.240417+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-11T15:30:01.240417+00:00","lastActive":"2026-08-02T15:30:01.240417+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-24T15:30:01.240417+00:00","lastActive":"2026-09-27T15:30:01.240417+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-07T15:30:01.240417+00:00","lastActive":"2026-06-08T15:30:01.240417+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-21T15:30:01.240417+00:00","lastActive":"2026-09-20T15:30:01.240417+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-04T15:30:01.240417+00:00","lastActive":"2026-10-13T15:30:01.240417+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-15T15:30:01.240417+00:00","lastActive":"2026-10-07T15:30:01.240417+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-29T15:30:01.240417+00:00","lastActive":"2026-10-15T15:30:01.240417+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-12T15:30:01.240417+00:00","lastActive":"2026-09-06T15:30:01.240417+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-26T15:30:01.240417+00:00","lastActive":"2026-08-07T15:30:01.240417+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-09T15:30:01.240417+00:00","lastActive":"2026-10-14T15:30:01.240417+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22,"clues":[{"label":"Midnight","why":"39% of your building happened after 10 PM"},{"label":"Harbormaster","why":"36% of your work was web"}]},"archetypes":{"prefixes":["Midnight","Dawn","Weekend","Two-Tide","Unbroken","Hive","Wandering","Morning","Sunlit","Twilight","Steady"],"titles":["Harbormaster","Gardener","Wayfinder","Stargazer","Toolsmith","Archivist","Castle Builder","Cartographer"]}}</script>
+  <script id="pelago-data" type="application/json">{"version":2,"demo":true,"generatedAt":"2026-10-16T16:17:54.443694+00:00","projects":[{"id":"557505a410df","name":"Atlas Studio","agent":"claude","category":"web","sessions":41,"messages":2860,"activity":9200,"firstActive":"2026-07-18T16:17:54.443694+00:00","lastActive":"2026-10-16T16:17:54.443694+00:00","seed":1433732516,"prompts":640,"tokens":{"input":20222222,"output":4550000,"cached":157227778,"total":182000000},"tools":{"build":1900,"shell":1300,"read":1100,"web":420,"crew":90},"models":["Opus","Sonnet"],"sessionSizes":[129,121,121,121,106,106,106,98,98,98,98,98,98,90,90,82,82,75,67,67,59,59,59,59,59,51,51,51,51,51,51,36,36,36,36,28,28,20,20,20,20],"tech":{"react":420,"typescript":380,"payments":40},"crews":{"claude":0.62,"codex":0.38},"habits":{"interrupts":44,"please":32,"thanks":83,"nudges":102,"nudgeWord":"continue","longestStretch":320}},{"id":"3bccedcda67f","name":"Orbit Agent","agent":"codex","category":"ai","sessions":29,"messages":1940,"activity":6100,"firstActive":"2026-07-01T16:17:54.443694+00:00","lastActive":"2026-10-14T16:17:54.443694+00:00","seed":1003285965,"prompts":410,"tokens":{"input":10666666,"output":2400000,"cached":82933334,"total":96000000},"tools":{"shell":1500,"build":700,"crew":300,"read":200},"models":["GPT"],"sessionSizes":[131,124,124,124,116,116,116,116,109,109,109,109,101,101,86,86,86,86,72,72,72,64,64,64,64,42,42,42,42],"tech":{"llm":300,"python":260,"docker":30},"crews":{"codex":0.7,"claude":0.3},"habits":{"interrupts":24,"please":24,"thanks":41,"nudges":45,"nudgeWord":"continue","longestStretch":233}},{"id":"abbcf342e8e4","name":"Tiny Quest","agent":"claude","category":"game","sessions":22,"messages":1210,"activity":4400,"firstActive":"2026-06-14T16:17:54.443694+00:00","lastActive":"2026-10-10T16:17:54.443694+00:00","seed":2881286978,"prompts":300,"tokens":{"input":4555555,"output":1025000,"cached":35419445,"total":41000000},"tools":{"build":900,"shell":500,"read":300,"web":120},"models":["Opus","Sonnet"],"sessionSizes":[108,108,102,102,95,95,89,89,83,77,71,71,65,59,59,53,40,34,34,28,22,16],"tech":{"gamedev":210,"typescript":50},"crews":{"claude":1.0},"habits":{"interrupts":27,"please":15,"thanks":30,"nudges":39,"nudgeWord":"go on","longestStretch":197}},{"id":"40c164122d6e","name":"Northstar","agent":"codex","category":"data","sessions":18,"messages":980,"activity":3500,"firstActive":"2026-05-28T16:17:54.443694+00:00","lastActive":"2026-10-05T16:17:54.443694+00:00","seed":1086415890,"prompts":220,"tokens":{"input":2555555,"output":575000,"cached":19869445,"total":23000000},"tools":{"shell":800,"read":400,"build":250},"models":["GPT"],"sessionSizes":[88,82,70,70,64,52,46,40,40,28,28,28,28,22,22,16,16,16],"tech":{"pandas":140,"python":110},"crews":{"codex":1.0},"habits":{"interrupts":13,"please":6,"thanks":15,"nudges":30,"nudgeWord":"continue","longestStretch":161}},{"id":"2371e70ee532","name":"Signal CLI","agent":"codex","category":"cli","sessions":14,"messages":620,"activity":2100,"firstActive":"2026-05-11T16:17:54.443694+00:00","lastActive":"2026-08-02T16:17:54.443694+00:00","seed":594667278,"prompts":150,"tokens":{"input":955555,"output":215000,"cached":7429445,"total":8600000},"tools":{"shell":600,"build":300,"read":120},"models":["GPT"],"sessionSizes":[87,82,82,82,72,72,57,52,47,47,28,28,18,13],"tech":{"rust":90},"crews":{"codex":1.0},"habits":{"interrupts":13,"please":4,"thanks":13,"nudges":12,"nudgeWord":"go on","longestStretch":161}},{"id":"eaaca8877a4d","name":"Pocket Notes","agent":"claude","category":"mobile","sessions":12,"messages":540,"activity":1800,"firstActive":"2026-04-24T16:17:54.443694+00:00","lastActive":"2026-09-27T16:17:54.443694+00:00","seed":3937183879,"prompts":120,"tokens":{"input":688888,"output":155000,"cached":5356112,"total":6200000},"tools":{"build":380,"shell":200,"web":60},"models":["Opus","Sonnet"],"sessionSizes":[63,53,53,48,38,33,33,28,23,18,18,13],"tech":{"swift":120},"crews":{"claude":1.0},"habits":{"interrupts":12,"please":4,"thanks":15,"nudges":14,"nudgeWord":"ok","longestStretch":148}},{"id":"f070e917e06b","name":"Paper Trail","agent":"codex","category":"web","sessions":8,"messages":300,"activity":900,"firstActive":"2026-04-07T16:17:54.443694+00:00","lastActive":"2026-06-08T16:17:54.443694+00:00","seed":4033931543,"prompts":70,"tokens":{"input":266666,"output":60000,"cached":2073334,"total":2400000},"tools":{"build":160,"shell":120,"read":40},"models":["GPT"],"sessionSizes":[57,44,40,32,27,19,19,15],"tech":{},"crews":{"codex":1.0},"habits":{"interrupts":6,"please":5,"thanks":8,"nudges":11,"nudgeWord":"go on","longestStretch":104}},{"id":"572ad3f88b9a","name":"Sunday Lab","agent":"claude","category":"other","sessions":5,"messages":140,"activity":420,"firstActive":"2026-03-21T16:17:54.443694+00:00","lastActive":"2026-09-20T16:17:54.443694+00:00","seed":1462424568,"prompts":30,"tokens":{"input":77777,"output":17500,"cached":604723,"total":700000},"tools":{"shell":50,"web":30,"crew":10},"models":["Opus","Sonnet"],"sessionSizes":[55,55,51,45,33],"tech":{},"crews":{"claude":1.0},"habits":{"interrupts":2,"please":0,"thanks":3,"nudges":4,"nudgeWord":"go on","longestStretch":68}},{"id":"1a80fe84b989","name":"Lumen Docs","agent":"claude","category":"web","sessions":16,"messages":820,"activity":2600,"firstActive":"2026-03-04T16:17:54.443694+00:00","lastActive":"2026-10-13T16:17:54.443694+00:00","seed":444661380,"prompts":170,"tokens":{"input":1377777,"output":310000,"cached":10712223,"total":12400000},"tools":{"build":500,"read":300,"web":90},"models":["Opus","Sonnet"],"sessionSizes":[100,100,100,100,95,89,72,60,55,38,38,32,26,21,21,15],"tech":{"react":140,"tailwind":120},"crews":{"claude":1.0},"habits":{"interrupts":10,"please":5,"thanks":15,"nudges":13,"nudgeWord":"continue","longestStretch":157}},{"id":"6a417919e78f","name":"Tidepool","agent":"codex","category":"data","sessions":11,"messages":560,"activity":1700,"firstActive":"2026-02-15T16:17:54.443694+00:00","lastActive":"2026-10-07T16:17:54.443694+00:00","seed":1782675737,"prompts":110,"tokens":{"input":566666,"output":127500,"cached":4405834,"total":5100000},"tools":{"shell":300,"read":140},"models":["GPT"],"sessionSizes":[94,83,83,66,66,60,49,37,32,26,20],"tech":{},"crews":{"codex":1.0},"habits":{"interrupts":8,"please":8,"thanks":11,"nudges":17,"nudgeWord":"yes","longestStretch":119}},{"id":"8e9d2c91ae80","name":"Kestrel","agent":"claude","category":"ai","sessions":13,"messages":700,"activity":2200,"firstActive":"2026-01-29T16:17:54.443694+00:00","lastActive":"2026-10-15T16:17:54.443694+00:00","seed":2392665233,"prompts":140,"tokens":{"input":1088888,"output":245000,"cached":8466112,"total":9800000},"tools":{"shell":400,"crew":60,"build":200},"models":["Opus","Sonnet"],"sessionSizes":[87,81,70,70,64,52,46,40,40,28,28,28,22],"tech":{"llm":160,"mcp":50},"crews":{"claude":1.0},"habits":{"interrupts":12,"please":11,"thanks":9,"nudges":18,"nudgeWord":"go on","longestStretch":149}},{"id":"8fdfbe8e6332","name":"Pixel Forge","agent":"claude","category":"game","sessions":9,"messages":430,"activity":1300,"firstActive":"2026-01-12T16:17:54.443694+00:00","lastActive":"2026-09-06T16:17:54.443694+00:00","seed":2413805198,"prompts":90,"tokens":{"input":433333,"output":97500,"cached":3369167,"total":3900000},"tools":{"build":260,"shell":120},"models":["Opus","Sonnet"],"sessionSizes":[88,88,83,67,56,51,35,30,19],"tech":{"gamedev":90,"threejs":40},"crews":{"claude":1.0},"habits":{"interrupts":8,"please":4,"thanks":6,"nudges":11,"nudgeWord":"go on","longestStretch":126}},{"id":"1552353e1b1a","name":"Harbor API","agent":"codex","category":"web","sessions":7,"messages":260,"activity":800,"firstActive":"2025-12-26T16:17:54.443694+00:00","lastActive":"2026-08-07T16:17:54.443694+00:00","seed":357709118,"prompts":55,"tokens":{"input":211111,"output":47500,"cached":1641389,"total":1900000},"tools":{"shell":160,"build":80},"models":["GPT"],"sessionSizes":[73,73,68,48,40,27,23],"tech":{},"crews":{"codex":1.0},"habits":{"interrupts":4,"please":2,"thanks":6,"nudges":7,"nudgeWord":"go on","longestStretch":112}},{"id":"4f26510a8774","name":"Night Owl","agent":"claude","category":"cli","sessions":6,"messages":190,"activity":560,"firstActive":"2025-12-09T16:17:54.443694+00:00","lastActive":"2026-10-14T16:17:54.443694+00:00","seed":1327911178,"prompts":40,"tokens":{"input":122222,"output":27500,"cached":950278,"total":1100000},"tools":{"shell":120,"build":40},"models":["Opus","Sonnet"],"sessionSizes":[44,37,27,16,13,9],"tech":{},"crews":{"claude":1.0},"habits":{"interrupts":3,"please":2,"thanks":5,"nudges":4,"nudgeWord":"go on","longestStretch":85}}],"links":[{"a":"557505a410df","b":"f070e917e06b","kind":"nest","word":""},{"a":"557505a410df","b":"eaaca8877a4d","kind":"name","word":"atlas"},{"a":"3bccedcda67f","b":"2371e70ee532","kind":"name","word":"orbit"},{"a":"40c164122d6e","b":"572ad3f88b9a","kind":"nest","word":""},{"a":"557505a410df","b":"1a80fe84b989","kind":"nest","word":""},{"a":"40c164122d6e","b":"6a417919e78f","kind":"name","word":"tide"},{"a":"abbcf342e8e4","b":"8fdfbe8e6332","kind":"nest","word":""}],"rhythm":{"hours":[26,17,9,4,1,0,1,2,5,9,12,11,8,10,13,15,14,12,13,18,24,31,38,34],"weekdays":[41,46,44,39,35,52,48],"activeDays":151,"longestStreak":27,"busiestDay":"2026-04-17","daily":{"2026-03-21":27,"2026-03-22":10,"2026-03-24":40,"2026-03-25":10,"2026-03-26":14,"2026-03-27":23,"2026-03-29":13,"2026-03-30":14,"2026-03-31":25,"2026-04-02":27,"2026-04-03":11,"2026-04-04":21,"2026-04-05":12,"2026-04-07":6,"2026-04-08":12,"2026-04-09":30,"2026-04-14":28,"2026-04-16":18,"2026-04-17":44,"2026-04-18":15,"2026-04-20":28,"2026-04-21":37,"2026-04-22":5,"2026-04-23":7,"2026-04-25":22,"2026-04-26":18,"2026-04-27":3,"2026-04-29":3,"2026-04-30":28,"2026-05-01":6,"2026-05-02":19,"2026-05-04":30,"2026-05-05":9,"2026-05-06":5,"2026-05-08":26,"2026-05-09":10,"2026-05-10":16,"2026-05-15":41,"2026-05-17":3,"2026-05-18":37,"2026-05-19":29,"2026-05-20":11,"2026-05-22":37,"2026-05-23":12,"2026-05-24":19,"2026-05-26":28,"2026-05-27":13,"2026-05-28":23,"2026-05-29":16,"2026-05-31":30,"2026-06-01":21,"2026-06-02":15,"2026-06-04":40,"2026-06-05":15,"2026-06-06":10,"2026-06-07":27,"2026-06-09":6,"2026-06-10":3,"2026-06-15":42,"2026-06-16":19,"2026-06-18":20,"2026-06-19":36,"2026-06-20":4,"2026-06-22":24,"2026-06-23":22,"2026-06-24":21,"2026-06-25":13,"2026-06-27":3,"2026-06-28":33,"2026-06-29":9,"2026-07-01":21,"2026-07-02":37,"2026-07-03":4,"2026-07-04":6,"2026-07-06":33,"2026-07-07":6,"2026-07-08":12,"2026-07-10":23,"2026-07-11":9,"2026-07-16":30,"2026-07-17":30,"2026-07-19":6,"2026-07-20":31,"2026-07-21":13,"2026-07-22":24,"2026-07-24":25,"2026-07-25":13,"2026-07-26":30,"2026-07-28":12,"2026-07-29":30,"2026-07-30":29,"2026-07-31":10,"2026-08-02":42,"2026-08-03":23,"2026-08-04":9,"2026-08-06":44,"2026-08-07":12,"2026-08-08":6,"2026-08-09":34,"2026-08-11":6,"2026-08-16":10,"2026-08-17":33,"2026-08-18":3,"2026-08-20":15,"2026-08-21":21,"2026-08-22":22,"2026-08-24":16,"2026-08-25":4,"2026-08-26":36,"2026-08-27":19,"2026-08-29":19,"2026-08-30":42,"2026-08-31":11,"2026-09-02":34,"2026-09-03":38,"2026-09-04":3,"2026-09-05":7,"2026-09-07":27,"2026-09-08":10,"2026-09-09":16,"2026-09-11":10,"2026-09-16":15,"2026-09-17":24,"2026-09-18":13,"2026-09-20":12,"2026-09-21":20,"2026-09-22":12,"2026-09-23":36,"2026-09-24":7,"2026-09-25":11,"2026-09-26":30,"2026-09-27":36,"2026-09-28":4,"2026-09-29":6,"2026-09-30":41,"2026-10-01":29,"2026-10-02":8,"2026-10-03":18,"2026-10-04":44,"2026-10-05":16,"2026-10-06":9,"2026-10-07":27,"2026-10-08":37,"2026-10-09":5,"2026-10-10":8,"2026-10-11":31,"2026-10-12":22,"2026-10-13":19,"2026-10-14":5,"2026-10-15":28,"2026-10-16":3},"firstDay":"2026-03-21","lastDay":"2026-10-16"},"sources":[{"agent":"claude","available":true,"files":4,"sessions":4},{"agent":"codex","available":true,"files":4,"sessions":4}],"persona":{"title":"The Midnight Harbormaster","realm":"harbor","line":"Your lamps stay lit long after the harbor sleeps.","realmLine":"You build places people arrive at: interfaces, apps, front doors.","peakHour":22,"clues":[{"label":"Midnight","why":"39% of your building happened after 10 PM"},{"label":"Harbormaster","why":"36% of your work was web"}]},"archetypes":{"prefixes":["Midnight","Dawn","Weekend","Two-Tide","Unbroken","Hive","Wandering","Morning","Sunlit","Twilight","Steady"],"titles":["Harbormaster","Gardener","Wayfinder","Stargazer","Toolsmith","Archivist","Castle Builder","Cartographer"]},"habits":{"interrupts":186,"please":122,"thanks":260,"nudges":327,"nudgeWord":"continue","longestStretch":320},"historyTip":false}</script>
   <script>/* ---------- Procedural islands: every island is built from its own work ---------- */
 // Isometric pixel art, painted pixel by pixel into a buffer with one light source (upper left),
 // warm highlights, cool shadows, dithered materials and a dark silhouette outline.
@@ -877,7 +897,17 @@ function mixRgb(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]
 function tone(color, amount) { return amount >= 0 ? mixRgb(color, WARM, amount) : mixRgb(color, COOL, -amount); }
 const palette = (list) => list.map(hexRgb);
 
-const ROCK = palette(['#a3929f', '#8a7a8e', '#71637c', '#5b4f69', '#473e57', '#352e45', '#272136']);
+// Bedrock, seven tones from the lit strata down to the dark tip of the root, one stone per biome.
+const ROCKS = {
+  web: palette(['#b6a69b', '#9a8b83', '#7f716d', '#675b5a', '#514749', '#3d353a', '#2a242b']),
+  other: palette(['#a3929f', '#8a7a8e', '#71637c', '#5b4f69', '#473e57', '#352e45', '#272136']),
+  ai: palette(['#ab9ecb', '#9082b3', '#766999', '#5f5383', '#4a406b', '#372f54', '#27213b']),
+  cli: palette(['#b7c5d2', '#9aa9b9', '#7e8ea0', '#657588', '#4e5c70', '#3a4658', '#283140']),
+  data: palette(['#e6c592', '#d2a774', '#b8895c', '#996c4a', '#79523b', '#593b2c', '#3b271f']),
+  mobile: palette(['#cba5ae', '#af8894', '#936e7c', '#795866', '#604551', '#47333e', '#30232c']),
+  game: palette(['#908596', '#74697a', '#5c5262', '#473f4e', '#362f3c', '#27222c', '#1a161e']),
+};
+const MOONLIT = [150, 192, 255], GLOW_BAND = .09;
 const BIOMES = {
   web: { name: 'Meadow harbor', grass: palette(['#5fae4e', '#76c25c', '#8fd46c']), dirt: palette(['#a87b51', '#8a6142']), sand: hexRgb('#ecd8a0'), roofs: palette(['#e0604c', '#d47a43', '#c24f45', '#3f86c4']), wall: hexRgb('#f2e4c4'), trees: 'oak', leaves: palette(['#2f7a3e', '#3f9447', '#5aae52', '#86cc6a']), flowers: palette(['#ffd36b', '#ff8fa3', '#ffffff', '#9fd0ff']), accent: hexRgb('#4fc4d6'), crystal: null },
   other: { name: 'Lighthouse meadow', grass: palette(['#5aa856', '#6fbd63', '#8bd27a']), dirt: palette(['#a5805a', '#876546']), sand: hexRgb('#e9d7a6'), roofs: palette(['#3a988b', '#e0784f', '#5684c6', '#c95c4c']), wall: hexRgb('#f0e5cd'), trees: 'oak', leaves: palette(['#2d6f45', '#3d8a50', '#57a75c', '#82c677']), flowers: palette(['#ffe27a', '#b9a3ff', '#ffffff', '#ff9a8a']), accent: hexRgb('#57c8c0'), crystal: null },
@@ -1024,7 +1054,43 @@ function renderIslandArt(project) {
     if (land[i][j]) while (distance < 9 && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([a, b]) => isLand(i + a * (distance + 1), j + b * (distance + 1)))) distance += 1;
     return distance;
   }));
-  const undersideDepth = coastDistance.map((row, i) => row.map((distance, j) => Math.round((1.4 + Math.pow(distance, 1.18) * 1.55 + hash2(seed, i, j * 3) * 1.6) * LEVEL)));
+  // Under the earth every column keeps a short slab of rock; the root below it is painted as one mass.
+  const undersideDepth = coastDistance.map((row, i) => row.map((_, j) => Math.round((1.3 + hash2(seed, i, j * 3) * .8) * LEVEL)));
+  let landLeft = 0, landRight = 0;
+  for (let i = 0; i < size; i += 1) for (let j = 0; j < size; j += 1) if (land[i][j]) { landLeft = Math.min(landLeft, (i - j) * TILE_W); landRight = Math.max(landRight, (i - j) * TILE_W); }
+  // The root: an inverted mountain 0.6-1x the island's width, a main peak and a few lesser crags, all tapering to tips.
+  const rocks = ROCKS[project.category] || ROCKS.other;
+  const span = landRight - landLeft + TILE_W * 2, rootHalf = span / 2, rootMid = (landLeft + landRight) / 2;
+  const rootDepth = Math.round(span * (.98 - .38 * clamp((size - 7) / 19, 0, 1)) * (.9 + hash2(seed, 2, 71) * .2));
+  // A long spike first (it holds the tip), a broad belly under the whole island, then a few lesser crags.
+  const cones = [
+    { x: rootMid + (hash2(seed, 1, 72) - .5) * span * .16, w: rootHalf * (.5 + hash2(seed, 2, 72) * .14), h: rootDepth, p: 1.45 },
+    { x: rootMid, w: rootHalf * 1.02, h: rootDepth * .4, p: .8 },
+  ];
+  for (let k = 0; k < 2 + Math.floor(hash2(seed, 3, 73) * 2); k += 1) {
+    cones.push({ x: rootMid + (k % 2 ? 1 : -1) * rootHalf * (.3 + hash2(seed, k, 74) * .38), w: rootHalf * (.16 + hash2(seed, k, 75) * .16), h: rootDepth * (.4 + hash2(seed, k, 76) * .24), p: 1.25 });
+  }
+  // Per pixel column (offset k from the left edge): the bottom of the frontmost earth, its slab, the root's drop and which crag owns it.
+  const frontGround = new Array(span).fill(-1e9), frontSlab = new Array(span).fill(0), drops = new Array(span), owner = new Array(span);
+  for (let i = 0; i < size; i += 1) for (let j = 0; j < size; j += 1) {
+    if (!land[i][j]) continue;
+    for (let x = 0; x < TILE_W * 2; x += 1) {
+      const k = (i - j) * TILE_W - landLeft + x;
+      const ground = (i + j) * TILE_H + (x < TILE_W ? TILE_H + Math.floor(x / 2) : TILE_H * 2 - 1 - Math.floor((x - TILE_W) / 2));
+      if (ground > frontGround[k]) { frontGround[k] = ground; frontSlab[k] = undersideDepth[i][j]; }
+    }
+  }
+  for (let k = 0; k < span; k += 1) {
+    if (frontGround[k] < -1e8) { frontGround[k] = frontGround[k - 1] ?? 0; frontSlab[k] = frontSlab[k - 1] ?? LEVEL; }
+    const x = landLeft - TILE_W + k;
+    let drop = 0, best = cones[0];
+    cones.forEach((cone) => { const t = Math.abs(x - cone.x) / cone.w; const d = t < 1 ? cone.h * Math.pow(1 - t, cone.p) : 0; if (d > drop) { drop = d; best = cone; } });
+    const crag = (valueNoise(seed + 31, x / 7, 0) - .5) * 8 + (hash2(seed, Math.floor(x / 3), 77) > .72 ? hash2(seed, Math.floor(x / 3), 78) * 10 : 0);
+    drops[k] = Math.round(Math.max(frontSlab[k] + 3, drop * (.88 + valueNoise(seed + 33, x / 15, 0) * .24) + crag * Math.min(1, drop / 30)));
+    owner[k] = best;
+  }
+  let rootReach = 0;
+  for (let k = 0; k < span; k += 1) rootReach = Math.max(rootReach, frontGround[k] + drops[k]);
 
   // 2. Rivers: tokens flow downhill and leave the island as waterfalls on the visible side.
   const water = height.map((row) => row.map(() => false));
@@ -1145,10 +1211,9 @@ function renderIslandArt(project) {
 
   // 4. Paint back to front into a pixel buffer.
   let peakLevel = 0; height.forEach((row) => row.forEach((value) => { peakLevel = Math.max(peakLevel, value); }));
-  let deepest = 0; undersideDepth.forEach((row) => row.forEach((value) => { deepest = Math.max(deepest, value); }));
   const width = size * TILE_W * 2 + 120;
-  const canvasHeight = size * TILE_H * 2 + (peakLevel + 1) * LEVEL + 170 + deepest + 140;
   const originX = width / 2, originY = (peakLevel + 1) * LEVEL + 170;
+  const canvasHeight = originY + Math.max(rootReach, size * TILE_H * 2 + 3 * LEVEL) + 160;
   const surface = createSurface(width, canvasHeight);
   const { put, shadow } = surface;
   const lights = [];
@@ -1184,6 +1249,138 @@ function renderIslandArt(project) {
     return recipe.snow && valueNoise(seed + 9, gx / 7, gy / 5) > .48 ? mixRgb(color, [238, 244, 255], .85) : color;
   }
 
+  // Bedrock: bands darken with depth. Data islands are layered sandstone; tundra strata carry frost.
+  const motif = BIOMES[project.category] ? project.category : 'other';
+  const bandH = Math.max(LEVEL * 1.35, rootDepth / 7);
+  function bedrock(gx, y, d) {
+    const wobble = valueNoise(seed + 13, gx / 7, 0) * 6;
+    // Bands step one tone darker every bandH, Bayer-dithered across the last quarter of each band.
+    const position = (d + wobble) / bandH, within = position - Math.floor(position);
+    const band = 1 + Math.floor(position) + (within > .75 && dither(gx, y, (within - .75) * 4) ? 1 : 0);
+    let rock;
+    if (motif === 'data') {
+      const s = d + wobble * .6 + Math.sin(gx / 11 + (seed % 7)) * 2, layer = Math.floor(s / 4);
+      rock = rocks[clamp(band + (layer % 3 === 1 ? 1 : 0), 0, 6)];
+      if (s % 4 < 1 && layer % 3 === 0) rock = tone(rock, .2);
+    } else {
+      rock = rocks[clamp(band, 0, 6)];
+      if (within < 1 / bandH) rock = motif === 'cli' ? mixRgb(rock, [226, 238, 248], .45) : tone(rock, .16);
+    }
+    return hash2(seed, gx, y) > .93 ? tone(rock, -.12) : rock;
+  }
+  const rootX = (k) => originX + landLeft - TILE_W + k;
+  const faceBottom = (k) => originY + frontGround[k] + frontSlab[k];
+  const rootBottom = (k) => originY + frontGround[k] + drops[k];
+  const inRoot = (k, y, margin = 1) => k >= 0 && k < span && y >= faceBottom(k) && y < rootBottom(k) - margin;
+
+  // The root goes down first, behind everything: a lit and a shadowed face per crag, darkening toward the tip,
+  // with a cool moonlit rim along the lit side.
+  function paintRoot() {
+    surface.z = 1;
+    for (let k = 0; k < span; k += 1) {
+      const gx = rootX(k), top = originY + frontGround[k], bottom = rootBottom(k);
+      const lit = gx < originX + owner[k].x;
+      for (let y = top; y < bottom; y += 1) {
+        const color = tone(bedrock(gx, y, y - top), (lit ? -.04 : -.26) - clamp((y - top) / rootDepth, 0, 1) * .3);
+        put(gx, y, lit && bottom - y <= 2 ? mixRgb(color, MOONLIT, .5) : color);
+      }
+    }
+  }
+
+  // One motif per biome on the underside, painted over the root once the columns are down.
+  function bedrockMotif() {
+    surface.z = 1;
+    const pick = (salt) => Math.floor(span * (.14 + hash2(seed, salt, 81) * .72));
+    const tipX = originX + cones[0].x;
+    const walk = (salt, steps, paint) => {
+      let k = pick(salt), y = faceBottom(k) + 2;
+      for (let step = 0; step < steps && inRoot(k, y, 3); step += 1) {
+        paint(rootX(k), y, step);
+        const toward = Math.sign(tipX - rootX(k)) || 1;
+        k += hash2(seed, step, salt + 90) < .66 ? toward : -toward;
+        y += 1 + (step % 3 === 0 ? 1 : 0);
+      }
+    };
+    if (motif === 'ai') {
+      // Geodes broken open in the rock, and crystal seams running down toward the tip.
+      const glowColour = `rgb(${biome.crystal[1].join(',')})`;
+      for (let n = 0; n < 3; n += 1) walk(n * 5 + 2, 70, (gx, y, step) => {
+        put(gx, y, step % 4 === 0 ? biome.crystal[2] : biome.crystal[1]); put(gx + 1, y, biome.crystal[0]);
+        if (step % 10 === 5) light(gx, y, glowColour, 6, .24);
+      });
+      for (let n = 0; n < 2 + Math.floor(hash2(seed, 4, 82) * 2); n += 1) {
+        const k = pick(n * 3 + 1), rx = 4 + Math.round(hash2(seed, n, 84) * 3), ry = 3 + Math.round(hash2(seed, n, 85) * 2);
+        const cy = faceBottom(k) + ry + 4 + Math.round((drops[k] - frontSlab[k]) * (.1 + hash2(seed, n, 83) * .28));
+        if (!inRoot(k - rx, cy + ry + 1, 3) || !inRoot(k + rx, cy + ry + 1, 3)) continue;
+        for (let dy = -ry - 1; dy <= ry + 1; dy += 1) for (let dx = -rx - 1; dx <= rx + 1; dx += 1) {
+          const e = Math.hypot(dx / (rx + .5), dy / (ry + .5));
+          if (e <= 1.18) put(rootX(k) + dx, cy + dy, e > .95 ? rocks[6] : e > .68 ? biome.crystal[0] : (dx - dy + 9) % 3 === 0 ? biome.crystal[2] : biome.crystal[1]);
+        }
+        light(rootX(k), cy, glowColour, 16, .36);
+      }
+    } else if (motif === 'game') {
+      // Lava seams glowing through dark basalt, converging on a drip at the tip.
+      for (let n = 0; n < 3; n += 1) walk(n * 5 + 3, 110, (gx, y, step) => {
+        put(gx - 1, y, rocks[6]); put(gx + 1, y, rocks[6]);
+        put(gx, y, step % 5 === 0 ? [255, 236, 140] : [255, 146, 44]);
+        if (step % 7 === 3) light(gx, y, '#ff7a2a', 10, .32);
+      });
+      let deepest = 0;
+      for (let k = 1; k < span; k += 1) if (rootBottom(k) > rootBottom(deepest)) deepest = k;
+      const dripY = rootBottom(deepest);
+      for (let y = -2; y < 4; y += 1) put(rootX(deepest), dripY + y, y < 1 ? [255, 146, 44] : [255, 210, 90]);
+      put(rootX(deepest) - 1, dripY + 2, [255, 146, 44]); put(rootX(deepest) + 1, dripY + 2, [214, 84, 30]);
+      light(rootX(deepest), dripY + 1, '#ff7a2a', 14, .42);
+    } else if (motif === 'cli') {
+      // Icicles hang wherever the underside runs level enough to hold them.
+      for (let k = 2; k < span - 2; k += 2 + Math.floor(hash2(seed, k, 88) * 4)) {
+        if (Math.abs(rootBottom(k + 1) - rootBottom(k - 1)) > 4) continue;
+        const length = 3 + Math.round(hash2(seed, k, 89) * (4 + drops[k] / 40)), y0 = rootBottom(k) - 1;
+        for (let y = 0; y < length; y += 1) {
+          put(rootX(k), y0 + y, y >= length - 2 ? [255, 255, 255] : [226, 246, 255]);
+          if (y < length - 3) put(rootX(k) + 1, y0 + y, [150, 206, 232]);
+        }
+      }
+    } else if (motif === 'mobile') {
+      // Blossom vines trail down the rock.
+      const stem = tone(biome.grass[0], -.3);
+      for (let n = 0; n < 6 + Math.floor(hash2(seed, 5, 91) * 4); n += 1) {
+        const k0 = pick(n * 7 + 4), side = n % 2 ? 1 : -1;
+        const length = Math.round((drops[k0] - frontSlab[k0]) * (.22 + hash2(seed, n, 92) * .34));
+        for (let y = 0; y < length; y += 1) {
+          const k = k0 + Math.round(Math.sin(y / 6 + n) * 1.4), gy = faceBottom(k0) - 2 + y;
+          if (y > 3 && !inRoot(k, gy, 3)) break;
+          put(rootX(k), gy, stem);
+          if (y % 5 === 3) {
+            const petal = biome.leaves[1 + (y + n) % 3];
+            [[0, -1], [-1, 0], [1, 0], [0, 1]].forEach(([a, b]) => put(rootX(k) + side + a, gy + b, petal));
+            put(rootX(k) + side, gy, [255, 226, 122]);
+          }
+        }
+      }
+    } else if (motif === 'web') {
+      // Ivy curtains creep down from the lip.
+      for (let n = 0; n < 5 + Math.floor(hash2(seed, 6, 93) * 4); n += 1) {
+        const k0 = pick(n * 11 + 5), length = Math.round((drops[k0] - frontSlab[k0]) * (.18 + hash2(seed, n, 94) * .3));
+        for (let y = -2; y < length; y += 1) {
+          const w = Math.round(4 * (1 - y / length)) + 1;
+          for (let dx = -w; dx <= w; dx += 1) {
+            const k = k0 + dx + Math.round(Math.sin((y + n * 5) / 5) * 1.5), gy = faceBottom(k0) + y;
+            const h = hash2(seed, rootX(k), gy);
+            if (k < 0 || k >= span || gy >= rootBottom(k) - 1 || h < .42) continue;
+            put(rootX(k), gy, h > .88 ? biome.leaves[3] : h > .7 ? biome.leaves[2] : h > .55 ? biome.leaves[1] : biome.leaves[0]);
+          }
+        }
+      }
+    } else if (motif === 'other') {
+      // A lip of moss where the slab meets the root, dripping here and there.
+      for (let k = 0; k < span; k += 1) {
+        const length = 2 + Math.round(valueNoise(seed + 41, k / 4, 0) * 3) + (hash2(seed, k, 95) > .86 ? 3 + Math.round(hash2(seed, k, 96) * 6) : 0);
+        for (let y = 0; y < length && faceBottom(k) - 1 + y < rootBottom(k) - 1; y += 1) put(rootX(k), faceBottom(k) - 1 + y, y === 0 ? biome.leaves[3] : y < 3 ? biome.leaves[2] : biome.leaves[1]);
+      }
+    }
+  }
+
   function column(i, j) {
     const level = height[i][j];
     const cx = originX + (i - j) * TILE_W, cy = originY + (i + j) * TILE_H;
@@ -1192,14 +1389,13 @@ function renderIslandArt(project) {
     const depth = undersideDepth[i][j];
     const lift = (level - 1) / Math.max(1, peakLevel) * .12;
 
-    // Side faces: grass lip, earth, then strata of floating rock that taper into stalactites.
+    // Side faces: grass lip, earth, then the first strata of the rock root.
     for (let x = 0; x < TILE_W * 2; x += 1) {
       const left = x < TILE_W;
       const gx = cx - TILE_W + x;
       const edgeY = left ? top + TILE_H + Math.floor(x / 2) : top + TILE_H * 2 - 1 - Math.floor((x - TILE_W) / 2);
       const groundY = edgeY + level * LEVEL;
-      const spike = Math.pow(valueNoise(seed + 3, gx / 4.2, 0), 3) * depth * .55 + hash2(seed, gx, 9) * 4;
-      const bottomY = groundY + depth + spike;
+      const bottomY = groundY + depth;
       const faceShade = left ? -.04 : -.26;
       const lip = 2 + (hash2(seed, gx, j) > .55 ? 1 : 0) + (hash2(seed, gx, i) > .86 ? 3 : 0);
       for (let y = edgeY; y < bottomY; y += 1) {
@@ -1209,16 +1405,7 @@ function renderIslandArt(project) {
         else if (y < groundY) {
           const earth = biome.dirt[(hash2(seed, gx, y) > .82) ? 1 : 0];
           color = (y - edgeY) % LEVEL === LEVEL - 1 ? tone(earth, -.2) : earth;
-        } else {
-          const d = y - groundY;
-          const wobble = valueNoise(seed + 13, gx / 7, 0) * 6;
-          const band = Math.floor((d + wobble) / (LEVEL * 1.35));
-          let rock = ROCK[clamp(band, 0, ROCK.length - 1)];
-          if ((d + wobble) % (LEVEL * 1.35) < 1) rock = tone(rock, .18);
-          if (hash2(seed, gx, y) > .92) rock = tone(rock, -.12);
-          color = rock;
-          if (bottomY - y < 3) color = tone(color, -.25);
-        }
+        } else color = bedrock(gx, y, y - groundY);
         put(gx, y, tone(color, faceShade));
       }
       // Hanging vines and roots from the grass lip.
@@ -1228,12 +1415,6 @@ function renderIslandArt(project) {
           const leaf = biome.leaves[(y + gx) % 3 === 0 ? 2 : 1];
           put(gx, edgeY + lip + y, tone(recipe.snow ? [200, 210, 220] : leaf, faceShade - .1));
         }
-      }
-      // Glowing crystal seams in the rock.
-      if (biome.crystal && hash2(seed, gx * 3, i + j * 31) > .985) {
-        const y = groundY + 6 + hash2(seed, gx, i) * Math.max(4, depth * .6);
-        for (let k = 0; k < 5; k += 1) put(gx, y - k, pickFrom(biome.crystal, k / 5));
-        light(gx, y - 2, `rgb(${biome.crystal[1].join(',')})`, 8, .28);
       }
     }
 
@@ -1457,9 +1638,13 @@ function renderIslandArt(project) {
 
 
   function flagPole(x, topY, length = 14) {
+    // In a team world the keep flies one pennant per top builder (up to three), longest for the biggest share.
+    const pennants = [...builders].sort((a, b) => b[1] - a[1]).slice(0, 3);
+    if (pennants.length) length = Math.max(length, pennants.length * 8 + 3);
     for (let y = 0; y < length; y += 1) put(x, topY - y, hexRgb('#3a2c22'));
     put(x, topY - length, [230, 200, 120]);
-    crewColors.forEach((color, index) => anim({ type: 'flag', x: x + 1, y: topY - length + 1 + index * 6, color, length: 10 - index * 2 }));
+    if (pennants.length) pennants.forEach(([color, share], index) => anim({ type: 'pennant', x: x + 1, y: topY - length + 1 + index * 8, color: hexRgb(color), length: Math.round(10 + share * 12) }));
+    else crewColors.forEach((color, index) => anim({ type: 'flag', x: x + 1, y: topY - length + 1 + index * 6, color, length: 10 - index * 2 }));
     if (recipe.beacon) { anim({ type: 'beacon', x, y: topY - length - 3 }); light(x, topY - length - 2, '#ffd36b', 22, .4); }
   }
 
@@ -1733,6 +1918,7 @@ function renderIslandArt(project) {
     }
   }
 
+  paintRoot();
   for (let sum = 0; sum <= (size - 1) * 2; sum += 1) {
     for (let i = Math.max(0, sum - size + 1); i <= Math.min(size - 1, sum); i += 1) {
       const j = sum - i;
@@ -1746,13 +1932,15 @@ function renderIslandArt(project) {
       });
     }
   }
+  bedrockMotif();
 
   surface.z = 4000;
   // 5. Waterfalls spill past the floating rock and dissolve into mist.
   falls.forEach(({ i, j, side }, index) => {
     const cx = originX + (i - j) * TILE_W + (side === 'right' ? TILE_W / 2 : -TILE_W / 2);
     const lipY = originY + (i + j) * TILE_H - height[i][j] * LEVEL + TILE_H * 2 - 2;
-    const endY = lipY + height[i][j] * LEVEL + undersideDepth[i][j] + 40 + hash2(seed, index, 77) * 40;
+    const fallK = clamp(Math.round(cx - originX - landLeft + TILE_W), 0, span - 1);
+    const endY = lipY + height[i][j] * LEVEL + undersideDepth[i][j] + Math.min(drops[fallK] * .6, 150) + 30 + hash2(seed, index, 77) * 40;
     // A sheet of water: lit on the left, shaded on the right, with long vertical streaks that fray into spray.
     for (let y = lipY; y < endY; y += 1) {
       const fade = (y - lipY) / (endY - lipY);
@@ -1796,10 +1984,12 @@ function renderIslandArt(project) {
     light(wx + 14, wy + 8, RARITY[entry.relic.rarity].color, 18, .3);
   }); }
 
-  // Loose chunks of rock drift beside the island.
+  // Loose chunks of rock drift beside the island, and a few small stones orbit its root.
   const debris = clamp(2 + Math.round(workScale(project) - 5), 2, 6);
-  let landLeft = 0, landRight = 0;
-  for (let i = 0; i < size; i += 1) for (let j = 0; j < size; j += 1) if (land[i][j]) { landLeft = Math.min(landLeft, (i - j) * TILE_W); landRight = Math.max(landRight, (i - j) * TILE_W); }
+  const orbitY = frontGround[Math.round(span / 2)] + Math.round(rootDepth * .3);
+  let orbitReach = 0;
+  for (let k = 0; k < span; k += 1) if (frontGround[k] + drops[k] > orbitY) orbitReach = Math.max(orbitReach, Math.abs(landLeft - TILE_W + k - rootMid));
+  anim({ type: 'orbit', x: originX + rootMid, y: originY + orbitY, rx: orbitReach + 10, ry: Math.max(6, orbitReach * .18), stones: 3 + Math.floor(hash2(seed, 8, 97) * 3), phase: hash2(seed, 9, 98) * Math.PI * 2, colours: [rocks[0], rocks[2], rocks[4]] });
   for (let chunk = 0; chunk < debris; chunk += 1) {
     const side = chunk % 2 ? 1 : -1;
     const half = 4 + Math.round(hash2(seed, chunk, 91) * 6);
@@ -1811,7 +2001,7 @@ function renderIslandArt(project) {
       const edge = left ? top + Math.floor((x + half) / 2) + Math.floor(half / 2) : top + half - 1 - Math.floor(x / 2);
       const taper = Math.round(depthPx * (1 - Math.abs(x + .5) / half) + 2);
       for (let y = edge; y < edge + taper; y += 1) {
-        const rock = y - edge < 2 ? biome.grass[left ? 1 : 0] : y - edge < 4 ? biome.dirt[left ? 0 : 1] : ROCK[clamp(Math.floor((y - edge) / 5) + (left ? 0 : 1), 0, 5)];
+        const rock = y - edge < 2 ? biome.grass[left ? 1 : 0] : y - edge < 4 ? biome.dirt[left ? 0 : 1] : rocks[clamp(Math.floor((y - edge) / 5) + (left ? 0 : 1), 0, 5)];
         put(cx + x, y, rock);
       }
     }
@@ -1846,21 +2036,38 @@ function renderIslandArt(project) {
   art.getContext('2d').drawImage(full, -minX, -minY);
   const depthMap = new Uint16Array(art.width * art.height);
   for (let y = 0; y < art.height; y += 1) depthMap.set(surface.depth.subarray((y + minY) * width + minX, (y + minY) * width + minX + art.width), y * art.width);
+  // Light is summed at half resolution, then posterized into a few hard alpha bands, so every glow is a
+  // stack of pixel rings rather than a blur.
   const glow = document.createElement('canvas');
-  glow.width = Math.ceil(art.width / 2); glow.height = Math.ceil(art.height / 2);
-  const glowContext = glow.getContext('2d');
+  const glowWidth = Math.ceil(art.width / 2), glowHeight = Math.ceil(art.height / 2);
+  glow.width = glowWidth; glow.height = glowHeight;
+  const sum = new Float32Array(glowWidth * glowHeight * 3);
   lights.forEach(({ x, y, color, radius, strength }) => {
+    const rgb = color.startsWith('#') ? hexRgb(color) : color.match(/\d+/g).slice(0, 3).map(Number);
     const gx = (x - minX) / 2, gy = (y - minY) / 2, r = radius / 2 + 1;
-    const gradient = glowContext.createRadialGradient(gx, gy, 0, gx, gy, r);
-    gradient.addColorStop(0, hexAlpha(color, strength)); gradient.addColorStop(1, hexAlpha(color, 0));
-    glowContext.fillStyle = gradient;
-    glowContext.fillRect(gx - r, gy - r, r * 2, r * 2);
+    for (let py = Math.max(0, Math.floor(gy - r)); py <= Math.min(glowHeight - 1, Math.ceil(gy + r)); py += 1) {
+      for (let px = Math.max(0, Math.floor(gx - r)); px <= Math.min(glowWidth - 1, Math.ceil(gx + r)); px += 1) {
+        const falloff = 1 - Math.hypot(px + .5 - gx, py + .5 - gy) / r;
+        if (falloff <= 0) continue;
+        const index = (py * glowWidth + px) * 3, amount = strength * falloff;
+        sum[index] += rgb[0] * amount; sum[index + 1] += rgb[1] * amount; sum[index + 2] += rgb[2] * amount;
+      }
+    }
   });
+  const glowImage = new ImageData(glowWidth, glowHeight);
+  for (let index = 0, out = 0; index < sum.length; index += 3, out += 4) {
+    const peak = Math.max(sum[index], sum[index + 1], sum[index + 2]);
+    const band = Math.min(1, Math.round(peak / 255 / GLOW_BAND) * GLOW_BAND);
+    if (band <= 0) continue;
+    glowImage.data[out] = sum[index] / peak * 255; glowImage.data[out + 1] = sum[index + 1] / peak * 255; glowImage.data[out + 2] = sum[index + 2] / peak * 255;
+    glowImage.data[out + 3] = band * 255;
+  }
+  glow.getContext('2d').putImageData(glowImage, 0, 0);
   const centreY = originY + (size - 1) * TILE_H + TILE_H - minY;
   relicBoxes.forEach((box) => { box.x -= minX; box.y -= minY; });
   anims.forEach((entry) => { entry.x -= minX; if (entry.y !== undefined) entry.y -= minY; if (entry.y0 !== undefined) { entry.y0 -= minY; entry.y1 -= minY; } });
   const half = pixelDownsample(art);
-  return { art, glow, anims, relicBoxes, depth: depthMap, mips: [art, half, pixelDownsample(half)], anchorX: originX - minX, anchorY: centreY, recipe, gridWidth: size * TILE_W * 2, falls: falls.length, buildings: placed.length, heights: height };
+  return { art, glow, anims, relicBoxes, depth: depthMap, mips: [art, half, pixelDownsample(half)], anchorX: originX - minX, anchorY: centreY, root: rootDepth, recipe, gridWidth: size * TILE_W * 2, falls: falls.length, buildings: placed.length, heights: height };
 }
 
 // Halve a pixel-art canvas without inventing colours: each 2x2 block keeps its most common opaque
@@ -1910,51 +2117,54 @@ function pixelDownsample(source) {
 function drawIslandArtCrisp(context, art, left, top, scale, options = {}) {
   const level = scale >= 1 ? 0 : scale >= .5 ? 1 : 2;
   const haze = options.haze || 0;
-  const mips = haze ? hazedMips(art, haze) : art.mips;
-  const source = mips[level];
+  const source = haze ? hazedMip(art, haze, level) : art.mips[level];
   const step = scale * (1 << level);
   const x = Math.round(left), y = Math.round(top);
   context.imageSmoothingEnabled = step < .98;
   context.imageSmoothingQuality = 'high';
   context.drawImage(source, x, y, Math.round(source.width * step), Math.round(source.height * step));
   if (options.glow !== false) {
+    // Lights glow less under a day sky; the glow's pixels stay snapped to the art's grid.
     context.globalCompositeOperation = 'lighter';
-    context.globalAlpha = 1 - haze * 1.4;
-    context.imageSmoothingEnabled = true;
-    if (context.globalAlpha > 0) context.drawImage(art.glow, x, y, art.art.width * scale, art.art.height * scale);
+    context.globalAlpha = (1 - haze * 1.4) * skyNow().glow;
+    // Its bands are already soft, so a shrunk glow is sampled, not filtered.
+    context.imageSmoothingEnabled = false;
+    if (context.globalAlpha > 0) context.drawImage(art.glow, x, y, Math.round(art.glow.width * 2 * scale), Math.round(art.glow.height * 2 * scale));
     context.globalAlpha = 1;
     context.globalCompositeOperation = 'source-over';
   }
   return { x, y };
 }
 
-// Distant islands sink into the night air: their colours drift toward the sky and lose contrast.
-const HAZE_COLOUR = [44, 72, 122];
-function hazedMips(art, haze) {
+// Distant islands sink into the air: their colours drift toward the sky's haze and lose contrast.
+function hazedMip(art, haze, level) {
+  // Only the mip level actually on screen is hazed, and haze comes in a few fixed steps, so this stays small.
   art.hazed = art.hazed || new Map();
-  const key = haze.toFixed(2);
+  const HAZE_COLOUR = skyNow().haze;
+  const key = `${skyNow().name}|${haze.toFixed(2)}|${level}`;
   if (!art.hazed.has(key)) {
-    art.hazed.set(key, art.mips.map((mip) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = mip.width; canvas.height = mip.height;
-      const context = canvas.getContext('2d');
-      context.drawImage(mip, 0, 0);
-      const image = context.getImageData(0, 0, mip.width, mip.height);
-      const data = image.data;
-      for (let index = 0; index < data.length; index += 4) {
-        if (!data[index + 3]) continue;
-        for (let channel = 0; channel < 3; channel += 1) data[index + channel] += (HAZE_COLOUR[channel] - data[index + channel]) * haze;
-      }
-      context.putImageData(image, 0, 0);
-      return canvas;
-    }));
+    const mip = art.mips[level];
+    const canvas = document.createElement('canvas');
+    canvas.width = mip.width; canvas.height = mip.height;
+    const context = canvas.getContext('2d');
+    context.drawImage(mip, 0, 0);
+    const image = context.getImageData(0, 0, mip.width, mip.height);
+    const data = image.data;
+    for (let index = 0; index < data.length; index += 4) {
+      if (!data[index + 3]) continue;
+      for (let channel = 0; channel < 3; channel += 1) data[index + channel] += (HAZE_COLOUR[channel] - data[index + channel]) * haze;
+    }
+    context.putImageData(image, 0, 0);
+    art.hazed.set(key, canvas);
   }
   return art.hazed.get(key);
 }
 
 // Living details drawn on top of the static art every frame: water, smoke, sails, flags, ships.
 function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue = 1) {
-  const t = time / 1000;
+  const t = time / 1000, lit = skyNow().glow;
+  // Far out an art pixel is under a third of a screen pixel: the busiest effects keep their motion in fewer, bigger cells.
+  const coarse = px < .5;
   const cell = (x, y, w, h, color, alpha = 1) => {
     context.globalAlpha = alpha;
     context.fillStyle = Array.isArray(color) ? `rgb(${color[0] | 0},${color[1] | 0},${color[2] | 0})` : color;
@@ -1964,7 +2174,7 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
   art.anims.forEach((entry) => {
     if (entry.type === 'falls') {
       // Bright streaks sliding down the sheet.
-      for (let lane = -2; lane <= 2; lane += 1) {
+      for (let lane = coarse ? 0 : -2; lane <= (coarse ? 0 : 2); lane += 1) {
         for (let y = entry.y0 + 3; y < entry.y1 - 8; y += 1) {
           const fade = (y - entry.y0) / (entry.y1 - entry.y0);
           const run = ((y - t * 46 - lane * 17 + entry.phase * 30) % 34 + 34) % 34;
@@ -1985,13 +2195,32 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
         cell(sx, sy - 1, 1, 1, entry.colour, a * .6); cell(sx, sy + 1, 1, 1, entry.colour, a * .6);
       }
     } else if (entry.type === 'smoke') {
+      // Opaque two-tone puffs that swell as they rise and shrink away, never fading through alpha.
       for (let puff = 0; puff < entry.puffs; puff += 1) {
         const life = ((t * .35 + entry.phase + puff / entry.puffs) % 1);
-        const radius = 1.4 + life * 4;
-        const x = entry.x + Math.sin(life * 5 + entry.phase * 6) * 2.5 + life * 5, y = entry.y - life * 26;
+        const radius = Math.round(.6 + Math.sin(life * Math.PI) * (1.6 + life * 2.2));
+        if (radius < 1) continue;
+        const x = Math.round(entry.x + Math.sin(life * 5 + entry.phase * 6) * 2.5 + life * 5), y = Math.round(entry.y - life * 26);
+        if (coarse) { cell(x - radius, y - radius, radius * 2 + 1, radius + 1, [236, 240, 250]); cell(x - radius, y + 1, radius * 2 + 1, radius, [170, 178, 204]); continue; }
         for (let dy = -radius; dy <= radius; dy += 1) {
-          const w = Math.sqrt(Math.max(0, radius * radius - dy * dy));
-          cell(x - w, y + dy, w * 2, 1, dy < 0 ? [236, 240, 250] : [178, 186, 210], (.55 - life * .5));
+          const w = Math.round(Math.sqrt(Math.max(0, radius * radius - dy * dy + radius * .5)));
+          const split = clamp(-dy, -w, w + 1);
+          if (split > -w) cell(x - w, y + dy, split + w, 1, [236, 240, 250]);
+          if (split <= w) cell(x + split, y + dy, w - split + 1, 1, [170, 178, 204]);
+        }
+      }
+    } else if (entry.type === 'orbit') {
+      // Loose stones circling the root; on the far side they pass behind the rock.
+      const covered = (x, y) => x >= 0 && y >= 0 && x < art.art.width && y < art.art.height && art.depth[y * art.art.width + x] > 0;
+      for (let k = 0; k < entry.stones; k += 1) {
+        const angle = entry.phase + k / entry.stones * Math.PI * 2 + t * (.14 + k * .02);
+        const x = Math.round(entry.x + Math.cos(angle) * entry.rx * (1 - k * .07)), y = Math.round(entry.y + Math.sin(angle) * entry.ry + (k - 1) * 7 + Math.sin(t * .8 + k) * 1.5);
+        const behind = Math.sin(angle) < 0, r = 2 + (k * 7 % 3);
+        if (coarse) { if (!(behind && covered(x, y))) cell(x - r, y - r, r * 2 + 1, r * 2 + 1, entry.colours[1]); continue; }
+        for (let dy = -r - 1; dy <= r + 1; dy += 1) for (let dx = -r - 2; dx <= r + 2; dx += 1) {
+          const v = Math.abs(dx) / (r + 1.5) + Math.abs(dy) / (r + .7);
+          if (v > 1 || (behind && covered(x + dx, y + dy))) continue;
+          cell(x + dx, y + dy, 1, 1, v > .74 ? OUTLINE : dx + dy < -1 ? entry.colours[0] : dx + dy > 0 ? entry.colours[2] : entry.colours[1]);
         }
       }
     } else if (entry.type === 'windmill') {
@@ -2018,17 +2247,25 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
     } else if (entry.type === 'flag') {
       for (let x = 0; x < entry.length; x += 1) {
         const wave = Math.round(Math.sin(x * .7 - t * 5 + entry.x) * 1.2 * (x / entry.length + .3));
-        for (let y = 0; y < 5; y += 1) cell(entry.x + x, entry.y + y + wave, 1, 1, tone(entry.color, y < 2 ? .2 : y > 3 ? -.25 : 0));
+        if (coarse) cell(entry.x + x, entry.y + wave, 1, 5, tone(entry.color, 0));
+        else for (let y = 0; y < 5; y += 1) cell(entry.x + x, entry.y + y + wave, 1, 1, tone(entry.color, y < 2 ? .2 : y > 3 ? -.25 : 0));
+      }
+    } else if (entry.type === 'pennant') {
+      for (let x = 0; x < entry.length; x += 1) {
+        const wave = Math.round(Math.sin(x * .6 - t * 4 + entry.x) * 1.3 * (x / entry.length + .2));
+        const half = Math.max(0, Math.round(3.4 * (1 - x / entry.length)));
+        cell(entry.x + x, entry.y + 3 - half + wave, 1, half + 1, tone(entry.color, .22));
+        cell(entry.x + x, entry.y + 4 + wave, 1, half + 1, tone(entry.color, x < 2 ? -.1 : -.28));
       }
     } else if (entry.type === 'beacon') {
-      const pulse = .55 + Math.sin(t * 3 + entry.x) * .35;
+      const pulse = (.55 + Math.sin(t * 3 + entry.x) * .35) * (.5 + lit * .5);
       cell(entry.x - 1, entry.y - 1, 3, 3, entry.color || [255, 236, 160], pulse);
     } else if (entry.type === 'beam') {
       const angle = t * 1.2;
       const reach = 70;
       const dx = Math.cos(angle), dy = Math.sin(angle) * .45;
       if (dx !== 0) {
-        context.globalAlpha = .16 + Math.abs(Math.cos(angle)) * .14;
+        context.globalAlpha = (.16 + Math.abs(Math.cos(angle)) * .14) * lit;
         const gradient = context.createLinearGradient(left + entry.x * px, top + entry.y * px, left + (entry.x + dx * reach) * px, top + (entry.y + dy * reach) * px);
         gradient.addColorStop(0, 'rgba(255,240,180,.9)'); gradient.addColorStop(1, 'rgba(255,240,180,0)');
         context.fillStyle = gradient;
@@ -2067,7 +2304,7 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
         const r = hash2(seedValue, k, 3);
         const x = entry.x + Math.cos(a) * entry.rx * r, y = entry.y + Math.sin(a * 1.3) * entry.ry * r - 6;
         const blink = Math.sin(t * 2.5 + k) * .5 + .5;
-        if (blink > .3) cell(x, y, 1, 1, [255, 246, 160], blink);
+        if (blink > .3 && lit > .5) cell(x, y, 1, 1, [255, 246, 160], blink);
       }
     }
   });
@@ -2671,6 +2908,15 @@ Object.assign(RELIC_SPRITES, {
   'lg-route': { palette: { y: '#ffd66f', w: '#fff1c4' }, rows: [
     'yy..yy..yy..', '..........ww', '..........ww',
   ] },
+  'lg-bedrock': { palette: { ...GRASS, r: '#d2a774', s: '#b8895c', R: '#996c4a', S: '#79523b', t: '#593b2c' }, rows: [
+    'gggggggggggg', 'GddddddddddG', '.rrrrrrRRRR.', '.ssssssSSSS.', '..rrrrrRRR..', '..sssssSSS..', '...rrrrRR...', '...ssssSS...', '....rrRt....', '.....st.....', '.....t......',
+  ] },
+  'lg-sky': { palette: { y: '#ffd879', Y: '#fff7d6', p: '#e6b26a', o: '#7c4c8e', O: '#2c2a5c' }, rows: [
+    '....yyyy....', '...yYYYYy...', '..yYYYYYYy..', 'pppppppppppp', 'oooooooooooo', 'o.o.o.o.o.o.', 'OOOOOOOOOOOO',
+  ] },
+  'lg-moon': { palette: { M: '#fff6d6', m: '#efe2b8', c: '#cdbb8e', d: '#323a5e' }, rows: [
+    '..mmmm..', '.MMmmdd.', 'MMcmmddd', 'MMMmdmdd', 'MMmmdddd', 'MMMcmddd', '.MMmmdd.', '..mmdd..',
+  ] },
 });
 
 /* ---------- Keepers: a pixel character for every archetype title ---------- */
@@ -2920,10 +3166,13 @@ if (TEAM) {
 function builderColor(name) { return TEAM?.members.find((member) => member.name === name)?.color || '#9fb3c8'; }
 function leadBuilder(project) { return Object.keys(project.builders || {})[0] || null; }
 function isShared(project) { return Object.values(project.builders || {}).filter((share) => share >= .15).length > 1; }
+// A Wrapped edition (--year) names the story and the card: "CLAUDE CODE WRAPPED 2026".
+const EDITION = DATA.edition?.label ? DATA.edition : null;
 const RHYTHM = DATA.rhythm || { hours: Array(24).fill(0), weekdays: Array(7).fill(0), activeDays: 0, longestStreak: 0 };
 const TOTAL_SESSIONS = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
 const TOTAL_TOKENS = PROJECTS.reduce((sum, project) => sum + (project.tokens?.total || 0), 0);
 const TOTAL_PROMPTS = PROJECTS.reduce((sum, project) => sum + (project.prompts || 0), 0);
+const HABITS = DATA.habits || {};
 function sinceLabel() {
   return RHYTHM.firstDay ? new Date(`${RHYTHM.firstDay}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
 }
@@ -3032,6 +3281,10 @@ const PIXEL_FONT = {
   '%': ['##..#', '##.#.', '...#.', '..#..', '.#...', '.#.##', '#..##'],
   '+': ['.....', '..#..', '..#..', '#####', '..#..', '..#..', '.....'],
   ' ': ['..', '..', '..', '..', '..', '..', '..'],
+  h: ['#....', '#....', '#.##.', '##..#', '#...#', '#...#', '#...#'],
+  m: ['.....', '.....', '##.#.', '#.#.#', '#.#.#', '#...#', '#...#'],
+  '×': ['.....', '#...#', '.#.#.', '..#..', '.#.#.', '#...#', '.....'],
+  ',': ['..', '..', '..', '..', '..', '.#', '#.'],
 };
 PIXEL_FONT.k = PIXEL_FONT.K;
 const pixelable = (text) => [...String(text)].every((char) => PIXEL_FONT[char]);
@@ -3087,7 +3340,7 @@ function cardCopy(selected, showNames = state.showNames) {
   }
   const custom = ($('#cardTitle')?.value || '').trim();
   return {
-    overline: DATA.demo ? (TEAM ? 'SAMPLE TEAM ARCHETYPE' : 'SAMPLE ARCHETYPE') : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    overline: EDITION?.label || (DATA.demo ? (TEAM ? 'SAMPLE TEAM ARCHETYPE' : 'SAMPLE ARCHETYPE') : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE'),
     accent: keeperFor(PERSONA.realm).accent,
     title: custom || PERSONA.title,
     line: PERSONA.line,
@@ -3146,8 +3399,8 @@ function drawCardScene(context, scene, { time = 2400, camera = null, rise = null
   const flat = { transform: view, detail: true, selected: false, hovered: false, label: false, time };
   const pixel = (items[0]?.px || 1) * view.scale;
   const up = rise === null ? null : (item) => riseAt(item, rise);
-  // A persona card's keeper stands where the moon would, so the moon rises higher and further left.
-  drawOcean(context, width, height, selected ? selected.seed : 73, time, selected || wide ? null : tall ? [.6, .062] : [.6, .08]);
+  // The moon or sun is painted over the scrims by the card itself, clear of the words.
+  drawOcean(context, width, height, selected ? selected.seed : 73, time, { moon: false });
   drawCloudSea(context, width, height, time);
   if (heroItem) drawCapitalHalo(context, heroItem, view);
   if (!selected && up) drawRoute(context, items, view, time, pixel, up);
@@ -3235,11 +3488,11 @@ function drawPuff(context, x, y, radius, progress, cell, seed) {
   // Round lobes on a flat underside, like the cloud sea's own sprites.
   const inside = (u, v) => v < .2 && lobes.some((lobe) => Math.hypot(u - lobe.x, (v - lobe.y) * 1.25) < lobe.r * swell);
   const reach = Math.ceil(radius * 1.3 / cell), rows = Math.ceil(radius * .75 / cell);
-  const ox = Math.round(x), oy = Math.round(y), step = cell / radius;
+  const ox = Math.round(x), oy = Math.round(y), step = cell / radius, tint = skyNow().clouds;
   for (let gy = -rows; gy <= rows; gy += 1) for (let gx = -reach; gx <= reach; gx += 1) {
     const u = gx * step, v = gy * step;
     if (BAYER[((gy & 3) << 2) | (gx & 3)] < wear || !inside(u, v)) continue;
-    context.fillStyle = !inside(u, v - step) ? '#dfe8fb' : !inside(u, v + step) ? '#6f86ba' : v > .02 ? '#93a9d6' : '#b9c9ec';
+    context.fillStyle = !inside(u, v - step) ? tint[0] : !inside(u, v + step) ? tint[3] : v > .02 ? tint[2] : tint[1];
     context.fillRect(ox + gx * cell, oy + gy * cell, cell, cell);
   }
 }
@@ -3273,7 +3526,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   context.clearRect(0, 0, width, height);
   const pad = (wide ? 60 : 68) * scale;
   const copy = cardCopy(selected, showNames);
-  const year = new Date(NOW).getFullYear();
+  const year = EDITION?.year || new Date(NOW).getFullYear();
   const beat = options.reel ?? null;
   const arrive = (from, lift) => (beat === null ? 1 : slam(beat, from, undefined, lift));
   const after = (from) => beat === null || beat >= from;
@@ -3295,14 +3548,19 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     gradient.addColorStop(0, from); gradient.addColorStop(1, to);
     context.fillStyle = gradient; context.fillRect(0, Math.min(y0, y1), width, Math.abs(y1 - y0));
   };
+  // Tinted by the sky so a bright morning card does not wear a midnight band.
+  const ink = skyNow().scrim.join(',');
   if (wide) {
     const side = context.createLinearGradient(0, 0, width * .5, 0);
-    side.addColorStop(0, 'rgba(4,9,26,.92)'); side.addColorStop(.62, 'rgba(4,9,26,.7)'); side.addColorStop(1, 'rgba(4,9,26,0)');
+    side.addColorStop(0, `rgba(${ink},.92)`); side.addColorStop(.62, `rgba(${ink},.7)`); side.addColorStop(1, `rgba(${ink},0)`);
     context.fillStyle = side; context.fillRect(0, 0, width * .5, height);
   } else {
-    scrim(0, height * (tall ? .27 : .34), 'rgba(4,9,26,.96)', 'rgba(4,9,26,0)');
-    scrim(height, height * (tall ? .7 : .66), 'rgba(4,9,26,.96)', 'rgba(4,9,26,0)');
+    scrim(0, height * (tall ? .27 : .34), `rgba(${ink},.96)`, `rgba(${ink},0)`);
+    scrim(height, height * (tall ? .7 : .66), `rgba(${ink},.96)`, `rgba(${ink},0)`);
   }
+  // The moon or sun rides above the scrim, upper left of the islands and clear of the words: between the
+  // wordmark and the overline on tall and square cards, just right of the text column on wide ones.
+  paintSkyBody(context, width, height, wide ? [.47, .15] : [.33, (pad + 8 * scale) / height]);
 
   // 3. Header: brand, overline, title, line.
   drawBrandMark(context, pad, pad - 10 * scale, 4.4 * scale);
@@ -3478,9 +3736,14 @@ const MOMENTS = {
         ['note', `Found on ${sharedName(project) || `a ${kindOf(project).toLowerCase()}`}${owners.length > 1 ? ` and ${plural(owners.length - 1, 'other island')}` : ''}.`]].filter(Boolean),
     };
   },
+  receipts: () => ({
+    accent: '#ffd36b', overline: 'THE RECEIPTS', rows: receiptLines(true), title: TEAM ? 'How we work with our agents.' : 'How I work with my agent.',
+    lines: [['note', TEAM ? 'Counted on each builder’s own computer. Only the numbers were shared, never anyone’s words.' : 'Counted on my computer. Only the numbers were kept, never the words.'],
+      ['note', `Built with ${agentPhrase()}.`]],
+  }),
   archetype: () => ({
     accent: keeperFor(PERSONA.realm).accent, sprite: keeperFor(PERSONA.realm).sprite, title: PERSONA.title,
-    overline: DATA.demo ? 'SAMPLE ARCHETYPE' : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    overline: EDITION?.label || (DATA.demo ? 'SAMPLE ARCHETYPE' : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE'),
     lines: [['body', PERSONA.line]], clues: (PERSONA.clues || []).map((clue) => [clue.label, clue.why.replace(/\byour\b/g, TEAM ? 'our' : 'my')]),
   }),
 };
@@ -3491,13 +3754,41 @@ function drawPixelBox(context, x, y, w, h, cell, stroke, fill) {
   context.fillRect(x + cell, y, w - 2 * cell, h); context.fillRect(x, y + cell, w, h - 2 * cell);
   context.fillStyle = fill; context.fillRect(x + cell, y + cell, w - 2 * cell, h - 2 * cell);
 }
-// The moment's picture, as big as its box allows in whole pixels: a pixel number, a relic or a keeper.
+// The receipts as a torn-off till slip in whole pixels: each row a pixel number in ink and what it counts.
+function drawReceiptSlip(context, rows, box, scale) {
+  const cell = Math.max(2, Math.round(3 * scale));
+  const w = Math.round(Math.min(box.w, 820 * scale) / cell) * cell, h = Math.round(box.h / cell) * cell;
+  const left = Math.round(box.x + (box.w - w) / 2), top = Math.round(box.y);
+  const columns = w / cell, tooth = [0, 1, 2, 1];
+  [['rgba(2,6,18,.55)', cell], ['#fff3d6', 0]].forEach(([colour, drop]) => {
+    context.fillStyle = colour;
+    for (let column = 0; column < columns; column += 1) {
+      const bite = tooth[column % 4] * cell;
+      context.fillRect(left + column * cell + drop, top + bite + drop, cell, h - bite * 2);
+    }
+  });
+  const inset = 26 * scale, rowH = (h - inset * 2) / rows.length;
+  const widest = Math.max(...rows.map(([number]) => pixelTextWidth(number, 1)));
+  const digit = Math.max(2, Math.floor(Math.min(rowH * .5 / 7, (w - inset * 2) * .42 / widest)));
+  const textX = left + inset + widest * digit + 24 * scale, textW = left + w - inset - textX;
+  const size = Math.min(rowH * .27, 30 * scale);
+  rows.forEach(([number, caption], index) => {
+    const y = top + inset + index * rowH;
+    if (index) for (let x = left + inset; x < left + w - inset; x += cell * 3) { context.fillStyle = '#d9c9a6'; context.fillRect(Math.round(x), Math.round(y), cell * 2, Math.max(1, Math.round(cell / 2))); }
+    drawPixelText(context, number, left + inset, Math.round(y + rowH / 2 + 3.5 * digit), digit, '#241d33');
+    context.font = `700 ${size}px ${SANS}`; context.fillStyle = '#4a4058'; context.textAlign = 'left';
+    const lines = wrapLines(context, caption, textW).slice(0, 2);
+    lines.forEach((line, row) => context.fillText(line, textX, y + rowH / 2 + size * (.36 + (row - (lines.length - 1) / 2) * 1.15), textW));
+  });
+}
+// The moment's picture, as big as its box allows in whole pixels: a pixel number, the receipts, a relic or a keeper.
 function drawMomentVisual(context, spec, box, scale) {
   const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
   const reach = Math.min(box.w, box.h) * .75;
   const glow = context.createRadialGradient(cx, cy, 0, cx, cy, reach);
   glow.addColorStop(0, hexAlpha(spec.accent, .28)); glow.addColorStop(1, hexAlpha(spec.accent, 0));
   context.fillStyle = glow; context.fillRect(cx - reach, cy - reach, reach * 2, reach * 2);
+  if (spec.rows) { drawReceiptSlip(context, spec.rows, box, scale); return; }
   if (spec.number) {
     const cell = Math.max(2, Math.floor(Math.min(box.w * .86 / pixelTextWidth(spec.number, 1), box.h / 7, 34 * scale)));
     const x = Math.round(cx - pixelTextWidth(spec.number, cell) / 2), y = Math.round(cy + 3.5 * cell), drop = Math.max(2, Math.round(cell / 4));
@@ -3526,19 +3817,19 @@ function renderMomentCard(canvas, kind, format = state.format, moment = state.mo
   const context = canvas.getContext('2d');
   const spec = (MOMENTS[kind] || MOMENTS.archetype)(moment || { kind });
   drawCardScene(context, scene);
-  context.fillStyle = 'rgba(4,9,26,.72)'; context.fillRect(0, 0, width, height);
+  context.fillStyle = `rgba(${skyNow().scrim.join(',')},.72)`; context.fillRect(0, 0, width, height);
   const pad = (wide ? 64 : 72) * scale;
   const safeTop = tall ? 250 * scale : pad, safeBottom = tall ? 270 * scale : pad;
   drawPixelFrame(context, width, height, spec.accent, scale);
   drawBrandMark(context, pad, safeTop - 8 * scale, 4.4 * scale);
   if (!wide) {
     context.textAlign = 'right'; context.fillStyle = '#9fbad4'; context.font = `800 ${15 * scale}px ${SANS}`;
-    context.fillText(`${TEAM ? 'OUR' : 'MY'} PELAGO · ${new Date(NOW).getFullYear()}`, width - pad, safeTop + 26 * scale);
+    context.fillText(`${TEAM ? 'OUR' : 'MY'} PELAGO · ${EDITION?.year || new Date(NOW).getFullYear()}`, width - pad, safeTop + 26 * scale);
   }
   // Stacked and centred on tall and square cards; words left and picture right on wide ones.
   const visual = wide ? { x: width * .56, y: height * .14, w: width * .44 - pad, h: height * .64 }
     : tall ? { x: pad, y: safeTop + 170 * scale, w: width - pad * 2, h: 580 * scale }
-      : { x: pad, y: safeTop + 90 * scale, w: width - pad * 2, h: 320 * scale };
+      : { x: pad, y: safeTop + 90 * scale, w: width - pad * 2, h: (spec.rows ? 420 : 320) * scale };
   drawMomentVisual(context, spec, visual, scale);
   const center = !wide, x = center ? width / 2 : pad, column = center ? width - pad * 2 : width * .52 - pad;
   const align = center ? 'center' : 'left';
@@ -3593,6 +3884,12 @@ function shareText(selected = state.exportSelected, moment = state.moment) {
   const agents = agentPhrase(), we = Boolean(TEAM);
   const tail = ` Map yours: ${DEMO_URL}${agents.includes('Claude') ? ' #ClaudeCode' : ''}`;
   if (moment?.kind === 'tokens') return `${compact(TOTAL_TOKENS)} tokens through ${agents} became ${plural(PROJECTS.length, 'island')} in ${we ? 'our' : 'my'} pixel-art world.${tail}`;
+  if (moment?.kind === 'receipts') {
+    const habit = (key) => Number(HABITS[key] || 0);
+    const said = [habit('interrupts') && `stopped ${we ? 'our agents' : 'my agent'} ${plural(habit('interrupts'), 'time')}`, habit('please') && `said please ${plural(habit('please'), 'time')}`,
+      habit('nudges') && `sent ${habit('nudges').toLocaleString('en-US')} one-word go-aheads`, habit('longestStretch') && `went ${stretchLabel(habit('longestStretch'))} without a break`].filter(Boolean);
+    return `${we ? 'Our' : 'My'} ${agents} receipts: ${we ? 'we' : 'I'} ${said.join(', ')}.${tail}`;
+  }
   if (moment?.kind === 'relic') {
     const rarity = RARITY[moment.relic.rarity].label.toLowerCase(), where = sharedName(moment.project);
     return `${we ? 'We' : 'I'} found the ${moment.relic.name}, ${/^[aeiou]/.test(rarity) ? 'an' : 'a'} ${rarity} relic${where ? ` on ${where}` : ''}, in ${we ? 'our' : 'my'} ${agents} world.${tail}`;
@@ -3606,8 +3903,7 @@ function renderShareCard(canvas) { return state.moment ? renderMomentCard(canvas
 const cardCache = { key: '', promise: null, blob: null, timer: 0 };
 function cardKey() {
   const moment = state.moment && [state.moment.kind, state.moment.relic?.id ?? null, state.moment.project?.id ?? null];
-  // `sky` arrives with painted skies; until then every card is night.
-  return JSON.stringify([state.format, ($('#cardTitle').value || '').trim(), state.showNames && !state.hideNames, state.exportSelected?.id ?? null, moment, typeof sky === 'object' && sky ? sky.name : 'night']);
+  return JSON.stringify([state.format, ($('#cardTitle').value || '').trim(), state.showNames && !state.hideNames, state.exportSelected?.id ?? null, moment, skyNow().name]);
 }
 function cardBlob() {
   const key = cardKey();
@@ -3799,9 +4095,45 @@ function ellipse(context, x, y, radiusX, radiusY, color) {
   context.fill();
 }
 
+// ---------- Sky at your hour ----------
+// The sky is painted for the hour you build in: the archetype's time of day, or the busiest hour.
+// Each preset sets the gradient, the glow on the horizon, how many stars show, a moon or a pixel sun,
+// the tint of the clouds, the air that hazes distant islands, and how brightly island lights glow.
+const SKIES = {
+  midnight: { label: 'Midnight', stops: ['#050a1c', '#0b1736', '#1a3466', '#16305c', '#0a1530'], horizon: [90, 170, 200, .22], stars: 1, milky: 1, body: 'moon', clouds: ['#dfe8fb', '#b9c9ec', '#93a9d6', '#6f86ba'], cloudAlpha: 1, sea: [98, 120, 176], mist: [96, 128, 196], haze: [44, 72, 122], glow: 1, scrim: [4, 9, 26] },
+  dawn: { label: 'Dawn', stops: ['#191c48', '#3b3a78', '#c87393', '#f2a77e', '#5a4f8c'], horizon: [255, 178, 140, .34], stars: .35, milky: 0, body: 'sun', sun: ['#fff6e2', '#ffd6a6', '#ff9d7e'], clouds: ['#ffe9e2', '#f3bcc4', '#c38fae', '#82709f'], cloudAlpha: 1.4, sea: [150, 120, 170], mist: [236, 160, 170], haze: [150, 112, 156], glow: .6, scrim: [24, 16, 50] },
+  morning: { label: 'Morning', stops: ['#2f74c4', '#5ea2e0', '#a4d4f2', '#c8e6f4', '#7eaed8'], horizon: [255, 252, 232, .32], stars: 0, milky: 0, body: 'sun', sun: ['#ffffff', '#fff3b8', '#ffd66e'], clouds: ['#ffffff', '#eef5ff', '#c6d9f1', '#98b3da'], cloudAlpha: 1.9, sea: [150, 186, 226], mist: [236, 246, 255], haze: [158, 196, 232], glow: .3, scrim: [8, 30, 70] },
+  golden: { label: 'Golden hour', stops: ['#2c5a96', '#5a83b6', '#e6b26a', '#f6c87c', '#8c6c80'], horizon: [255, 196, 110, .38], stars: 0, milky: 0, body: 'sun', sun: ['#fff7d6', '#ffd879', '#ffa94a'], clouds: ['#fff1d4', '#f6cd98', '#d79a7c', '#8a6f8a'], cloudAlpha: 1.6, sea: [176, 140, 150], mist: [255, 214, 160], haze: [186, 150, 126], glow: .45, scrim: [34, 18, 30] },
+  twilight: { label: 'Twilight', stops: ['#0d1135', '#28245e', '#7c4c8e', '#de7c6c', '#2c2a5c'], horizon: [255, 140, 120, .3], stars: .7, milky: .35, body: 'moon', clouds: ['#f7d4e2', '#c9a2cc', '#8f79b1', '#5d5590'], cloudAlpha: 1.15, sea: [110, 92, 160], mist: [200, 130, 170], haze: [84, 62, 122], glow: .85, scrim: [14, 9, 36] },
+};
+Object.entries(SKIES).forEach(([name, preset]) => { preset.name = name; });
+const SKY_FOR_PREFIX = { Midnight: 'midnight', Dawn: 'dawn', Morning: 'morning', Sunlit: 'golden', Twilight: 'twilight' };
+const sky = { name: null, phase: null };
+function skyFor() {
+  const prefix = PERSONA.title.replace(/^The /, '').split(' ')[0];
+  if (SKY_FOR_PREFIX[prefix]) return SKY_FOR_PREFIX[prefix];
+  const hour = PERSONA.peakHour ?? peakHour();
+  if (hour === null || hour === undefined) return 'midnight';
+  return hour >= 22 || hour < 5 ? 'midnight' : hour < 9 ? 'dawn' : hour < 12 ? 'morning' : hour < 17 ? 'golden' : 'twilight';
+}
+function skyNow() { sky.name = sky.name || skyFor(); return SKIES[sky.name]; }
+// The moon fills as you keep showing up: full after work on every one of the last 28 days, a crescent after a quiet month.
+function moonPhase() {
+  if (sky.phase !== null) return sky.phase;
+  const daily = RHYTHM.daily || {};
+  if (!Object.keys(daily).length) return (sky.phase = 1);
+  const end = new Date(DATA.generatedAt || Date.now());
+  let active = 0;
+  for (let back = 0; back < 28; back += 1) {
+    const day = new Date(end.getFullYear(), end.getMonth(), end.getDate() - back);
+    if (daily[`${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`]) active += 1;
+  }
+  return (sky.phase = active / 28);
+}
+
 const cloudSprites = new Map();
-function cloudSprite(variant, unit) {
-  const key = `${variant}|${unit}`;
+function cloudSprite(variant, unit, tint = skyNow().clouds) {
+  const key = `${variant}|${unit}|${tint[0]}${tint[3]}`;
   if (cloudSprites.has(key)) return cloudSprites.get(key);
   const random = seeded(9000 + variant);
   const cells = 26 + Math.floor(random() * 18);
@@ -3819,7 +4151,7 @@ function cloudSprite(variant, unit) {
     const inside = puffs.some((puff) => Math.hypot(gx + .5 - puff.x, (gy + .5 - puff.y) * 1.35) < puff.r) && gy < rows - 1;
     if (!inside) continue;
     const above = puffs.some((puff) => Math.hypot(gx + .5 - puff.x, (gy - .5 - puff.y) * 1.35) < puff.r);
-    context.fillStyle = !above ? '#dfe8fb' : gy > rows * .62 ? '#6f86ba' : gy > rows * .45 ? '#93a9d6' : '#b9c9ec';
+    context.fillStyle = !above ? tint[0] : gy > rows * .62 ? tint[3] : gy > rows * .45 ? tint[2] : tint[1];
     context.fillRect(gx * unit, gy * unit, unit, unit);
   }
   cloudSprites.set(key, canvas);
@@ -3833,6 +4165,7 @@ function drawCloudSea(context, width, height, time, front = false) {
   const random = seeded(front ? 707 : 505);
   const base = height * (front ? .97 : .86);
   const count = Math.ceil(width / (unit * 30)) + 3;
+  const [r, g, b] = skyNow().sea;
   context.save();
   context.globalAlpha = front ? .55 : .9;
   for (let row = 0; row < (front ? 1 : 3); row += 1) {
@@ -3848,7 +4181,7 @@ function drawCloudSea(context, width, height, time, front = false) {
   }
   if (!front) {
     const fill = context.createLinearGradient(0, base, 0, height);
-    fill.addColorStop(0, 'rgba(111,134,186,0)'); fill.addColorStop(.35, 'rgba(98,120,176,.85)'); fill.addColorStop(1, 'rgba(70,92,150,1)');
+    fill.addColorStop(0, `rgba(${r + 13},${g + 14},${b + 10},0)`); fill.addColorStop(.35, `rgba(${r},${g},${b},.85)`); fill.addColorStop(1, `rgb(${Math.round(r * .72)},${Math.round(g * .76)},${Math.round(b * .85)})`);
     context.globalAlpha = 1;
     context.fillStyle = fill;
     context.fillRect(0, base, width, height - base);
@@ -3856,121 +4189,102 @@ function drawCloudSea(context, width, height, time, front = false) {
   context.restore();
 }
 
-function drawOcean(context, width, height, seed = 41, time = performance.now(), moonAt = null, part = 'all') {
-  // Night sky: deep zenith, a luminous band at the horizon, stars, a pixel moon and a sea of cloud below.
-  // The map keeps the still layers in a cache (`part` 'still') and draws only the moving ones each frame ('moving').
+// A disc of pixel cells, painted one row span at a time.
+function pixelDisc(context, x, y, cells, unit, colour, alpha = 1) {
+  context.globalAlpha = alpha; context.fillStyle = colour;
+  for (let gy = -cells; gy <= cells; gy += 1) {
+    const w = Math.floor(Math.sqrt(Math.max(0, cells * cells - gy * gy)));
+    context.fillRect(x - w * unit, y + gy * unit, (w * 2 + 1) * unit, unit);
+  }
+  context.globalAlpha = 1;
+}
+
+// The moon or sun sits upper left, on the side the islands are lit from, inside rings of pixel halo.
+function paintSkyBody(context, width, height, at) {
+  const preset = skyNow();
+  const portrait = height > width * .9, sun = preset.body === 'sun';
+  const unit = Math.max(1, Math.round(Math.min(width, height) / 420));
+  const [fx, fy] = at || (portrait ? [.2, .14] : [.1, .19]);
+  const cells = Math.round(Math.min(width, height) * (portrait ? .045 : .055) * (sun ? 1.08 : 1) / unit);
+  const mx = Math.round(width * fx / unit) * unit, my = Math.round(height * fy / unit) * unit;
+  [[2.2, sun ? .06 : .025], [1.7, sun ? .09 : .04], [1.3, sun ? .14 : .065]].forEach(([size, alpha]) => pixelDisc(context, mx, my, Math.round(cells * size), unit, sun ? preset.sun[1] : '#ffecb4', alpha));
+  if (sun) {
+    pixelDisc(context, mx, my, cells, unit, preset.sun[2]);
+    pixelDisc(context, mx, my, cells - 1, unit, preset.sun[1]);
+    pixelDisc(context, mx - unit, my - unit, Math.round(cells * .62), unit, preset.sun[0]);
+    return;
+  }
+  // Phase: lit from the left, the terminator Bayer-dithered; the dark side keeps a faint earthshine.
+  const phase = clamp(moonPhase(), .07, 1);
+  for (let gy = -cells; gy <= cells; gy += 1) for (let gx = -cells; gx <= cells; gx += 1) {
+    const d = Math.hypot(gx, gy) / cells;
+    if (d > 1) continue;
+    const nx = gx / cells, ny = gy / cells;
+    const edge = -Math.sqrt(Math.max(0, 1 - ny * ny)) * (1 - phase * 2);
+    const lit = phase >= .99 || (edge - nx) / .3 + .5 > BAYER[((gy & 3) << 2) | (gx & 3)];
+    const shade = (gx + gy * .3) / cells;
+    const crater = [[-.3, -.25, .22], [.25, .2, .16], [-.05, .45, .12], [.4, -.35, .1]].some(([cx, cy, r]) => Math.hypot(nx - cx, ny - cy) < r);
+    let colour = crater ? '#cdbb8e' : d > .9 ? '#d8c79a' : shade < -.45 ? '#fff6d6' : shade < .1 ? '#efe2b8' : '#c9b98e';
+    if (!lit) colour = crater ? '#2a3150' : d > .9 ? '#2c3456' : '#323a5e';
+    context.fillStyle = colour;
+    context.fillRect(mx + gx * unit, my + gy * unit, unit, unit);
+  }
+}
+
+// Everything in the sky that does not move: gradient, horizon glow, stars, the Milky Way, the moon or sun and
+// the mist banks. Big canvases keep it in an offscreen canvas, so a frame only copies it and moves the clouds.
+const skyCache = new Map();
+function paintSky(context, width, height, seed, moon) {
+  const preset = skyNow();
   const random = seeded(seed);
   const horizon = height * .62;
-  const still = part !== 'moving', moving = part !== 'still';
+  const gradient = context.createLinearGradient(0, 0, 0, height);
+  [0, .38, .62, .7, 1].forEach((stop, index) => gradient.addColorStop(stop, preset.stops[index]));
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, width, height);
+  const [hr, hg, hb, ha] = preset.horizon;
+  const glow = context.createRadialGradient(width * .5, horizon, 0, width * .5, horizon, Math.max(width, height) * .6);
+  glow.addColorStop(0, `rgba(${hr},${hg},${hb},${ha})`); glow.addColorStop(.5, `rgba(${hr},${hg},${hb},${ha * .36})`); glow.addColorStop(1, `rgba(${hr},${hg},${hb},0)`);
+  context.fillStyle = glow;
+  context.fillRect(0, 0, width, height);
+
   const unit = Math.max(1, Math.round(Math.min(width, height) / 420));
-  if (still) {
-    const sky = context.createLinearGradient(0, 0, 0, height);
-    sky.addColorStop(0, '#050a1c');
-    sky.addColorStop(.38, '#0b1736');
-    sky.addColorStop(.62, '#1a3466');
-    sky.addColorStop(.7, '#16305c');
-    sky.addColorStop(1, '#0a1530');
-    context.fillStyle = sky;
-    context.fillRect(0, 0, width, height);
-
-    const glow = context.createRadialGradient(width * .5, horizon, 0, width * .5, horizon, Math.max(width, height) * .6);
-    glow.addColorStop(0, 'rgba(90,170,200,.22)');
-    glow.addColorStop(.5, 'rgba(60,110,180,.08)');
-    glow.addColorStop(1, 'rgba(20,40,90,0)');
-    context.fillStyle = glow;
-    context.fillRect(0, 0, width, height);
-
-    const stars = Math.floor(width * horizon / (5200 / unit));
-    for (let index = 0; index < stars; index += 1) {
-      const x = Math.floor(random() * width), y = Math.floor(Math.pow(random(), 1.6) * horizon * .95);
-      const bright = random() > .92;
-      context.globalAlpha = (bright ? .9 : .25 + random() * .4) * (1 - y / horizon * .6);
-      context.fillStyle = bright ? '#fff1c4' : '#b9d4ff';
-      context.fillRect(x, y, unit, unit);
-      if (bright && unit > 1) { context.fillRect(x - unit, y, unit * 3, Math.max(1, unit / 2)); context.fillRect(x, y - unit, Math.max(1, unit / 2), unit * 3); }
+  const stars = Math.floor(width * horizon / (5200 / unit));
+  for (let index = 0; index < stars; index += 1) {
+    const x = Math.floor(random() * width / unit) * unit, y = Math.floor(Math.pow(random(), 1.6) * horizon * .95 / unit) * unit;
+    const bright = random() > .92;
+    const alpha = (bright ? .9 : .25 + random() * .4) * (1 - y / horizon * .6) * preset.stars;
+    if (alpha < .04) continue;
+    context.globalAlpha = alpha;
+    context.fillStyle = bright ? '#fff1c4' : '#b9d4ff';
+    context.fillRect(x, y, unit, unit);
+    if (bright && unit > 1) { context.globalAlpha = alpha * .45; context.fillRect(x - unit, y, unit * 3, unit); context.fillRect(x, y - unit, unit, unit * 3); }
+  }
+  context.globalAlpha = 1;
+  if (width > 480 && preset.milky) {
+    const band = seeded(seed + 3);
+    for (let index = 0; index < stars * .9; index += 1) {
+      const t = band();
+      const x = t * width, y = height * (.05 + t * .38) + (band() - .5) * height * .12 * (1 + Math.sin(t * 9));
+      context.globalAlpha = (.12 + band() * .25) * preset.milky;
+      context.fillStyle = band() > .7 ? '#ffe9c4' : '#a9c8ff';
+      context.fillRect(Math.round(x / unit) * unit, Math.round(y / unit) * unit, unit, unit);
     }
     context.globalAlpha = 1;
-
-    // A faint band of the Milky Way.
-    if (width > 480) {
-      const band = seeded(seed + 3);
-      for (let index = 0; index < stars * .9; index += 1) {
-        const t = band();
-        const x = t * width, y = height * (.05 + t * .38) + (band() - .5) * height * .12 * (1 + Math.sin(t * 9));
-        context.globalAlpha = .12 + band() * .25;
-        context.fillStyle = band() > .7 ? '#ffe9c4' : '#a9c8ff';
-        context.fillRect(Math.round(x), Math.round(y), unit, unit);
-      }
-      context.globalAlpha = 1;
-    }
-
-    if (width > 480) {
-      // A pixel moon with craters and a halo.
-      const portrait = height > width;
-      const radius = Math.round(Math.min(width, height) * (portrait ? .045 : .055) / unit) * unit;
-      const [mx, my] = (moonAt || [portrait ? .8 : .86, portrait ? .1 : .17]).map((share, index) => Math.round(share * (index ? height : width)));
-      const halo = context.createRadialGradient(mx, my, radius * .8, mx, my, radius * 4);
-      halo.addColorStop(0, 'rgba(255,236,180,.16)'); halo.addColorStop(1, 'rgba(255,236,180,0)');
-      context.fillStyle = halo;
-      context.fillRect(mx - radius * 4, my - radius * 4, radius * 8, radius * 8);
-      const cells = Math.round(radius / unit);
-      for (let gy = -cells; gy <= cells; gy += 1) for (let gx = -cells; gx <= cells; gx += 1) {
-        const d = Math.hypot(gx, gy) / cells;
-        if (d > 1) continue;
-        const lit = (gx + gy * .3) / cells;
-        let colour = lit < -.45 ? '#c9b98e' : lit < .1 ? '#efe2b8' : '#fff6d6';
-        if (d > .9) colour = '#d8c79a';
-        const crater = [[-.3, -.25, .22], [.25, .2, .16], [-.05, .45, .12], [.4, -.35, .1]].some(([cx, cy, r]) => Math.hypot(gx / cells - cx, gy / cells - cy) < r);
-        if (crater) colour = '#cdbb8e';
-        context.fillStyle = colour;
-        context.fillRect(mx + gx * unit, my + gy * unit, unit, unit);
-      }
-    }
   }
 
-  // Pixel clouds drifting slowly across the night, nearer ones faster and brighter.
-  if (moving && width > 480) {
-    const drift = seeded(seed + 11);
-    for (let index = 0; index < 9; index += 1) {
-      const depth = drift();
-      const cloudUnit = unit * (depth > .6 ? 3 : 2);
-      const sprite = cloudSprite(index % 6, cloudUnit);
-      const speed = (.004 + depth * .01) * unit;
-      const span = width + sprite.width * 2;
-      const x = ((drift() * span + time * speed) % span) - sprite.width;
-      const y = height * (.12 + drift() * .62);
-      context.globalAlpha = .1 + depth * .2;
-      context.drawImage(sprite, Math.round(x), Math.round(y));
-    }
-    context.globalAlpha = 1;
-    // Now and then a shooting star.
-    const cycle = 7000, phase = (time % cycle) / cycle;
-    if (phase < .12) {
-      const run = seeded(Math.floor(time / cycle) + seed);
-      const startX = width * (.2 + run() * .6), startY = height * (.05 + run() * .2);
-      const progress = phase / .12;
-      for (let tail = 0; tail < 14; tail += 1) {
-        const k = progress - tail * .012;
-        if (k < 0) continue;
-        context.globalAlpha = (1 - tail / 14) * (1 - progress * .6);
-        context.fillStyle = tail < 2 ? '#fff6dc' : '#bcd6ff';
-        context.fillRect(Math.round(startX + k * width * .18), Math.round(startY + k * height * .09), unit * (tail < 2 ? 2 : 1), unit);
-      }
-      context.globalAlpha = 1;
-    }
-  }
-
-  if (!still) return;
-  // Low mist banks along the horizon and the cloud sea beneath.
-  const unitWidth = Math.max(width, height);
+  if (width > 480 && moon !== false) paintSkyBody(context, width, height, moon);
+  // Low mist banks along the horizon.
+  const [mr, mg, mb] = preset.mist;
+  const reach = Math.max(width, height);
   for (let layer = 0; layer < 3; layer += 1) {
     for (let index = 0; index < 6 + layer * 3; index += 1) {
       const cx = random() * width * 1.2 - width * .1;
       const cy = horizon + height * (.05 + layer * .12 + random() * .06);
-      const radius = unitWidth * (.07 + random() * .08) * (1 + layer * .25);
+      const radius = reach * (.07 + random() * .08) * (1 + layer * .25);
       const cloud = context.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      cloud.addColorStop(0, `rgba(${layer === 2 ? '120,150,210' : '96,128,196'},${.08 + layer * .03})`);
-      cloud.addColorStop(1, 'rgba(60,90,160,0)');
+      cloud.addColorStop(0, `rgba(${layer === 2 ? [mr + 24, mg + 22, mb + 14].map((value) => Math.min(255, value)).join(',') : `${mr},${mg},${mb}`},${.08 + layer * .03})`);
+      cloud.addColorStop(1, `rgba(${mr},${mg},${mb},0)`);
       context.fillStyle = cloud;
       context.beginPath();
       context.ellipse(cx, cy, radius * 2, radius * .5, 0, 0, Math.PI * 2);
@@ -3978,25 +4292,60 @@ function drawOcean(context, width, height, seed = 41, time = performance.now(), 
     }
   }
 }
-
-// The live sky of the map and the story: its still layers are painted once per size and kept, so a frame only
-// blits them and draws the drifting clouds and the shooting star.
-const skyCache = new Map();
-function drawSky(context, width, height, seed, time) {
-  const key = `${seed}|${width}x${height}`;
-  if (!skyCache.has(key)) {
-    const still = document.createElement('canvas');
+function drawOcean(context, width, height, seed = 41, time = performance.now(), options = {}) {
+  const preset = skyNow();
+  if (width <= 480) { paintSky(context, width, height, seed, options.moon); return; }
+  const key = `${width}x${height}|${preset.name}|${Math.round(moonPhase() * 28)}|${Math.min(2, window.devicePixelRatio || 1)}|${seed}|${options.moon || ''}`;
+  // The still sky is copied in whole: a 'copy' blit skips blending, the cheapest way to fill the frame
+  // (about 1.4ms for 2880x1800 even when the canvas is rasterized on the CPU).
+  let still = skyCache.get(key);
+  if (still) skyCache.delete(key);
+  else {
+    still = document.createElement('canvas');
     still.width = width; still.height = height;
-    drawOcean(still.getContext('2d'), width, height, seed, 0, null, 'still');
-    skyCache.set(key, still);
-    if (skyCache.size > 2) skyCache.delete(skyCache.keys().next().value);
+    paintSky(still.getContext('2d'), width, height, seed, options.moon);
+    if (skyCache.size >= 4) skyCache.delete(skyCache.keys().next().value);
   }
-  context.drawImage(skyCache.get(key), 0, 0);
-  drawOcean(context, width, height, seed, time, null, 'moving');
+  skyCache.set(key, still);
+  const unit = Math.max(1, Math.round(Math.min(width, height) / 420));
+  context.globalCompositeOperation = 'copy';
+  context.drawImage(still, 0, 0, width, height);
+  context.globalCompositeOperation = 'source-over';
+
+  // Pixel clouds drifting slowly across the sky, nearer ones faster and brighter.
+  const drift = seeded(seed + 11);
+  for (let index = 0; index < 9; index += 1) {
+    const depth = drift();
+    const cloudUnit = unit * (depth > .6 ? 3 : 2);
+    const sprite = cloudSprite(index % 6, cloudUnit);
+    const speed = (.004 + depth * .01) * unit;
+    const span = width + sprite.width * 2;
+    const x = ((drift() * span + time * speed) % span) - sprite.width;
+    const y = height * (.12 + drift() * .62);
+    context.globalAlpha = Math.min(.9, (.1 + depth * .2) * preset.cloudAlpha);
+    context.drawImage(sprite, Math.round(x), Math.round(y));
+  }
+  context.globalAlpha = 1;
+  // Now and then a shooting star, while there are stars to see.
+  const cycle = 7000, phase = (time % cycle) / cycle;
+  if (phase < .12 && preset.stars > .5) {
+    const run = seeded(Math.floor(time / cycle) + seed);
+    const startX = width * (.2 + run() * .6), startY = height * (.05 + run() * .2);
+    const progress = phase / .12;
+    for (let tail = 0; tail < 14; tail += 1) {
+      const k = progress - tail * .012;
+      if (k < 0) continue;
+      context.globalAlpha = (1 - tail / 14) * (1 - progress * .6);
+      context.fillStyle = tail < 2 ? '#fff6dc' : '#bcd6ff';
+      context.fillRect(Math.round(startX + k * width * .18), Math.round(startY + k * height * .09), unit * (tail < 2 ? 2 : 1), unit);
+    }
+    context.globalAlpha = 1;
+  }
 }
 
 const ART_UNIT = 420;
 
+// The lower part of each rock root may trail off into the clouds, so it does not count toward the layout.
 function islandMetrics(project) {
   const art = islandArt(project);
   const half = art.art.width * .44;
@@ -4004,7 +4353,7 @@ function islandMetrics(project) {
     art, half,
     unit: half / ART_UNIT,
     left: art.anchorX / ART_UNIT, right: (art.art.width - art.anchorX) / ART_UNIT,
-    up: art.anchorY / ART_UNIT, down: (art.art.height - art.anchorY) / ART_UNIT,
+    up: art.anchorY / ART_UNIT, down: (art.art.height - art.anchorY - (art.root || 0) * .6) / ART_UNIT,
   };
 }
 
@@ -4032,7 +4381,7 @@ function drawIsland(context, item, options = {}) {
   const screenTop = transform.y + (y - art.anchorY * px) * transform.scale;
   context.save();
   context.setTransform(1, 0, 0, 1, 0, 0);
-  const origin = drawIslandArtCrisp(context, art, screenLeft, screenTop, scale, options);
+  const origin = drawIslandArtCrisp(context, art, screenLeft, screenTop, scale, { ...options, haze: options.haze ?? item.haze ?? 0 });
   if (options.animate !== false) drawIslandAnimations(context, art, origin.x, origin.y, scale, options.time ?? performance.now(), project.seed);
   context.restore();
   if (selected || hovered) {
@@ -4050,7 +4399,7 @@ function drawIsland(context, item, options = {}) {
 function drawIslandFit(context, project, x, y, width, height, options = {}) {
   // Draws one island scaled to fit a box, centred, pixel-crisp.
   const { art } = islandMetrics(project);
-  const visible = art.anchorY + (art.art.height - art.anchorY) * (options.crop ?? 1);
+  const visible = art.anchorY + (art.art.height - (art.root || 0) * .6 - art.anchorY) * (options.crop ?? 1);
   const px = Math.min(width / art.art.width, height / visible);
   const left = x + (width - art.art.width * px) / 2, top = y + (height - visible * px) / 2;
   context.save();
@@ -4285,6 +4634,12 @@ function visibleProjects() {
   return PROJECTS.filter((project) => state.filter === 'all' || hasCrew(project, state.filter));
 }
 
+// Atmospheric depth: islands higher on the map sit further back and take on a little of the sky's haze,
+// in two steps, so an island never needs more than two hazed copies of its art.
+function airDepth(items) {
+  const ys = items.map((item) => item.y), top = Math.min(...ys), range = Math.max(...ys) - top;
+  return items.map((item) => ({ ...item, haze: item.haze || (range > 1 ? [.14, .07, 0][Math.min(2, Math.floor((item.y - top) / range * 3))] : 0) }));
+}
 // The map is laid out from the islands currently shown, so filtering by agent re-forms a tight archipelago.
 function worldLayout() {
   const ratio = worldRatio();
@@ -4295,9 +4650,9 @@ function worldLayout() {
     const items = makeLayout(wide, world.height, projects, { top: 80 * ratio, bottom: 110 * ratio, left: 12 * ratio, right: 12 * ratio, maxSize: 4000, hang: .42 });
     const capital = [...items].sort((a, b) => b.project.activity - a.project.activity)[0];
     const offset = capital ? capital.x - world.width / 2 : (wide - world.width) / 2;
-    return items.map((item) => ({ ...item, x: item.x - offset }));
+    return airDepth(items.map((item) => ({ ...item, x: item.x - offset })));
   }
-  return makeLayout(world.width, world.height, projects, { top: 78 * ratio, bottom: 104 * ratio, left: 24 * ratio, right: 74 * ratio, maxSize: 4000, hang: .42 });
+  return airDepth(makeLayout(world.width, world.height, projects, { top: 78 * ratio, bottom: 104 * ratio, left: 24 * ratio, right: 74 * ratio, maxSize: 4000, hang: .42 }));
 }
 
 
@@ -4312,6 +4667,15 @@ function curvePoints(a, b, sag, steps) {
     points.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t + sag * 4 * t * (1 - t), t });
   }
   return points;
+}
+// A team bridge's two colours: whoever leads each end. Where one person leads both, the next builder of
+// either island takes the far end.
+function bridgeColours(a, b) {
+  const ranked = (project) => Object.entries(project.builders || {}).sort((x, y) => y[1] - x[1]).map(([name]) => name);
+  const one = ranked(a), two = ranked(b);
+  if (!one.length || !two.length) return null;
+  const other = two[0] !== one[0] ? two[0] : [...two.slice(1), ...one.slice(1)][0];
+  return [builderColor(one[0]), builderColor(other || one[0])];
 }
 // The golden route: the islands in the order they were founded, drawn whole only by the intro, the story and the rise
 // reel. `shownAt(item)`, when given, is how far each island has risen: the route then reaches each island as it rises
@@ -4390,6 +4754,8 @@ function drawBridge(context, link, first, second, transform, time, unit) {
   };
   context.save();
   context.lineCap = 'round'; context.lineJoin = 'round';
+  // In a team world a bridge wears both builders' colours, one from each end, meeting in the middle.
+  const crew = TEAM ? bridgeColours(first.project, second.project) : null;
   if (link.kind === 'nest') {
     // A rope bridge: two sagging ropes, a plank deck and lantern posts at both ends.
     const points = curvePoints(start, end, span * .16, 40);
@@ -4402,14 +4768,18 @@ function drawBridge(context, link, first, second, transform, time, unit) {
       context.translate(point.x, point.y);
       context.rotate(angle);
       context.fillStyle = '#9a6a44'; context.fillRect(-unit, -unit * 2.2, unit * 2, unit * 4.4);
-      context.fillStyle = '#c8955e'; context.fillRect(-unit, -unit * 2.2, unit * 2, unit);
+      context.fillStyle = crew ? crew[point.t < .5 ? 0 : 1] : '#c8955e'; context.fillRect(-unit, -unit * 2.2, unit * 2, crew ? unit * 1.8 : unit);
       context.restore();
     });
     stroke(points, unit * .8, '#4a3222', -unit * 3);
     stroke(points, unit * .8, '#4a3222', unit * 2.4);
-    [start, end].forEach((post) => {
+    [start, end].forEach((post, side) => {
       context.fillStyle = '#4a3222'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 8), unit * 2, unit * 10);
       context.fillStyle = '#ffd56a'; context.fillRect(Math.round(post.x - unit * 1.5), Math.round(post.y - unit * 10), unit * 3, unit * 2.5);
+      if (crew) {
+        context.fillStyle = crew[side];
+        for (let step = 0; step < 4; step += 1) context.fillRect(Math.round(post.x + unit * (1 + step)), Math.round(post.y - unit * (8 - step * .5)), unit, Math.max(1, Math.round(unit * (3 - step * .7))));
+      }
       const glow = context.createRadialGradient(post.x, post.y - unit * 9, 0, post.x, post.y - unit * 9, unit * 9);
       glow.addColorStop(0, 'rgba(255,207,106,.45)'); glow.addColorStop(1, 'rgba(255,207,106,0)');
       context.fillStyle = glow; context.fillRect(post.x - unit * 9, post.y - unit * 18, unit * 18, unit * 18);
@@ -4417,16 +4787,22 @@ function drawBridge(context, link, first, second, transform, time, unit) {
   } else {
     // A light bridge: an arc of starlight between islands that share a name.
     const points = curvePoints(start, end, -span * .22, 48);
-    stroke(points, unit * 6, 'rgba(125,231,239,.08)');
-    stroke(points, unit * 2.2, 'rgba(125,231,239,.28)');
+    const tint = (alpha, plain) => {
+      if (!crew) return plain;
+      const gradient = context.createLinearGradient(start.x, start.y, end.x, end.y);
+      gradient.addColorStop(.4, hexAlpha(crew[0], alpha)); gradient.addColorStop(.6, hexAlpha(crew[1], alpha));
+      return gradient;
+    };
+    stroke(points, unit * 6, tint(.14, 'rgba(125,231,239,.08)'));
+    stroke(points, unit * 2.2, tint(.5, 'rgba(125,231,239,.28)'));
     stroke(points, unit * .8, 'rgba(232,251,255,.75)');
     const travel = ((time * .00035) % 1 + 1) % 1;
     const spark = points[Math.floor(travel * (points.length - 1))];
     const glow = context.createRadialGradient(spark.x, spark.y, 0, spark.x, spark.y, unit * 7);
     glow.addColorStop(0, 'rgba(232,251,255,.9)'); glow.addColorStop(1, 'rgba(125,231,239,0)');
     context.fillStyle = glow; context.fillRect(spark.x - unit * 7, spark.y - unit * 7, unit * 14, unit * 14);
-    [start, end].forEach((post) => {
-      context.fillStyle = '#b48cff'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 6), unit * 2, unit * 6);
+    [start, end].forEach((post, side) => {
+      context.fillStyle = crew ? crew[side] : '#b48cff'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 6), unit * 2, unit * 6);
       context.fillStyle = '#efe4ff'; context.fillRect(Math.round(post.x - unit * .5), Math.round(post.y - unit * 7), unit, unit * 2);
     });
   }
@@ -4460,7 +4836,7 @@ function drawCapitalHalo(context, item, view) {
 
 function drawWorld() {
   const now = performance.now();
-  drawSky(worldContext, world.width, world.height, 41, now);
+  drawOcean(worldContext, world.width, world.height, 41, now);
   drawCloudSea(worldContext, world.width, world.height, now);
   // Until every island's art is ready the sky and the cloud sea stand alone, and the welcome card reads over them.
   if (!state.ready) return;
@@ -4595,6 +4971,11 @@ const GUIDE = [
   ['Land and water', [
     ['lg-land', 'Tokens become land', 'Every 10× more tokens makes the island bigger. Hills rise with the number of requests.'],
     ['lg-falls', 'Waterfalls', 'One more waterfall for each order of magnitude past a million tokens, up to four.'],
+    ['lg-bedrock', 'Bedrock', 'Every island hangs from a root of its biome\'s own stone, nearly as deep as the island is wide: sandstone strata under data, geodes under AI, icicles under CLIs, lava seams under games, blossom vines under mobile, ivy under web and a lip of moss under the rest.'],
+  ]],
+  ['Sky and moon', [
+    ['lg-sky', `Sky at your hour · ${skyNow().label}`, 'The sky is painted for the hour you build in, read from your archetype or your busiest hour: midnight, dawn, morning, golden hour or twilight. By day the windows and lanterns glow softer.'],
+    ['lg-moon', Object.keys(RHYTHM.daily || {}).length ? `Moon phase · ${Math.round(moonPhase() * 28)} of 28 days` : 'Moon phase', `The moon fills as you keep showing up: full when you worked on every one of the last 28 days, a thin crescent after a quiet month.${Object.keys(RHYTHM.daily || {}).length ? '' : ' These transcripts carry no dates, so it simply shines full.'}${skyNow().body === 'sun' ? ' Your sky shows the sun, so the moon waits for night.' : ''}`],
   ]],
   ['The settlement', [
     ['lg-cottage', 'A building for every session', 'Longer sessions build taller. Past 48 buildings, each one stands for several sessions.'],
@@ -4711,7 +5092,20 @@ function buildGuide() {
   });
   landmarks.append(chips);
   read.append(landmarks);
+  if (receiptLines().length) {
+    const section = element('section', 'guide-section');
+    section.append(element('h3', 'guide-heading', 'Receipts'));
+    section.append(element('p', 'guide-copy', 'Your story keeps a few receipts: how often you stopped your agent mid-reply, how many requests said please or thank you, how many were just a one-word go-ahead like “continue”, and the longest stretch in one session with no pause of 20 minutes or more. Only these counts are kept. The words never leave the transcript.'));
+    read.append(section);
+  }
   read.append(element('p', 'key-note', `Everything here is counted from the transcripts Claude Code and Codex keep on this computer${sinceLabel() ? `, which go back to ${sinceLabel()}` : ''}. Sessions on other machines, or ones the tools have already cleaned up, are not included.`));
+  if (DATA.historyTip) {
+    // Pelago only suggests the setting; it never edits it.
+    const tip = element('p', 'key-note key-tip');
+    tip.append(element('strong', '', 'Keep more history. '), 'Claude Code keeps 30 days of history by default. Add ', element('code', '', '"cleanupPeriodDays": 365'),
+      ' to ', element('code', '', '~/.claude/settings.json'), ' and your islands keep growing.');
+    read.append(tip);
+  }
   read.append(element('p', 'key-note', 'Small does not mean worse. Pelago maps the shape of your attention, never the quality of your work.'));
 
   const found = earnedRelics();
@@ -5202,7 +5596,7 @@ world.addEventListener('wheel', (event) => {
   zoomTo(state.scale * Math.exp(-event.deltaY * .0016), point, false);
 }, { passive: false });
 
-// The export studio, for the whole world, one island, or a moment ({ kind: 'tokens' | 'relic' | 'archetype', ... }).
+// The export studio, for the whole world, one island, or a moment ({ kind: 'tokens' | 'receipts' | 'relic' | 'archetype', ... }).
 function openShare(selected = null, moment = null) {
   state.exportSelected = selected; state.moment = moment;
   $('#cardTitle').value = selected ? sharedName(selected) || kindOf(selected) : PERSONA.title;
@@ -5247,6 +5641,8 @@ function setHideNames(hide) {
   if (open) fillSheet(open);
   buildGuide();
   hideRelicCard();
+  // The screen reader's last announcement may still hold a name.
+  if (hide) $('#srAnnounce').textContent = '';
   drawWorld();
   toast(hide ? 'Project names hidden everywhere.' : 'Project names are back.');
 }
@@ -5375,6 +5771,54 @@ function sharePill(slide, moment) {
   slide.append(pill);
   return pill;
 }
+// ---------- Receipts: big numbers in the cards' pixel font, drawn on whole device pixels so they stay crisp ----------
+function pixelNumber(text, cell = 6) {
+  const dpr = window.devicePixelRatio || 1;
+  const unit = Math.max(1, Math.round(cell * dpr));
+  const glyphs = [...text].map((char) => PIXEL_FONT[char] || PIXEL_FONT[' ']);
+  const columns = glyphs.reduce((sum, rows) => sum + rows[0].length + 1, -1);
+  const canvas = document.createElement('canvas');
+  // One extra column and row for the pixel drop shadow.
+  canvas.width = (columns + 1) * unit; canvas.height = 8 * unit;
+  canvas.style.width = `${canvas.width / dpr}px`; canvas.style.height = `${canvas.height / dpr}px`;
+  canvas.className = 'pixel-number';
+  canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', text);
+  const context = canvas.getContext('2d');
+  const shades = ['#fff6dc', '#fff6dc', '#fff0c4', '#ffe7a3', '#ffdf89', '#ffd66f', '#ffd66f'];
+  [['#b9473a', 1], [null, 0]].forEach(([shadow, offset]) => {
+    let left = 0;
+    glyphs.forEach((rows) => {
+      rows.forEach((line, row) => [...line].forEach((pixel, column) => {
+        if (pixel !== '#') return;
+        context.fillStyle = shadow || shades[row];
+        context.fillRect((left + column + offset) * unit, (row + offset) * unit, unit, unit);
+      }));
+      left += rows[0].length + 1;
+    });
+  });
+  return canvas;
+}
+function stretchLabel(minutes) {
+  const hours = Math.floor(minutes / 60), rest = minutes % 60;
+  return hours ? `${hours}h${rest ? ` ${rest}m` : ''}` : `${rest}m`;
+}
+// Up to four honest lines, only from what was actually counted. The story says "you"; a card (`mine`) says "I" or "we".
+function receiptLines(mine = false) {
+  const lines = [];
+  const count = (value) => Number(value || 0);
+  const who = mine ? (TEAM ? 'we' : 'I') : 'you', whose = mine ? (TEAM ? 'our agents' : 'my agent') : 'your agent';
+  const [stops, please, thanks, nudges, stretch] = ['interrupts', 'please', 'thanks', 'nudges', 'longestStretch'].map((key) => count(HABITS[key]));
+  if (stops) lines.push([stops.toLocaleString('en-US'), `${stops === 1 ? 'time' : 'times'} ${who} hit stop on ${whose}.`]);
+  if (please) lines.push([please.toLocaleString('en-US'), thanks ? `${please === 1 ? 'please' : 'pleases'}. And ${thanks.toLocaleString('en-US')} thank-you${thanks === 1 ? '' : 's'}.` : `${please === 1 ? 'time' : 'times'} ${who} said please.`]);
+  else if (thanks) lines.push([thanks.toLocaleString('en-US'), `${thanks === 1 ? 'time' : 'times'} ${who} said thank you.`]);
+  if (nudges) lines.push([`×${nudges.toLocaleString('en-US')}`, HABITS.nudgeWord ? `one-word go-aheads. Favourite: “${HABITS.nudgeWord}”.` : 'one-word go-aheads.']);
+  if (stretch) lines.push([stretchLabel(stretch), 'longest stretch without a break.']);
+  return lines.slice(0, 4);
+}
+function habitWeight(project) {
+  const habits = project.habits || {};
+  return ['interrupts', 'please', 'thanks', 'nudges'].reduce((sum, key) => sum + Number(habits[key] || 0), 0);
+}
 
 function buildSlides() {
   const top = capital();
@@ -5385,7 +5829,7 @@ function buildSlides() {
 
   slides.push(at({ mode: 'wide', zoom: 1.08, shade: .2 }, () => {
     const slide = element('div', 'slide slide-intro');
-    slide.append(element('p', 'story-over', TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : DATA.demo ? "A SAMPLE BUILDER'S AI CODING HISTORY" : 'YOUR AI CODING HISTORY'));
+    slide.append(element('p', 'story-over', EDITION?.label || (TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : DATA.demo ? "A SAMPLE BUILDER'S AI CODING HISTORY" : 'YOUR AI CODING HISTORY')));
     const big = element('p', 'story-mega'); slide.append(big); countUp(big, TOTAL_SESSIONS);
     slide.append(element('h2', 'story-title', DATA.demo && !TEAM ? 'sessions with their agents.' : 'sessions with your agents.'));
     slide.append(element('p', 'story-copy', days ? `Across ${plural(days, 'day')} at sea${sinceLabel() ? ` since ${sinceLabel()}` : ''}, they quietly raised ${plural(PROJECTS.length, 'island')}.` : `Together they raised ${plural(PROJECTS.length, 'island')}.`));
@@ -5431,6 +5875,23 @@ function buildSlides() {
     slide.append(element('p', 'story-copy', `That's ${tokenComparison(TOTAL_TOKENS)}. ${cached > TOTAL_TOKENS * .5 ? `${Math.round(cached / TOTAL_TOKENS * 100)}% were your agents re-reading context they already had; ${compact(fresh)} were brand new.` : ''}`));
     if (TOTAL_PROMPTS) slide.append(element('p', 'story-copy', `You typed ${TOTAL_PROMPTS.toLocaleString('en-US')} requests. Each one planted part of a forest.`));
     sharePill(slide, { kind: 'tokens' });
+    return slide;
+  }));
+
+  const receipts = receiptLines();
+  if (receipts.length) slides.push(at({ mode: 'island', project: [...PROJECTS].sort((a, b) => habitWeight(b) - habitWeight(a) || b.activity - a.activity)[0], shade: .5 }, () => {
+    const slide = element('div', 'slide slide-receipts');
+    slide.append(element('p', 'story-over', 'THE RECEIPTS'));
+    const list = element('div', 'receipt-list');
+    receipts.forEach(([number, line], index) => {
+      const row = element('div', 'receipt-row');
+      row.style.setProperty('--delay', `${.12 + index * .1}s`);
+      row.append(pixelNumber(number, 5), element('p', 'receipt-line', line));
+      list.append(row);
+    });
+    slide.append(list);
+    slide.append(element('p', 'story-note', TEAM ? 'Counted on each builder’s own computer. Only the numbers were shared, never anyone’s words.' : 'Counted on this computer. Only the numbers were kept, never your words.'));
+    sharePill(slide, { kind: 'receipts' });
     return slide;
   }));
 
@@ -5597,7 +6058,8 @@ function personaSlide() {
       spark.style.animationDelay = `${index * 60}ms`;
       title.append(spark);
     }
-    navigator.vibrate?.(15);
+    // A tick on phones, once the person has touched the page (browsers refuse it before).
+    if (navigator.userActivation?.hasBeenActive !== false) navigator.vibrate?.(15);
   };
   requestAnimationFrame(() => requestAnimationFrame(() => reels.forEach((reel, index) => {
     const strip = reel.firstChild;
@@ -5692,7 +6154,7 @@ function drawStoryScene(now) {
   storyScene.shade += (storyScene.targetShade - storyScene.shade) * .08;
   // A slow drift keeps the shot alive while text is on screen.
   const drift = { x: camera.x + Math.sin(now / 4200) * width * .012, y: camera.y + Math.cos(now / 5100) * height * .008, scale: camera.scale };
-  drawSky(context, width, height, 73, now);
+  drawOcean(context, width, height, 73, now);
   drawCloudSea(context, width, height, now);
   const items = storyLayout(width, height);
   const pixel = (items[0]?.px || 1) * drift.scale;

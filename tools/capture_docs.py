@@ -50,8 +50,10 @@ window.__docs = (() => {
   function promo(width, height, type) {
     // The link preview: the archipelago from the cards, with one big line that reads at thumbnail size.
     FORMATS.promo = [width, height];
-    const canvas = renderCard(document.createElement('canvas'), 'promo', null, false, { layer: 'scene', time: 2400 });
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
     const c = canvas.getContext('2d');
+    drawCardScene(c, cardScene('promo'), { time: 2400 });
     const unit = height / 630, pad = 60 * unit, maxWidth = width * .5 - pad;
     const side = c.createLinearGradient(0, 0, width * .66, 0);
     side.addColorStop(0, 'rgba(4,9,26,.95)'); side.addColorStop(.62, 'rgba(4,9,26,.78)'); side.addColorStop(1, 'rgba(4,9,26,0)');

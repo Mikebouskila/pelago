@@ -1239,7 +1239,8 @@ function drawIslandArtCrisp(context, art, left, top, scale, options = {}) {
     // Lights glow less under a day sky; the glow's pixels stay snapped to the art's grid.
     context.globalCompositeOperation = 'lighter';
     context.globalAlpha = (1 - haze * 1.4) * skyNow().glow;
-    context.imageSmoothingEnabled = scale * 2 < 1;
+    // Its bands are already soft, so a shrunk glow is sampled, not filtered.
+    context.imageSmoothingEnabled = false;
     if (context.globalAlpha > 0) context.drawImage(art.glow, x, y, Math.round(art.glow.width * 2 * scale), Math.round(art.glow.height * 2 * scale));
     context.globalAlpha = 1;
     context.globalCompositeOperation = 'source-over';
@@ -1274,6 +1275,8 @@ function hazedMip(art, haze, level) {
 // Living details drawn on top of the static art every frame: water, smoke, sails, flags, ships.
 function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue = 1) {
   const t = time / 1000, lit = skyNow().glow;
+  // Far out an art pixel is under a third of a screen pixel: the busiest effects keep their motion in fewer, bigger cells.
+  const coarse = px < .5;
   const cell = (x, y, w, h, color, alpha = 1) => {
     context.globalAlpha = alpha;
     context.fillStyle = Array.isArray(color) ? `rgb(${color[0] | 0},${color[1] | 0},${color[2] | 0})` : color;
@@ -1283,7 +1286,7 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
   art.anims.forEach((entry) => {
     if (entry.type === 'falls') {
       // Bright streaks sliding down the sheet.
-      for (let lane = -2; lane <= 2; lane += 1) {
+      for (let lane = coarse ? 0 : -2; lane <= (coarse ? 0 : 2); lane += 1) {
         for (let y = entry.y0 + 3; y < entry.y1 - 8; y += 1) {
           const fade = (y - entry.y0) / (entry.y1 - entry.y0);
           const run = ((y - t * 46 - lane * 17 + entry.phase * 30) % 34 + 34) % 34;
@@ -1310,6 +1313,7 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
         const radius = Math.round(.6 + Math.sin(life * Math.PI) * (1.6 + life * 2.2));
         if (radius < 1) continue;
         const x = Math.round(entry.x + Math.sin(life * 5 + entry.phase * 6) * 2.5 + life * 5), y = Math.round(entry.y - life * 26);
+        if (coarse) { cell(x - radius, y - radius, radius * 2 + 1, radius + 1, [236, 240, 250]); cell(x - radius, y + 1, radius * 2 + 1, radius, [170, 178, 204]); continue; }
         for (let dy = -radius; dy <= radius; dy += 1) {
           const w = Math.round(Math.sqrt(Math.max(0, radius * radius - dy * dy + radius * .5)));
           const split = clamp(-dy, -w, w + 1);
@@ -1324,6 +1328,7 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
         const angle = entry.phase + k / entry.stones * Math.PI * 2 + t * (.14 + k * .02);
         const x = Math.round(entry.x + Math.cos(angle) * entry.rx * (1 - k * .07)), y = Math.round(entry.y + Math.sin(angle) * entry.ry + (k - 1) * 7 + Math.sin(t * .8 + k) * 1.5);
         const behind = Math.sin(angle) < 0, r = 2 + (k * 7 % 3);
+        if (coarse) { if (!(behind && covered(x, y))) cell(x - r, y - r, r * 2 + 1, r * 2 + 1, entry.colours[1]); continue; }
         for (let dy = -r - 1; dy <= r + 1; dy += 1) for (let dx = -r - 2; dx <= r + 2; dx += 1) {
           const v = Math.abs(dx) / (r + 1.5) + Math.abs(dy) / (r + .7);
           if (v > 1 || (behind && covered(x + dx, y + dy))) continue;
@@ -1354,7 +1359,8 @@ function drawIslandAnimations(context, art, left, top, px, time = 0, seedValue =
     } else if (entry.type === 'flag') {
       for (let x = 0; x < entry.length; x += 1) {
         const wave = Math.round(Math.sin(x * .7 - t * 5 + entry.x) * 1.2 * (x / entry.length + .3));
-        for (let y = 0; y < 5; y += 1) cell(entry.x + x, entry.y + y + wave, 1, 1, tone(entry.color, y < 2 ? .2 : y > 3 ? -.25 : 0));
+        if (coarse) cell(entry.x + x, entry.y + wave, 1, 5, tone(entry.color, 0));
+        else for (let y = 0; y < 5; y += 1) cell(entry.x + x, entry.y + y + wave, 1, 1, tone(entry.color, y < 2 ? .2 : y > 3 ? -.25 : 0));
       }
     } else if (entry.type === 'pennant') {
       for (let x = 0; x < entry.length; x += 1) {
