@@ -283,8 +283,8 @@ function drawCardScene(context, scene, { time = 2400, camera = null, rise = null
   const flat = { transform: view, detail: true, selected: false, hovered: false, label: false, time };
   const pixel = (items[0]?.px || 1) * view.scale;
   const up = rise === null ? null : (item) => riseAt(item, rise);
-  // A persona card's keeper stands where the moon would, so the moon rises higher and further left.
-  drawOcean(context, width, height, selected ? selected.seed : 73, time, selected || wide ? null : tall ? [.6, .062] : [.6, .08]);
+  // The moon or sun is painted over the scrims by the card itself, clear of the words.
+  drawOcean(context, width, height, selected ? selected.seed : 73, time, { moon: false });
   drawCloudSea(context, width, height, time);
   if (heroItem) drawCapitalHalo(context, heroItem, view);
   if (!selected && up) drawRoute(context, items, view, time, pixel, up);
@@ -372,11 +372,11 @@ function drawPuff(context, x, y, radius, progress, cell, seed) {
   // Round lobes on a flat underside, like the cloud sea's own sprites.
   const inside = (u, v) => v < .2 && lobes.some((lobe) => Math.hypot(u - lobe.x, (v - lobe.y) * 1.25) < lobe.r * swell);
   const reach = Math.ceil(radius * 1.3 / cell), rows = Math.ceil(radius * .75 / cell);
-  const ox = Math.round(x), oy = Math.round(y), step = cell / radius;
+  const ox = Math.round(x), oy = Math.round(y), step = cell / radius, tint = skyNow().clouds;
   for (let gy = -rows; gy <= rows; gy += 1) for (let gx = -reach; gx <= reach; gx += 1) {
     const u = gx * step, v = gy * step;
     if (BAYER[((gy & 3) << 2) | (gx & 3)] < wear || !inside(u, v)) continue;
-    context.fillStyle = !inside(u, v - step) ? '#dfe8fb' : !inside(u, v + step) ? '#6f86ba' : v > .02 ? '#93a9d6' : '#b9c9ec';
+    context.fillStyle = !inside(u, v - step) ? tint[0] : !inside(u, v + step) ? tint[3] : v > .02 ? tint[2] : tint[1];
     context.fillRect(ox + gx * cell, oy + gy * cell, cell, cell);
   }
 }
@@ -432,14 +432,19 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
     gradient.addColorStop(0, from); gradient.addColorStop(1, to);
     context.fillStyle = gradient; context.fillRect(0, Math.min(y0, y1), width, Math.abs(y1 - y0));
   };
+  // Tinted by the sky so a bright morning card does not wear a midnight band.
+  const ink = skyNow().scrim.join(',');
   if (wide) {
     const side = context.createLinearGradient(0, 0, width * .5, 0);
-    side.addColorStop(0, 'rgba(4,9,26,.92)'); side.addColorStop(.62, 'rgba(4,9,26,.7)'); side.addColorStop(1, 'rgba(4,9,26,0)');
+    side.addColorStop(0, `rgba(${ink},.92)`); side.addColorStop(.62, `rgba(${ink},.7)`); side.addColorStop(1, `rgba(${ink},0)`);
     context.fillStyle = side; context.fillRect(0, 0, width * .5, height);
   } else {
-    scrim(0, height * (tall ? .27 : .34), 'rgba(4,9,26,.96)', 'rgba(4,9,26,0)');
-    scrim(height, height * (tall ? .7 : .66), 'rgba(4,9,26,.96)', 'rgba(4,9,26,0)');
+    scrim(0, height * (tall ? .27 : .34), `rgba(${ink},.96)`, `rgba(${ink},0)`);
+    scrim(height, height * (tall ? .7 : .66), `rgba(${ink},.96)`, `rgba(${ink},0)`);
   }
+  // The moon or sun rides above the scrim, upper left of the islands and clear of the words: between the
+  // wordmark and the overline on tall and square cards, just right of the text column on wide ones.
+  paintSkyBody(context, width, height, wide ? [.47, .15] : [.33, (pad + 8 * scale) / height]);
 
   // 3. Header: brand, overline, title, line.
   drawBrandMark(context, pad, pad - 10 * scale, 4.4 * scale);
@@ -663,7 +668,7 @@ function renderMomentCard(canvas, kind, format = state.format, moment = state.mo
   const context = canvas.getContext('2d');
   const spec = (MOMENTS[kind] || MOMENTS.archetype)(moment || { kind });
   drawCardScene(context, scene);
-  context.fillStyle = 'rgba(4,9,26,.72)'; context.fillRect(0, 0, width, height);
+  context.fillStyle = `rgba(${skyNow().scrim.join(',')},.72)`; context.fillRect(0, 0, width, height);
   const pad = (wide ? 64 : 72) * scale;
   const safeTop = tall ? 250 * scale : pad, safeBottom = tall ? 270 * scale : pad;
   drawPixelFrame(context, width, height, spec.accent, scale);
@@ -743,8 +748,7 @@ function renderShareCard(canvas) { return state.moment ? renderMomentCard(canvas
 const cardCache = { key: '', promise: null, blob: null, timer: 0 };
 function cardKey() {
   const moment = state.moment && [state.moment.kind, state.moment.relic?.id ?? null, state.moment.project?.id ?? null];
-  // `sky` arrives with painted skies; until then every card is night.
-  return JSON.stringify([state.format, ($('#cardTitle').value || '').trim(), state.showNames && !state.hideNames, state.exportSelected?.id ?? null, moment, typeof sky === 'object' && sky ? sky.name : 'night']);
+  return JSON.stringify([state.format, ($('#cardTitle').value || '').trim(), state.showNames && !state.hideNames, state.exportSelected?.id ?? null, moment, skyNow().name]);
 }
 function cardBlob() {
   const key = cardKey();
@@ -936,9 +940,45 @@ function ellipse(context, x, y, radiusX, radiusY, color) {
   context.fill();
 }
 
+// ---------- Sky at your hour ----------
+// The sky is painted for the hour you build in: the archetype's time of day, or the busiest hour.
+// Each preset sets the gradient, the glow on the horizon, how many stars show, a moon or a pixel sun,
+// the tint of the clouds, the air that hazes distant islands, and how brightly island lights glow.
+const SKIES = {
+  midnight: { label: 'Midnight', stops: ['#050a1c', '#0b1736', '#1a3466', '#16305c', '#0a1530'], horizon: [90, 170, 200, .22], stars: 1, milky: 1, body: 'moon', clouds: ['#dfe8fb', '#b9c9ec', '#93a9d6', '#6f86ba'], cloudAlpha: 1, sea: [98, 120, 176], mist: [96, 128, 196], haze: [44, 72, 122], glow: 1, scrim: [4, 9, 26] },
+  dawn: { label: 'Dawn', stops: ['#191c48', '#3b3a78', '#c87393', '#f2a77e', '#5a4f8c'], horizon: [255, 178, 140, .34], stars: .35, milky: 0, body: 'sun', sun: ['#fff6e2', '#ffd6a6', '#ff9d7e'], clouds: ['#ffe9e2', '#f3bcc4', '#c38fae', '#82709f'], cloudAlpha: 1.4, sea: [150, 120, 170], mist: [236, 160, 170], haze: [150, 112, 156], glow: .6, scrim: [24, 16, 50] },
+  morning: { label: 'Morning', stops: ['#2f74c4', '#5ea2e0', '#a4d4f2', '#c8e6f4', '#7eaed8'], horizon: [255, 252, 232, .32], stars: 0, milky: 0, body: 'sun', sun: ['#ffffff', '#fff3b8', '#ffd66e'], clouds: ['#ffffff', '#eef5ff', '#c6d9f1', '#98b3da'], cloudAlpha: 1.9, sea: [150, 186, 226], mist: [236, 246, 255], haze: [158, 196, 232], glow: .3, scrim: [8, 30, 70] },
+  golden: { label: 'Golden hour', stops: ['#2c5a96', '#5a83b6', '#e6b26a', '#f6c87c', '#8c6c80'], horizon: [255, 196, 110, .38], stars: 0, milky: 0, body: 'sun', sun: ['#fff7d6', '#ffd879', '#ffa94a'], clouds: ['#fff1d4', '#f6cd98', '#d79a7c', '#8a6f8a'], cloudAlpha: 1.6, sea: [176, 140, 150], mist: [255, 214, 160], haze: [186, 150, 126], glow: .45, scrim: [34, 18, 30] },
+  twilight: { label: 'Twilight', stops: ['#0d1135', '#28245e', '#7c4c8e', '#de7c6c', '#2c2a5c'], horizon: [255, 140, 120, .3], stars: .7, milky: .35, body: 'moon', clouds: ['#f7d4e2', '#c9a2cc', '#8f79b1', '#5d5590'], cloudAlpha: 1.15, sea: [110, 92, 160], mist: [200, 130, 170], haze: [84, 62, 122], glow: .85, scrim: [14, 9, 36] },
+};
+Object.entries(SKIES).forEach(([name, preset]) => { preset.name = name; });
+const SKY_FOR_PREFIX = { Midnight: 'midnight', Dawn: 'dawn', Morning: 'morning', Sunlit: 'golden', Twilight: 'twilight' };
+const sky = { name: null, phase: null };
+function skyFor() {
+  const prefix = PERSONA.title.replace(/^The /, '').split(' ')[0];
+  if (SKY_FOR_PREFIX[prefix]) return SKY_FOR_PREFIX[prefix];
+  const hour = PERSONA.peakHour ?? peakHour();
+  if (hour === null || hour === undefined) return 'midnight';
+  return hour >= 22 || hour < 5 ? 'midnight' : hour < 9 ? 'dawn' : hour < 12 ? 'morning' : hour < 17 ? 'golden' : 'twilight';
+}
+function skyNow() { sky.name = sky.name || skyFor(); return SKIES[sky.name]; }
+// The moon fills as you keep showing up: full after work on every one of the last 28 days, a crescent after a quiet month.
+function moonPhase() {
+  if (sky.phase !== null) return sky.phase;
+  const daily = RHYTHM.daily || {};
+  if (!Object.keys(daily).length) return (sky.phase = 1);
+  const end = new Date(DATA.generatedAt || Date.now());
+  let active = 0;
+  for (let back = 0; back < 28; back += 1) {
+    const day = new Date(end.getFullYear(), end.getMonth(), end.getDate() - back);
+    if (daily[`${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`]) active += 1;
+  }
+  return (sky.phase = active / 28);
+}
+
 const cloudSprites = new Map();
-function cloudSprite(variant, unit) {
-  const key = `${variant}|${unit}`;
+function cloudSprite(variant, unit, tint = skyNow().clouds) {
+  const key = `${variant}|${unit}|${tint[0]}${tint[3]}`;
   if (cloudSprites.has(key)) return cloudSprites.get(key);
   const random = seeded(9000 + variant);
   const cells = 26 + Math.floor(random() * 18);
@@ -956,7 +996,7 @@ function cloudSprite(variant, unit) {
     const inside = puffs.some((puff) => Math.hypot(gx + .5 - puff.x, (gy + .5 - puff.y) * 1.35) < puff.r) && gy < rows - 1;
     if (!inside) continue;
     const above = puffs.some((puff) => Math.hypot(gx + .5 - puff.x, (gy - .5 - puff.y) * 1.35) < puff.r);
-    context.fillStyle = !above ? '#dfe8fb' : gy > rows * .62 ? '#6f86ba' : gy > rows * .45 ? '#93a9d6' : '#b9c9ec';
+    context.fillStyle = !above ? tint[0] : gy > rows * .62 ? tint[3] : gy > rows * .45 ? tint[2] : tint[1];
     context.fillRect(gx * unit, gy * unit, unit, unit);
   }
   cloudSprites.set(key, canvas);
@@ -970,6 +1010,7 @@ function drawCloudSea(context, width, height, time, front = false) {
   const random = seeded(front ? 707 : 505);
   const base = height * (front ? .97 : .86);
   const count = Math.ceil(width / (unit * 30)) + 3;
+  const [r, g, b] = skyNow().sea;
   context.save();
   context.globalAlpha = front ? .55 : .9;
   for (let row = 0; row < (front ? 1 : 3); row += 1) {
@@ -985,7 +1026,7 @@ function drawCloudSea(context, width, height, time, front = false) {
   }
   if (!front) {
     const fill = context.createLinearGradient(0, base, 0, height);
-    fill.addColorStop(0, 'rgba(111,134,186,0)'); fill.addColorStop(.35, 'rgba(98,120,176,.85)'); fill.addColorStop(1, 'rgba(70,92,150,1)');
+    fill.addColorStop(0, `rgba(${r + 13},${g + 14},${b + 10},0)`); fill.addColorStop(.35, `rgba(${r},${g},${b},.85)`); fill.addColorStop(1, `rgb(${Math.round(r * .72)},${Math.round(g * .76)},${Math.round(b * .85)})`);
     context.globalAlpha = 1;
     context.fillStyle = fill;
     context.fillRect(0, base, width, height - base);
@@ -993,121 +1034,102 @@ function drawCloudSea(context, width, height, time, front = false) {
   context.restore();
 }
 
-function drawOcean(context, width, height, seed = 41, time = performance.now(), moonAt = null, part = 'all') {
-  // Night sky: deep zenith, a luminous band at the horizon, stars, a pixel moon and a sea of cloud below.
-  // The map keeps the still layers in a cache (`part` 'still') and draws only the moving ones each frame ('moving').
+// A disc of pixel cells, painted one row span at a time.
+function pixelDisc(context, x, y, cells, unit, colour, alpha = 1) {
+  context.globalAlpha = alpha; context.fillStyle = colour;
+  for (let gy = -cells; gy <= cells; gy += 1) {
+    const w = Math.floor(Math.sqrt(Math.max(0, cells * cells - gy * gy)));
+    context.fillRect(x - w * unit, y + gy * unit, (w * 2 + 1) * unit, unit);
+  }
+  context.globalAlpha = 1;
+}
+
+// The moon or sun sits upper left, on the side the islands are lit from, inside rings of pixel halo.
+function paintSkyBody(context, width, height, at) {
+  const preset = skyNow();
+  const portrait = height > width * .9, sun = preset.body === 'sun';
+  const unit = Math.max(1, Math.round(Math.min(width, height) / 420));
+  const [fx, fy] = at || (portrait ? [.2, .14] : [.1, .19]);
+  const cells = Math.round(Math.min(width, height) * (portrait ? .045 : .055) * (sun ? 1.08 : 1) / unit);
+  const mx = Math.round(width * fx / unit) * unit, my = Math.round(height * fy / unit) * unit;
+  [[2.2, sun ? .06 : .025], [1.7, sun ? .09 : .04], [1.3, sun ? .14 : .065]].forEach(([size, alpha]) => pixelDisc(context, mx, my, Math.round(cells * size), unit, sun ? preset.sun[1] : '#ffecb4', alpha));
+  if (sun) {
+    pixelDisc(context, mx, my, cells, unit, preset.sun[2]);
+    pixelDisc(context, mx, my, cells - 1, unit, preset.sun[1]);
+    pixelDisc(context, mx - unit, my - unit, Math.round(cells * .62), unit, preset.sun[0]);
+    return;
+  }
+  // Phase: lit from the left, the terminator Bayer-dithered; the dark side keeps a faint earthshine.
+  const phase = clamp(moonPhase(), .07, 1);
+  for (let gy = -cells; gy <= cells; gy += 1) for (let gx = -cells; gx <= cells; gx += 1) {
+    const d = Math.hypot(gx, gy) / cells;
+    if (d > 1) continue;
+    const nx = gx / cells, ny = gy / cells;
+    const edge = -Math.sqrt(Math.max(0, 1 - ny * ny)) * (1 - phase * 2);
+    const lit = phase >= .99 || (edge - nx) / .3 + .5 > BAYER[((gy & 3) << 2) | (gx & 3)];
+    const shade = (gx + gy * .3) / cells;
+    const crater = [[-.3, -.25, .22], [.25, .2, .16], [-.05, .45, .12], [.4, -.35, .1]].some(([cx, cy, r]) => Math.hypot(nx - cx, ny - cy) < r);
+    let colour = crater ? '#cdbb8e' : d > .9 ? '#d8c79a' : shade < -.45 ? '#fff6d6' : shade < .1 ? '#efe2b8' : '#c9b98e';
+    if (!lit) colour = crater ? '#2a3150' : d > .9 ? '#2c3456' : '#323a5e';
+    context.fillStyle = colour;
+    context.fillRect(mx + gx * unit, my + gy * unit, unit, unit);
+  }
+}
+
+// Everything in the sky that does not move: gradient, horizon glow, stars, the Milky Way, the moon or sun and
+// the mist banks. Big canvases keep it in an offscreen canvas, so a frame only copies it and moves the clouds.
+const skyCache = new Map();
+function paintSky(context, width, height, seed, moon) {
+  const preset = skyNow();
   const random = seeded(seed);
   const horizon = height * .62;
-  const still = part !== 'moving', moving = part !== 'still';
+  const gradient = context.createLinearGradient(0, 0, 0, height);
+  [0, .38, .62, .7, 1].forEach((stop, index) => gradient.addColorStop(stop, preset.stops[index]));
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, width, height);
+  const [hr, hg, hb, ha] = preset.horizon;
+  const glow = context.createRadialGradient(width * .5, horizon, 0, width * .5, horizon, Math.max(width, height) * .6);
+  glow.addColorStop(0, `rgba(${hr},${hg},${hb},${ha})`); glow.addColorStop(.5, `rgba(${hr},${hg},${hb},${ha * .36})`); glow.addColorStop(1, `rgba(${hr},${hg},${hb},0)`);
+  context.fillStyle = glow;
+  context.fillRect(0, 0, width, height);
+
   const unit = Math.max(1, Math.round(Math.min(width, height) / 420));
-  if (still) {
-    const sky = context.createLinearGradient(0, 0, 0, height);
-    sky.addColorStop(0, '#050a1c');
-    sky.addColorStop(.38, '#0b1736');
-    sky.addColorStop(.62, '#1a3466');
-    sky.addColorStop(.7, '#16305c');
-    sky.addColorStop(1, '#0a1530');
-    context.fillStyle = sky;
-    context.fillRect(0, 0, width, height);
-
-    const glow = context.createRadialGradient(width * .5, horizon, 0, width * .5, horizon, Math.max(width, height) * .6);
-    glow.addColorStop(0, 'rgba(90,170,200,.22)');
-    glow.addColorStop(.5, 'rgba(60,110,180,.08)');
-    glow.addColorStop(1, 'rgba(20,40,90,0)');
-    context.fillStyle = glow;
-    context.fillRect(0, 0, width, height);
-
-    const stars = Math.floor(width * horizon / (5200 / unit));
-    for (let index = 0; index < stars; index += 1) {
-      const x = Math.floor(random() * width), y = Math.floor(Math.pow(random(), 1.6) * horizon * .95);
-      const bright = random() > .92;
-      context.globalAlpha = (bright ? .9 : .25 + random() * .4) * (1 - y / horizon * .6);
-      context.fillStyle = bright ? '#fff1c4' : '#b9d4ff';
-      context.fillRect(x, y, unit, unit);
-      if (bright && unit > 1) { context.fillRect(x - unit, y, unit * 3, Math.max(1, unit / 2)); context.fillRect(x, y - unit, Math.max(1, unit / 2), unit * 3); }
+  const stars = Math.floor(width * horizon / (5200 / unit));
+  for (let index = 0; index < stars; index += 1) {
+    const x = Math.floor(random() * width / unit) * unit, y = Math.floor(Math.pow(random(), 1.6) * horizon * .95 / unit) * unit;
+    const bright = random() > .92;
+    const alpha = (bright ? .9 : .25 + random() * .4) * (1 - y / horizon * .6) * preset.stars;
+    if (alpha < .04) continue;
+    context.globalAlpha = alpha;
+    context.fillStyle = bright ? '#fff1c4' : '#b9d4ff';
+    context.fillRect(x, y, unit, unit);
+    if (bright && unit > 1) { context.globalAlpha = alpha * .45; context.fillRect(x - unit, y, unit * 3, unit); context.fillRect(x, y - unit, unit, unit * 3); }
+  }
+  context.globalAlpha = 1;
+  if (width > 480 && preset.milky) {
+    const band = seeded(seed + 3);
+    for (let index = 0; index < stars * .9; index += 1) {
+      const t = band();
+      const x = t * width, y = height * (.05 + t * .38) + (band() - .5) * height * .12 * (1 + Math.sin(t * 9));
+      context.globalAlpha = (.12 + band() * .25) * preset.milky;
+      context.fillStyle = band() > .7 ? '#ffe9c4' : '#a9c8ff';
+      context.fillRect(Math.round(x / unit) * unit, Math.round(y / unit) * unit, unit, unit);
     }
     context.globalAlpha = 1;
-
-    // A faint band of the Milky Way.
-    if (width > 480) {
-      const band = seeded(seed + 3);
-      for (let index = 0; index < stars * .9; index += 1) {
-        const t = band();
-        const x = t * width, y = height * (.05 + t * .38) + (band() - .5) * height * .12 * (1 + Math.sin(t * 9));
-        context.globalAlpha = .12 + band() * .25;
-        context.fillStyle = band() > .7 ? '#ffe9c4' : '#a9c8ff';
-        context.fillRect(Math.round(x), Math.round(y), unit, unit);
-      }
-      context.globalAlpha = 1;
-    }
-
-    if (width > 480) {
-      // A pixel moon with craters and a halo.
-      const portrait = height > width;
-      const radius = Math.round(Math.min(width, height) * (portrait ? .045 : .055) / unit) * unit;
-      const [mx, my] = (moonAt || [portrait ? .8 : .86, portrait ? .1 : .17]).map((share, index) => Math.round(share * (index ? height : width)));
-      const halo = context.createRadialGradient(mx, my, radius * .8, mx, my, radius * 4);
-      halo.addColorStop(0, 'rgba(255,236,180,.16)'); halo.addColorStop(1, 'rgba(255,236,180,0)');
-      context.fillStyle = halo;
-      context.fillRect(mx - radius * 4, my - radius * 4, radius * 8, radius * 8);
-      const cells = Math.round(radius / unit);
-      for (let gy = -cells; gy <= cells; gy += 1) for (let gx = -cells; gx <= cells; gx += 1) {
-        const d = Math.hypot(gx, gy) / cells;
-        if (d > 1) continue;
-        const lit = (gx + gy * .3) / cells;
-        let colour = lit < -.45 ? '#c9b98e' : lit < .1 ? '#efe2b8' : '#fff6d6';
-        if (d > .9) colour = '#d8c79a';
-        const crater = [[-.3, -.25, .22], [.25, .2, .16], [-.05, .45, .12], [.4, -.35, .1]].some(([cx, cy, r]) => Math.hypot(gx / cells - cx, gy / cells - cy) < r);
-        if (crater) colour = '#cdbb8e';
-        context.fillStyle = colour;
-        context.fillRect(mx + gx * unit, my + gy * unit, unit, unit);
-      }
-    }
   }
 
-  // Pixel clouds drifting slowly across the night, nearer ones faster and brighter.
-  if (moving && width > 480) {
-    const drift = seeded(seed + 11);
-    for (let index = 0; index < 9; index += 1) {
-      const depth = drift();
-      const cloudUnit = unit * (depth > .6 ? 3 : 2);
-      const sprite = cloudSprite(index % 6, cloudUnit);
-      const speed = (.004 + depth * .01) * unit;
-      const span = width + sprite.width * 2;
-      const x = ((drift() * span + time * speed) % span) - sprite.width;
-      const y = height * (.12 + drift() * .62);
-      context.globalAlpha = .1 + depth * .2;
-      context.drawImage(sprite, Math.round(x), Math.round(y));
-    }
-    context.globalAlpha = 1;
-    // Now and then a shooting star.
-    const cycle = 7000, phase = (time % cycle) / cycle;
-    if (phase < .12) {
-      const run = seeded(Math.floor(time / cycle) + seed);
-      const startX = width * (.2 + run() * .6), startY = height * (.05 + run() * .2);
-      const progress = phase / .12;
-      for (let tail = 0; tail < 14; tail += 1) {
-        const k = progress - tail * .012;
-        if (k < 0) continue;
-        context.globalAlpha = (1 - tail / 14) * (1 - progress * .6);
-        context.fillStyle = tail < 2 ? '#fff6dc' : '#bcd6ff';
-        context.fillRect(Math.round(startX + k * width * .18), Math.round(startY + k * height * .09), unit * (tail < 2 ? 2 : 1), unit);
-      }
-      context.globalAlpha = 1;
-    }
-  }
-
-  if (!still) return;
-  // Low mist banks along the horizon and the cloud sea beneath.
-  const unitWidth = Math.max(width, height);
+  if (width > 480 && moon !== false) paintSkyBody(context, width, height, moon);
+  // Low mist banks along the horizon.
+  const [mr, mg, mb] = preset.mist;
+  const reach = Math.max(width, height);
   for (let layer = 0; layer < 3; layer += 1) {
     for (let index = 0; index < 6 + layer * 3; index += 1) {
       const cx = random() * width * 1.2 - width * .1;
       const cy = horizon + height * (.05 + layer * .12 + random() * .06);
-      const radius = unitWidth * (.07 + random() * .08) * (1 + layer * .25);
+      const radius = reach * (.07 + random() * .08) * (1 + layer * .25);
       const cloud = context.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      cloud.addColorStop(0, `rgba(${layer === 2 ? '120,150,210' : '96,128,196'},${.08 + layer * .03})`);
-      cloud.addColorStop(1, 'rgba(60,90,160,0)');
+      cloud.addColorStop(0, `rgba(${layer === 2 ? [mr + 24, mg + 22, mb + 14].map((value) => Math.min(255, value)).join(',') : `${mr},${mg},${mb}`},${.08 + layer * .03})`);
+      cloud.addColorStop(1, `rgba(${mr},${mg},${mb},0)`);
       context.fillStyle = cloud;
       context.beginPath();
       context.ellipse(cx, cy, radius * 2, radius * .5, 0, 0, Math.PI * 2);
@@ -1115,25 +1137,60 @@ function drawOcean(context, width, height, seed = 41, time = performance.now(), 
     }
   }
 }
-
-// The live sky of the map and the story: its still layers are painted once per size and kept, so a frame only
-// blits them and draws the drifting clouds and the shooting star.
-const skyCache = new Map();
-function drawSky(context, width, height, seed, time) {
-  const key = `${seed}|${width}x${height}`;
-  if (!skyCache.has(key)) {
-    const still = document.createElement('canvas');
+function drawOcean(context, width, height, seed = 41, time = performance.now(), options = {}) {
+  const preset = skyNow();
+  if (width <= 480) { paintSky(context, width, height, seed, options.moon); return; }
+  const key = `${width}x${height}|${preset.name}|${Math.round(moonPhase() * 28)}|${Math.min(2, window.devicePixelRatio || 1)}|${seed}|${options.moon || ''}`;
+  // The still sky is copied in whole: a 'copy' blit skips blending, the cheapest way to fill the frame
+  // (about 1.4ms for 2880x1800 even when the canvas is rasterized on the CPU).
+  let still = skyCache.get(key);
+  if (still) skyCache.delete(key);
+  else {
+    still = document.createElement('canvas');
     still.width = width; still.height = height;
-    drawOcean(still.getContext('2d'), width, height, seed, 0, null, 'still');
-    skyCache.set(key, still);
-    if (skyCache.size > 2) skyCache.delete(skyCache.keys().next().value);
+    paintSky(still.getContext('2d'), width, height, seed, options.moon);
+    if (skyCache.size >= 4) skyCache.delete(skyCache.keys().next().value);
   }
-  context.drawImage(skyCache.get(key), 0, 0);
-  drawOcean(context, width, height, seed, time, null, 'moving');
+  skyCache.set(key, still);
+  const unit = Math.max(1, Math.round(Math.min(width, height) / 420));
+  context.globalCompositeOperation = 'copy';
+  context.drawImage(still, 0, 0, width, height);
+  context.globalCompositeOperation = 'source-over';
+
+  // Pixel clouds drifting slowly across the sky, nearer ones faster and brighter.
+  const drift = seeded(seed + 11);
+  for (let index = 0; index < 9; index += 1) {
+    const depth = drift();
+    const cloudUnit = unit * (depth > .6 ? 3 : 2);
+    const sprite = cloudSprite(index % 6, cloudUnit);
+    const speed = (.004 + depth * .01) * unit;
+    const span = width + sprite.width * 2;
+    const x = ((drift() * span + time * speed) % span) - sprite.width;
+    const y = height * (.12 + drift() * .62);
+    context.globalAlpha = Math.min(.9, (.1 + depth * .2) * preset.cloudAlpha);
+    context.drawImage(sprite, Math.round(x), Math.round(y));
+  }
+  context.globalAlpha = 1;
+  // Now and then a shooting star, while there are stars to see.
+  const cycle = 7000, phase = (time % cycle) / cycle;
+  if (phase < .12 && preset.stars > .5) {
+    const run = seeded(Math.floor(time / cycle) + seed);
+    const startX = width * (.2 + run() * .6), startY = height * (.05 + run() * .2);
+    const progress = phase / .12;
+    for (let tail = 0; tail < 14; tail += 1) {
+      const k = progress - tail * .012;
+      if (k < 0) continue;
+      context.globalAlpha = (1 - tail / 14) * (1 - progress * .6);
+      context.fillStyle = tail < 2 ? '#fff6dc' : '#bcd6ff';
+      context.fillRect(Math.round(startX + k * width * .18), Math.round(startY + k * height * .09), unit * (tail < 2 ? 2 : 1), unit);
+    }
+    context.globalAlpha = 1;
+  }
 }
 
 const ART_UNIT = 420;
 
+// The lower part of each rock root may trail off into the clouds, so it does not count toward the layout.
 function islandMetrics(project) {
   const art = islandArt(project);
   const half = art.art.width * .44;
@@ -1141,7 +1198,7 @@ function islandMetrics(project) {
     art, half,
     unit: half / ART_UNIT,
     left: art.anchorX / ART_UNIT, right: (art.art.width - art.anchorX) / ART_UNIT,
-    up: art.anchorY / ART_UNIT, down: (art.art.height - art.anchorY) / ART_UNIT,
+    up: art.anchorY / ART_UNIT, down: (art.art.height - art.anchorY - (art.root || 0) * .6) / ART_UNIT,
   };
 }
 
@@ -1169,7 +1226,7 @@ function drawIsland(context, item, options = {}) {
   const screenTop = transform.y + (y - art.anchorY * px) * transform.scale;
   context.save();
   context.setTransform(1, 0, 0, 1, 0, 0);
-  const origin = drawIslandArtCrisp(context, art, screenLeft, screenTop, scale, options);
+  const origin = drawIslandArtCrisp(context, art, screenLeft, screenTop, scale, { ...options, haze: options.haze ?? item.haze ?? 0 });
   if (options.animate !== false) drawIslandAnimations(context, art, origin.x, origin.y, scale, options.time ?? performance.now(), project.seed);
   context.restore();
   if (selected || hovered) {
@@ -1187,7 +1244,7 @@ function drawIsland(context, item, options = {}) {
 function drawIslandFit(context, project, x, y, width, height, options = {}) {
   // Draws one island scaled to fit a box, centred, pixel-crisp.
   const { art } = islandMetrics(project);
-  const visible = art.anchorY + (art.art.height - art.anchorY) * (options.crop ?? 1);
+  const visible = art.anchorY + (art.art.height - (art.root || 0) * .6 - art.anchorY) * (options.crop ?? 1);
   const px = Math.min(width / art.art.width, height / visible);
   const left = x + (width - art.art.width * px) / 2, top = y + (height - visible * px) / 2;
   context.save();
@@ -1422,6 +1479,12 @@ function visibleProjects() {
   return PROJECTS.filter((project) => state.filter === 'all' || hasCrew(project, state.filter));
 }
 
+// Atmospheric depth: islands higher on the map sit further back and take on a little of the sky's haze,
+// in two steps, so an island never needs more than two hazed copies of its art.
+function airDepth(items) {
+  const ys = items.map((item) => item.y), top = Math.min(...ys), range = Math.max(...ys) - top;
+  return items.map((item) => ({ ...item, haze: item.haze || (range > 1 ? [.14, .07, 0][Math.min(2, Math.floor((item.y - top) / range * 3))] : 0) }));
+}
 // The map is laid out from the islands currently shown, so filtering by agent re-forms a tight archipelago.
 function worldLayout() {
   const ratio = worldRatio();
@@ -1432,9 +1495,9 @@ function worldLayout() {
     const items = makeLayout(wide, world.height, projects, { top: 80 * ratio, bottom: 110 * ratio, left: 12 * ratio, right: 12 * ratio, maxSize: 4000, hang: .42 });
     const capital = [...items].sort((a, b) => b.project.activity - a.project.activity)[0];
     const offset = capital ? capital.x - world.width / 2 : (wide - world.width) / 2;
-    return items.map((item) => ({ ...item, x: item.x - offset }));
+    return airDepth(items.map((item) => ({ ...item, x: item.x - offset })));
   }
-  return makeLayout(world.width, world.height, projects, { top: 78 * ratio, bottom: 104 * ratio, left: 24 * ratio, right: 74 * ratio, maxSize: 4000, hang: .42 });
+  return airDepth(makeLayout(world.width, world.height, projects, { top: 78 * ratio, bottom: 104 * ratio, left: 24 * ratio, right: 74 * ratio, maxSize: 4000, hang: .42 }));
 }
 
 
@@ -1449,6 +1512,15 @@ function curvePoints(a, b, sag, steps) {
     points.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t + sag * 4 * t * (1 - t), t });
   }
   return points;
+}
+// A team bridge's two colours: whoever leads each end. Where one person leads both, the next builder of
+// either island takes the far end.
+function bridgeColours(a, b) {
+  const ranked = (project) => Object.entries(project.builders || {}).sort((x, y) => y[1] - x[1]).map(([name]) => name);
+  const one = ranked(a), two = ranked(b);
+  if (!one.length || !two.length) return null;
+  const other = two[0] !== one[0] ? two[0] : [...two.slice(1), ...one.slice(1)][0];
+  return [builderColor(one[0]), builderColor(other || one[0])];
 }
 // The golden route: the islands in the order they were founded, drawn whole only by the intro, the story and the rise
 // reel. `shownAt(item)`, when given, is how far each island has risen: the route then reaches each island as it rises
@@ -1527,6 +1599,8 @@ function drawBridge(context, link, first, second, transform, time, unit) {
   };
   context.save();
   context.lineCap = 'round'; context.lineJoin = 'round';
+  // In a team world a bridge wears both builders' colours, one from each end, meeting in the middle.
+  const crew = TEAM ? bridgeColours(first.project, second.project) : null;
   if (link.kind === 'nest') {
     // A rope bridge: two sagging ropes, a plank deck and lantern posts at both ends.
     const points = curvePoints(start, end, span * .16, 40);
@@ -1539,14 +1613,18 @@ function drawBridge(context, link, first, second, transform, time, unit) {
       context.translate(point.x, point.y);
       context.rotate(angle);
       context.fillStyle = '#9a6a44'; context.fillRect(-unit, -unit * 2.2, unit * 2, unit * 4.4);
-      context.fillStyle = '#c8955e'; context.fillRect(-unit, -unit * 2.2, unit * 2, unit);
+      context.fillStyle = crew ? crew[point.t < .5 ? 0 : 1] : '#c8955e'; context.fillRect(-unit, -unit * 2.2, unit * 2, crew ? unit * 1.8 : unit);
       context.restore();
     });
     stroke(points, unit * .8, '#4a3222', -unit * 3);
     stroke(points, unit * .8, '#4a3222', unit * 2.4);
-    [start, end].forEach((post) => {
+    [start, end].forEach((post, side) => {
       context.fillStyle = '#4a3222'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 8), unit * 2, unit * 10);
       context.fillStyle = '#ffd56a'; context.fillRect(Math.round(post.x - unit * 1.5), Math.round(post.y - unit * 10), unit * 3, unit * 2.5);
+      if (crew) {
+        context.fillStyle = crew[side];
+        for (let step = 0; step < 4; step += 1) context.fillRect(Math.round(post.x + unit * (1 + step)), Math.round(post.y - unit * (8 - step * .5)), unit, Math.max(1, Math.round(unit * (3 - step * .7))));
+      }
       const glow = context.createRadialGradient(post.x, post.y - unit * 9, 0, post.x, post.y - unit * 9, unit * 9);
       glow.addColorStop(0, 'rgba(255,207,106,.45)'); glow.addColorStop(1, 'rgba(255,207,106,0)');
       context.fillStyle = glow; context.fillRect(post.x - unit * 9, post.y - unit * 18, unit * 18, unit * 18);
@@ -1554,16 +1632,22 @@ function drawBridge(context, link, first, second, transform, time, unit) {
   } else {
     // A light bridge: an arc of starlight between islands that share a name.
     const points = curvePoints(start, end, -span * .22, 48);
-    stroke(points, unit * 6, 'rgba(125,231,239,.08)');
-    stroke(points, unit * 2.2, 'rgba(125,231,239,.28)');
+    const tint = (alpha, plain) => {
+      if (!crew) return plain;
+      const gradient = context.createLinearGradient(start.x, start.y, end.x, end.y);
+      gradient.addColorStop(.4, hexAlpha(crew[0], alpha)); gradient.addColorStop(.6, hexAlpha(crew[1], alpha));
+      return gradient;
+    };
+    stroke(points, unit * 6, tint(.14, 'rgba(125,231,239,.08)'));
+    stroke(points, unit * 2.2, tint(.5, 'rgba(125,231,239,.28)'));
     stroke(points, unit * .8, 'rgba(232,251,255,.75)');
     const travel = ((time * .00035) % 1 + 1) % 1;
     const spark = points[Math.floor(travel * (points.length - 1))];
     const glow = context.createRadialGradient(spark.x, spark.y, 0, spark.x, spark.y, unit * 7);
     glow.addColorStop(0, 'rgba(232,251,255,.9)'); glow.addColorStop(1, 'rgba(125,231,239,0)');
     context.fillStyle = glow; context.fillRect(spark.x - unit * 7, spark.y - unit * 7, unit * 14, unit * 14);
-    [start, end].forEach((post) => {
-      context.fillStyle = '#b48cff'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 6), unit * 2, unit * 6);
+    [start, end].forEach((post, side) => {
+      context.fillStyle = crew ? crew[side] : '#b48cff'; context.fillRect(Math.round(post.x - unit), Math.round(post.y - unit * 6), unit * 2, unit * 6);
       context.fillStyle = '#efe4ff'; context.fillRect(Math.round(post.x - unit * .5), Math.round(post.y - unit * 7), unit, unit * 2);
     });
   }
@@ -1597,7 +1681,7 @@ function drawCapitalHalo(context, item, view) {
 
 function drawWorld() {
   const now = performance.now();
-  drawSky(worldContext, world.width, world.height, 41, now);
+  drawOcean(worldContext, world.width, world.height, 41, now);
   drawCloudSea(worldContext, world.width, world.height, now);
   // Until every island's art is ready the sky and the cloud sea stand alone, and the welcome card reads over them.
   if (!state.ready) return;
@@ -1732,6 +1816,11 @@ const GUIDE = [
   ['Land and water', [
     ['lg-land', 'Tokens become land', 'Every 10× more tokens makes the island bigger. Hills rise with the number of requests.'],
     ['lg-falls', 'Waterfalls', 'One more waterfall for each order of magnitude past a million tokens, up to four.'],
+    ['lg-bedrock', 'Bedrock', 'Every island hangs from a root of its biome\'s own stone, nearly as deep as the island is wide: sandstone strata under data, geodes under AI, icicles under CLIs, lava seams under games, blossom vines under mobile, ivy under web and a lip of moss under the rest.'],
+  ]],
+  ['Sky and moon', [
+    ['lg-sky', `Sky at your hour · ${skyNow().label}`, 'The sky is painted for the hour you build in, read from your archetype or your busiest hour: midnight, dawn, morning, golden hour or twilight. By day the windows and lanterns glow softer.'],
+    ['lg-moon', `Moon phase · ${Math.round(moonPhase() * 28)} of 28 days`, `The moon fills as you keep showing up: full when you worked on every one of the last 28 days, a thin crescent after a quiet month.${skyNow().body === 'sun' ? ' Your sky shows the sun, so the moon waits for night.' : ''}`],
   ]],
   ['The settlement', [
     ['lg-cottage', 'A building for every session', 'Longer sessions build taller. Past 48 buildings, each one stands for several sessions.'],
@@ -2829,7 +2918,7 @@ function drawStoryScene(now) {
   storyScene.shade += (storyScene.targetShade - storyScene.shade) * .08;
   // A slow drift keeps the shot alive while text is on screen.
   const drift = { x: camera.x + Math.sin(now / 4200) * width * .012, y: camera.y + Math.cos(now / 5100) * height * .008, scale: camera.scale };
-  drawSky(context, width, height, 73, now);
+  drawOcean(context, width, height, 73, now);
   drawCloudSea(context, width, height, now);
   const items = storyLayout(width, height);
   const pixel = (items[0]?.px || 1) * drift.scale;

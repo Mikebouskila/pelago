@@ -430,7 +430,7 @@ class PelagoTests(unittest.TestCase):
         # The diorama path is gone; the hazed mips it used stay in the island renderer.
         for dead in ("SCENE_MODE", "composeScene", "composeAt", "sceneTiers", "centreOut", "sceneBounds", "TIERS", "drawCloudBank", "drawConnections"):
             self.assertNotIn(dead, script)
-        self.assertIn("function hazedMips(", (root / "assets" / "island.js").read_text(encoding="utf-8"))
+        self.assertIn("function hazedMip(", (root / "assets" / "island.js").read_text(encoding="utf-8"))
         # The intro plays once per viewer, never under reduced motion, and raises the islands with the reel's riseAt.
         intro = re.search(r"function startIntro\(\).*?\n}\n", script, re.S).group(0)
         self.assertIn("reducedMotion.matches", intro)

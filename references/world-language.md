@@ -13,11 +13,20 @@ Use this mapping when explaining or customizing a generated world.
 | Tool mix | Building types in proportion: shell → forge (chimney, smoke), edits → workshop (crane), reading/search → library (dome), web/browser → signal tower (antenna), subagents/teams → windmill, other → cottage |
 | Output tokens | Lanterns and the share of lit windows |
 | Category | Biome: web → meadow harbor, ai → crystal observatory, data → autumn terraces, cli → tundra workshops, mobile → blossom village, game → candy citadel, other → lighthouse meadow |
+| Category (underside) | Bedrock: every island hangs from an inverted mountain of rock 0.6–1× its width, in its biome's stone (`ROCKS`, seven tones darkening toward the tip, a cool moonlit rim on the lit face, a few stones orbiting it). One motif per biome: data → sandstone strata, ai → geodes and crystal seams, cli → icicles, game → glowing lava seams, mobile → blossom vines, web → ivy, other → a lip of moss |
 | Active in the last 3 weeks | Lit beacon on the keep. Within 2 weeks, forge chimneys smoke. |
 | Idle more than 60 days | Snow on grass, trees and roofs, and fewer lit windows |
 | Claude Code / Codex | Coral / sea-green flags on the landmark. A project worked on by both agents is one island with both flags. |
 | Subagent calls | Airships circling the island: 1 for any delegation, up to 3 (log scale) |
-| Active in the last 30 days | Fireflies |
+| Active in the last 30 days | Fireflies (night skies only) |
+
+## Sky and moon
+
+- **Sky at your hour** (`SKIES` in `assets/world.js`): the archetype's adjective picks the sky (Midnight → midnight, Dawn → dawn, Morning → morning, Sunlit → golden hour, Twilight → twilight). Any other adjective falls back to the busiest hour (`peakHour`): 22–04 midnight, 05–08 dawn, 09–11 morning, 12–16 golden hour, 17–21 twilight; no timestamps at all → midnight. Each sky sets the gradient, horizon glow, how many stars and how much Milky Way show, a moon or a pixel sun, the tint of the clouds, the haze colour, and how strongly island lights glow (full at midnight, about a third in the morning), so day skies never look like night lights at noon.
+- **Moon or sun** hangs upper left, on the side the islands are lit from. On share cards it rides above the scrim, never under the words: between the wordmark and the overline on story and square cards, just right of the text column on wide ones.
+- **Moon phase**: active days in the last 28 (from the daily counts). Every day active → full moon; a quiet month → a thin crescent. The terminator is Bayer-dithered and the dark side keeps a faint earthshine. Sun skies do not show the moon; the Field Guide still names the count.
+- **Atmospheric depth**: on the map, islands higher on screen sit further back and take on a little of the sky's haze, in two fixed steps (7% and 14%).
+- The still sky is cached in an offscreen canvas keyed by size, sky, phase, device pixel ratio and seed, so a frame only copies it and moves the clouds.
 
 ## Connections
 
@@ -84,7 +93,7 @@ Rhythm data is stored only as 24 hour buckets, 7 weekday buckets, the active-day
 
 Before sharing, each person can run `--only "<names>"` on their export: projects not named are dropped together with their links, their share of the rhythm (every project records its own hour, weekday and day counts), and the scan's file counts. `--team` merges several people's `--json-output` exports, and `--shared-only` keeps only islands two or more people built. Projects whose names match (ignoring case and punctuation) become one island: counts, tokens, tools and technologies add up, and the island keeps the seed and realm of whoever built the most of it. Each island records `builders` (each person's share of the activity) and `work` (their sessions, requests and tokens there).
 
-On the map every builder has a colour. Roofs are assigned to builders in proportion to their share, flags and airships show the top builders, and a colour strip under each label shows the split. Shared islands are packed at the heart of the map and each builder's own islands gather in their own direction. Rhythm is the sum of everyone's, so the team archetype describes the crew as a whole; each member's own archetype is kept for the crew slide.
+On the map every builder has a colour. Roofs are assigned to builders in proportion to their share, the keep flies one pennant per top builder (up to three, longest for the biggest share), airships show the top builders, and a colour strip under each label shows the split. Bridges wear both builders' colours: each end takes the colour of whoever leads that island (when one person leads both, the next builder of either island takes the far end); rope bridges get two-tone planks and a pennant on each post, light bridges a gradient between the two colours. Shared islands are packed at the heart of the map and each builder's own islands gather in their own direction. Rhythm is the sum of everyone's, so the team archetype describes the crew as a whole; each member's own archetype is kept for the crew slide.
 
 ## Tone
 

@@ -580,6 +580,15 @@ Object.assign(RELIC_SPRITES, {
   'lg-route': { palette: { y: '#ffd66f', w: '#fff1c4' }, rows: [
     'yy..yy..yy..', '..........ww', '..........ww',
   ] },
+  'lg-bedrock': { palette: { ...GRASS, r: '#d2a774', s: '#b8895c', R: '#996c4a', S: '#79523b', t: '#593b2c' }, rows: [
+    'gggggggggggg', 'GddddddddddG', '.rrrrrrRRRR.', '.ssssssSSSS.', '..rrrrrRRR..', '..sssssSSS..', '...rrrrRR...', '...ssssSS...', '....rrRt....', '.....st.....', '.....t......',
+  ] },
+  'lg-sky': { palette: { y: '#ffd879', Y: '#fff7d6', p: '#e6b26a', o: '#7c4c8e', O: '#2c2a5c' }, rows: [
+    '....yyyy....', '...yYYYYy...', '..yYYYYYYy..', 'pppppppppppp', 'oooooooooooo', 'o.o.o.o.o.o.', 'OOOOOOOOOOOO',
+  ] },
+  'lg-moon': { palette: { M: '#fff6d6', m: '#efe2b8', c: '#cdbb8e', d: '#323a5e' }, rows: [
+    '..mmmm..', '.MMmmdd.', 'MMcmmddd', 'MMMmdmdd', 'MMmmdddd', 'MMMcmddd', '.MMmmdd.', '..mmdd..',
+  ] },
 });
 
 /* ---------- Keepers: a pixel character for every archetype title ---------- */
