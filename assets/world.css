@@ -451,6 +451,17 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .crew.claude { flex: 1 1 auto; min-width: 0; }
 .crew.codex { flex: 0 0 max(var(--share), 96px); min-width: 96px; }
 .crew { overflow: hidden; }
+/* Receipts: big pixel numbers on a torn-off till slip */
+.receipt-list { display: grid; width: 100%; border-block: 2px dashed rgba(255,246,220,.28); }
+.receipt-row { display: grid; justify-items: start; gap: 5px; padding: 9px 0 8px; animation: rise .7s var(--delay, .1s) cubic-bezier(.22,1,.36,1) both; }
+.receipt-row + .receipt-row { border-top: 1px dotted rgba(255,246,220,.24); }
+.pixel-number { display: block; max-width: 100%; image-rendering: pixelated; filter: drop-shadow(0 0 18px rgba(255,200,100,.22)); }
+.receipt-line { margin: 0; color: rgba(232,240,252,.92); font-size: 14.5px; font-weight: 650; line-height: 1.35; }
+.slide-receipts .story-note { margin-top: 2px; }
+@media (prefers-reduced-motion: reduce) { .receipt-row { animation: none !important; } }
+.key-tip { color: var(--ink-2); }
+.key-tip strong { color: #ffd66f; }
+.key-tip code { padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,.08); color: #fff6dc; font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
 
 /* ---------- Relic cards and popover ---------- */
 .relic-how { margin-top: 4px !important; color: rgba(232,240,252,.85) !important; }

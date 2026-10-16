@@ -72,18 +72,36 @@ Each title has a keeper and an accent colour, which share cards wear on their ov
 
 ## Story
 
-The story has up to nine slides (ten in a team world), and a slide is skipped when its data is missing:
+The story has up to ten slides (eleven in a team world), and a slide is skipped when its data is missing:
 
 1. Total sessions and days at sea.
 - Team worlds only: the crew, each builder with their own archetype, islands, shared islands and sessions.
 2. The capital: the most active island, its share of the total, and what it is built from.
 3. Tokens, compared to War and Peace (~780k tokens) or English Wikipedia (~6B tokens), plus total requests.
-4. The 24-hour clock with the busiest hour.
-5. The longest run of consecutive active days, plus the busiest date.
-6. The crew: Claude Code versus Codex activity share, shown only when both are present.
-7. Relics found, rarest first, and the locked relic closest to unlocking.
-8. The archetype reveal, over the top islands: two reels spin through every first word and title and lock on yours, your keeper (one pixel character per title, `keeperFor()` in `assets/relics.js`) dithers in, then the two clues. With reduced motion everything appears at once.
-9. The share card, with share, post, more formats, and explore actions.
+4. The receipts: up to four lines in pixel numbers, over the island with the most of them. Skipped when every count is zero.
+5. The 24-hour clock with the busiest hour.
+6. The longest run of consecutive active days, plus the busiest date.
+7. The crew: Claude Code versus Codex activity share, shown only when both are present.
+8. Relics found, rarest first, and the locked relic closest to unlocking.
+9. The archetype reveal, over the top islands: two reels spin through every first word and title and lock on yours, your keeper (one pixel character per title, `keeperFor()` in `assets/relics.js`) dithers in, then the two clues. With reduced motion everything appears at once.
+10. The share card, with share, post, more formats, and explore actions.
+
+## Receipts
+
+Each project stores `habits`, counted while scanning; the text is never stored (the same model as the tech list):
+
+| Count | What is counted |
+|---|---|
+| `interrupts` | Times you stopped the agent: main-thread user records starting `[Request interrupted` (Claude Code) and `turn_aborted` events with reason `interrupted` (Codex). Subagent copies of the notice are not counted, and the notices are never requests. |
+| `please` | Typed requests matching `\bplease\b` |
+| `thanks` | Typed requests matching `\b(thanks\|thank you\|thx\|ty)\b` |
+| `nudges` | Typed requests that are only a go-ahead once punctuation and spaces are stripped: continue, go, go on, keep going, yes, y, ok, okay, proceed, do it, next |
+| `nudgeWord` | The most common of those go-aheads |
+| `longestStretch` | Minutes of the longest run in one session where no two messages are 20 or more minutes apart |
+
+The world's receipts are always recomputed from the projects on the map (`world_habits()`): counts add up, the longest stretch is the maximum, and the go-ahead word is the one with the most go-aheads behind it. So `--only` exports and team merges carry only the receipts of the islands they keep.
+
+Claude Code deletes transcripts after 30 days unless `cleanupPeriodDays` says otherwise. When the world has Claude Code islands whose history starts within 35 days of `generatedAt` (and the scan was not limited with `--since-days`, and `cleanupPeriodDays` is not already above 35), the Field Guide and the terminal summary suggest adding `"cleanupPeriodDays": 365` to `~/.claude/settings.json`. Pelago never edits settings.
 
 The tokens, relics and archetype slides carry a *Share this* pill, and a relic's popover a *Share this relic* button: each opens the export studio on a moment card (`renderMomentCard()`), the moment big over the dimmed world with the brand and call to action inside a story's safe zones. The video is the rise reel (`renderReelFrame(canvas, t, format)`, a pure function of t over 12 seconds): the capital is there from the first frame, the other islands rise from the cloud sea in founding order (`foundingOrder()`, `riseAt()`) through a Bayer-dither dissolve and a hard-pixel cloud puff while the golden route draws and the counters tick; then the camera pulls back, the archetype and keeper slam in, and it holds on the brand and the call to action. None of these owner surfaces appear in the sample world.
 

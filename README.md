@@ -150,11 +150,12 @@ Common, Rare, Epic, Legendary. The **Field Guide** explains every symbol on the 
 </td>
 <td valign="top">
 
-Press **▶ Play your story** for a nine-slide recap filmed over your own world. The camera flies from the whole archipelago down to your capital and back while it shows:
+Press **▶ Play your story** for a ten-slide recap filmed over your own world. The camera flies from the whole archipelago down to your capital and back while it shows:
 
 - how many sessions you've had with your agents
 - your **capital**, and how much of everything you built lives there
 - how many **tokens** flowed through, and how much was cached context
+- **the receipts**: how often you stopped your agent, said please or thank you, typed just "continue", and your longest stretch without a break
 - a 24-hour clock of **when you build**
 - a calendar of your **longest streak**
 - how you split work between **Claude Code and Codex**
@@ -237,6 +238,7 @@ Pelago counts from your transcripts, never estimates:
 - **Tokens** are summed from usage records, each reply billed once.
 - Every line of every transcript is read, however large.
 - Only what's on this computer counts. Claude Code and Codex clean up old transcripts over time, so totals can be lower than a billing dashboard. The page shows the date your history starts from.
+- Claude Code keeps 30 days of history by default. When your world starts that recently, Pelago suggests adding `"cleanupPeriodDays": 365` to `~/.claude/settings.json` so your islands keep growing. It never changes your settings itself.
 
 The test suite pins each of these rules against records shaped like real transcripts.
 
@@ -248,6 +250,7 @@ The test suite pins each of these rules against records shaped like real transcr
 - No network requests, no uploads. Every island is drawn in your browser from the numbers.
 - Message text is read in memory to guess each project's realm, then forgotten.
 - The page keeps only aggregates: project names, dates, counts, token totals, tool categories, hour, weekday and day counts (per project), and how often a fixed list of 17 technologies came up.
+- The receipts are counts too: how many times you stopped your agent, how many requests said please or thanks or were only a go-ahead from a fixed list ("continue", "yes", "ok"...), which of those words came up most, and the longest stretch in one session in minutes. The words themselves are never kept.
 - Showing your screen or taking screenshots? Press **Aa** on the map to hide every project name: on the map, in the details, in the story and on the cards. Islands are described by their kind instead, like *Meadow harbor*. It stays that way until you turn it back on.
 - Sharing a card? Untick **Show project names** if any are confidential.
 - Team worlds never sync anything. Your export leaves your machine only if you send it to a teammate yourself, and with `--only` it holds just the projects you picked.

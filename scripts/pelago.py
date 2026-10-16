@@ -68,6 +68,50 @@ def detect_tech(text: str) -> set[str]:
     return found
 TECH_MIN_MENTIONS = 6
 
+# Receipts: per-prompt habits. Only how many prompts matched is kept, never the words.
+PLEASE = re.compile(r"\bplease\b", re.I)
+THANKS = re.compile(r"\b(?:thanks|thank you|thx|ty)\b", re.I)
+NUDGES = ("continue", "go", "go on", "keep going", "yes", "y", "ok", "okay", "proceed", "do it", "next")
+STRETCH_GAP = 20 * 60
+HISTORY_TIP = 'Claude Code keeps 30 days of history by default. Add "cleanupPeriodDays": 365 to ~/.claude/settings.json and your islands keep growing.'
+
+
+def manners(text: str) -> tuple[Counter, str | None]:
+    """Which receipts one typed prompt adds: please, thanks, or a bare go-ahead such as "continue"."""
+    bare = " ".join(re.sub(r"[^\w\s]", " ", text.casefold()).split()) if len(text) <= 40 else ""
+    nudge = bare if bare in NUDGES else None
+    return Counter({"please": bool(PLEASE.search(text)), "thanks": bool(THANKS.search(text)), "nudges": bool(nudge)}), nudge
+
+
+def longest_stretch(spans: dict[str, list[tuple[float, float]]]) -> int:
+    """Minutes of the longest run inside one session where no two messages are 20 minutes apart."""
+    longest = 0.0
+    for runs in spans.values():
+        start = end = None
+        for first, last in sorted(runs):
+            if end is None or first - end >= STRETCH_GAP:
+                start, end = first, last
+            else:
+                end = max(end, last)
+            longest = max(longest, end - start)
+    return int(longest // 60)
+
+
+def world_habits(projects: list[dict[str, Any]]) -> dict[str, Any]:
+    """The world's receipts, always counted from the projects on the map."""
+    totals: Counter = Counter()
+    words: Counter = Counter()
+    longest = 0
+    for project in projects:
+        habits = project.get("habits") or {}
+        totals.update({name: int(habits.get(name) or 0) for name in ("interrupts", "please", "thanks", "nudges")})
+        if habits.get("nudgeWord"):
+            words[habits["nudgeWord"]] += int(habits.get("nudges") or 0) or 1
+        longest = max(longest, int(habits.get("longestStretch") or 0))
+    return {**{name: totals[name] for name in ("interrupts", "please", "thanks", "nudges")},
+            "nudgeWord": words.most_common(1)[0][0] if words else None, "longestStretch": longest}
+
+
 TOOL_GROUPS = [
     ("crew", re.compile(r"^(agent|task\w*|sendmessage|send_message|wait_agent|spawn\w*|list_agents|workflow|teammate\w*)$", re.I)),
     ("build", re.compile(r"(edit|write|apply_patch|str_replace|create_file|notebook)", re.I)),
@@ -96,6 +140,9 @@ class Project:
     session_sizes: Counter = field(default_factory=Counter)
     crews: Counter = field(default_factory=Counter)
     tech: Counter = field(default_factory=Counter)
+    habits: Counter = field(default_factory=Counter)
+    nudge_words: Counter = field(default_factory=Counter)
+    spans: dict = field(default_factory=dict)
     analysed: int = 0
     rhythm: "Rhythm" = field(default_factory=lambda: Rhythm())
 
@@ -108,8 +155,11 @@ class Project:
         self.first_active = min(self.first_active, other.first_active)
         self.last_active = max(self.last_active, other.last_active)
         for mine, theirs in ((self.signals, other.signals), (self.tokens, other.tokens), (self.tools, other.tools),
-                             (self.models, other.models), (self.session_sizes, other.session_sizes), (self.crews, other.crews), (self.tech, other.tech)):
+                             (self.models, other.models), (self.session_sizes, other.session_sizes), (self.crews, other.crews), (self.tech, other.tech),
+                             (self.habits, other.habits), (self.nudge_words, other.nudge_words)):
             mine.update(theirs)
+        for session, runs in other.spans.items():
+            self.spans.setdefault(session, []).extend(runs)
         self.rhythm.absorb(other.rhythm)
 
     def public(self) -> dict[str, Any]:
@@ -140,6 +190,10 @@ class Project:
             "tech": {name: count for name, count in self.tech.most_common() if count >= TECH_MIN_MENTIONS},
             # When this project's work happened, so a world built from a few projects keeps only their rhythm.
             "rhythm": self.rhythm.buckets(),
+            # Receipts: counts only, the same model as the tech list.
+            "habits": {**{name: self.habits[name] for name in ("interrupts", "please", "thanks", "nudges")},
+                       "nudgeWord": self.nudge_words.most_common(1)[0][0] if self.nudge_words else None,
+                       "longestStretch": longest_stretch(self.spans)},
         }
 
 
@@ -314,8 +368,8 @@ def _usage_tokens(usage: dict[str, Any]) -> tuple[int, int, int]:
 NOT_TYPED = ("<", "This session is being continued", "[Request interrupted", "Caveat:", "# AGENTS.md")
 
 
-def typed_text(content: Any) -> str | None:
-    """The text of a message a person typed, or None for tool results, injected context and notices."""
+def user_text(content: Any) -> str | None:
+    """The text of a user record, or None for tool results."""
     if isinstance(content, str):
         text = content
     elif isinstance(content, list):
@@ -325,7 +379,12 @@ def typed_text(content: Any) -> str | None:
         text = " ".join(str(block.get("text", "")) for block in blocks if block.get("type") in ("text", "input_text"))
     else:
         return None
-    text = text.strip()
+    return text.strip()
+
+
+def typed_text(content: Any) -> str | None:
+    """The text of a message a person typed, or None for tool results, injected context and notices."""
+    text = user_text(content)
     return text if text and not text.startswith(NOT_TYPED) else None
 
 
@@ -335,15 +394,20 @@ def read_work(record: dict[str, Any], agent: str, seen: dict[str, tuple[int, int
     message: a real conversation turn (person or agent, tool calls included), each agent reply counted once.
     prompt:  something the person typed. Subagent briefs, notices and summaries are not prompts.
     """
-    work: dict[str, Any] = {"message": False, "prompt": False, "tools": [], "model": None, "tokens": None, "cumulative": None}
+    work: dict[str, Any] = {"message": False, "prompt": False, "tools": [], "model": None, "tokens": None, "cumulative": None,
+                            "typed": None, "interrupt": False}
     if agent == "claude":
         message = record.get("message") if isinstance(record.get("message"), dict) else {}
         content = message.get("content")
         kind = record.get("type")
         if kind == "user":
+            own = not subagent and not record.get("isSidechain")
+            typed = typed_text(content)
             work["message"] = True
-            work["prompt"] = (not subagent and not record.get("isSidechain") and not record.get("isMeta")
-                              and not record.get("isCompactSummary") and typed_text(content) is not None)
+            work["prompt"] = own and not record.get("isMeta") and not record.get("isCompactSummary") and typed is not None
+            work["typed"] = typed if work["prompt"] else None
+            # Stopping the agent leaves a notice; each subagent that was running gets its own copy, so only the main thread counts.
+            work["interrupt"] = own and (user_text(content) or "").startswith("[Request interrupted")
         elif kind == "assistant":
             message_id = message.get("id")
             usage = _usage_tokens(message["usage"]) if isinstance(message.get("usage"), dict) else None
@@ -373,6 +437,10 @@ def read_work(record: dict[str, Any], agent: str, seen: dict[str, tuple[int, int
                 typed = typed_text(payload.get("content"))
                 work["message"] = typed is not None or subagent
                 work["prompt"] = not subagent and typed is not None
+                work["typed"] = typed if work["prompt"] else None
+                work["interrupt"] = not subagent and (user_text(payload.get("content")) or "").startswith("[Request interrupted")
+        elif kind == "turn_aborted" and payload.get("reason") == "interrupted":
+            work["interrupt"] = not subagent
         elif kind == "token_count" and isinstance(payload.get("info"), dict):
             total = payload["info"].get("total_token_usage") or {}
             cached = int(total.get("cached_input_tokens") or 0)
@@ -579,11 +647,24 @@ def persona(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def history_tip(data: dict[str, Any]) -> bool:
+    """Claude Code deletes transcripts after 30 days unless told otherwise; say so when a world looks cut short."""
+    keeps = data.get("claudeKeepsDays")
+    if data.get("demo") or data.get("sinceDays") or (isinstance(keeps, (int, float)) and keeps > 35):
+        return False
+    starts = [project.get("firstActive") for project in data.get("projects") or []
+              if (project.get("crews") or {project.get("agent"): 1}).get("claude") and project.get("firstActive")]
+    made, first = parse_date(data.get("generatedAt")), min(filter(None, map(parse_date, starts)), default=None)
+    return bool(made and first and made - first <= timedelta(days=35))
+
+
 def enrich(data: dict[str, Any]) -> dict[str, Any]:
     data.setdefault("rhythm", Rhythm().public())
     data.setdefault("links", [])
     data["persona"] = persona(data)
     data["archetypes"] = {"prefixes": list(PREFIXES), "titles": list(TITLES.values())}
+    data["habits"] = world_habits(data.get("projects") or [])
+    data["historyTip"] = history_tip(data)
     return data
 
 
@@ -623,6 +704,15 @@ def find_links(projects: list[tuple[dict[str, Any], str]], per_island: int = 4) 
     return links
 
 
+def claude_keeps_days(home: Path) -> int | None:
+    """How many days Claude Code keeps transcripts, if the person changed it. Only this one setting is read."""
+    try:
+        value = json.loads((home / ".claude" / "settings.json").read_text(encoding="utf-8")).get("cleanupPeriodDays")
+    except (OSError, ValueError, AttributeError):
+        return None
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
 def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
     roots = [("claude", home / ".claude" / "projects"), ("codex", home / ".codex" / "sessions")]
     projects: dict[str, Project] = {}
@@ -649,6 +739,7 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                 seen_messages: dict[str, tuple[int, int, int]] = {}
                 cumulative: tuple[int, int, int] | None = None
                 project = None
+                run: list[Any] | None = None
                 subagent = path.parent.name == "subagents"
                 for record in _iter_records(path):
                     # Codex writes each subagent thread to its own file; fold it into the thread that spawned it.
@@ -667,10 +758,11 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                     work = read_work(record, agent, seen_messages, subagent)
                     if work["cumulative"]:
                         cumulative = work["cumulative"]
-                    if not work["message"] and not work["tools"] and not work["tokens"]:
+                    if not work["message"] and not work["tools"] and not work["tokens"] and not work["interrupt"]:
                         continue
                     key = file_project or f"{agent}:{fallback}"
                     project = projects.setdefault(key, Project(key=key, name=clean_name(file_project, fallback, home), agent=agent))
+                    project.habits["interrupts"] += int(work["interrupt"])
                     if not work["message"]:
                         # A later block of a reply already counted: only its tool calls are new.
                         project.tools.update(tool_group(name) for name in work["tools"] if name)
@@ -690,6 +782,11 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                         project.signals.update(category_signals(text[:1500]))
                         project.tech.update(detect_tech(text))
                     project.prompts += int(work["prompt"])
+                    if work["typed"]:
+                        counts, nudge = manners(work["typed"])
+                        project.habits.update(counts)
+                        if nudge:
+                            project.nudge_words[nudge] += 1
                     project.tools.update(tool_group(name) for name in work["tools"] if name)
                     if work["model"] and (family := model_family(work["model"])):
                         project.models[family] += 1
@@ -702,7 +799,17 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
                             project.last_active = timestamp.isoformat()
                         if timestamp.isoformat() < project.first_active:
                             project.first_active = timestamp.isoformat()
+                        # A stretch runs on while messages in one session stay under 20 minutes apart.
+                        moment = timestamp.timestamp()
+                        if run and run[2] is project and run[3] == session and run[0] - STRETCH_GAP < moment < run[1] + STRETCH_GAP:
+                            run[0], run[1] = min(run[0], moment), max(run[1], moment)
+                        else:
+                            if run:
+                                run[2].spans.setdefault(run[3], []).append((run[0], run[1]))
+                            run = [moment, moment, project, session]
                     file_had_record = True
+                if run:
+                    run[2].spans.setdefault(run[3], []).append((run[0], run[1]))
                 if cumulative and project is not None:
                     project.tokens.update(dict(zip(("input", "output", "cached"), cumulative)))
                 accepted += int(file_had_record)
@@ -728,6 +835,8 @@ def scan(home: Path, since_days: int | None = None) -> dict[str, Any]:
         "projects": [public for public, _ in kept],
         "sources": source_info,
         "rhythm": rhythm.public(),
+        "sinceDays": since_days,
+        "claudeKeepsDays": claude_keeps_days(home),
     })
 
 
@@ -778,6 +887,9 @@ def demo_data() -> dict[str, Any]:
             "tools": tools, "models": ["Opus", "Sonnet"] if agent == "claude" else ["GPT"], "sessionSizes": sizes[:MAX_BUILDINGS],
             "tech": DEMO_TECH.get(name, {}),
             "crews": {"claude": 0.62, "codex": 0.38} if name == "Atlas Studio" else {"codex": 0.7, "claude": 0.3} if name == "Orbit Agent" else {agent: 1.0},
+            "habits": {"interrupts": prompts * (6 + seed % 5) // 100, "please": prompts * (3 + seed % 6) // 100,
+                       "thanks": prompts * (7 + seed % 7) // 100, "nudges": prompts * (8 + seed % 9) // 100,
+                       "nudgeWord": ("continue", "continue", "yes", "go on", "ok")[seed % 5], "longestStretch": min(320, 25 + sessions * 7 + seed % 40)},
         })
     hours = [26, 17, 9, 4, 1, 0, 1, 2, 5, 9, 12, 11, 8, 10, 13, 15, 14, 12, 13, 18, 24, 31, 38, 34]
     # A plausible calendar: busy weekdays, quiet stretches, and a long streak leading up to today.
@@ -826,7 +938,7 @@ def select_projects(data: dict[str, Any], names: list[str]) -> tuple[dict[str, A
         for project in kept:
             rhythm.absorb(project["rhythm"])
     # Nothing about the projects left out survives: not their rhythm, links, or how many files were scanned.
-    selected = {key: value for key, value in data.items() if key not in ("persona", "rhythm", "sources")}
+    selected = {key: value for key, value in data.items() if key not in ("persona", "rhythm", "sources", "habits")}
     selected.update(projects=kept, sources=[], links=[link for link in data.get("links") or [] if link.get("a") in ids and link.get("b") in ids],
                     rhythm=rhythm.public())
     return enrich(selected), missing
@@ -874,7 +986,7 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
                     "sessions": 0, "messages": 0, "activity": 0, "prompts": 0, "techSample": 0,
                     "firstActive": project.get("firstActive"), "lastActive": project.get("lastActive"),
                     "tokens": Counter(), "tools": Counter(), "tech": Counter(), "crews": Counter(), "models": Counter(), "sessionSizes": [],
-                    "rhythm": Rhythm(), "timed": True,
+                    "rhythm": Rhythm(), "timed": True, "parts": [],
                 }
             elif weight > island["lead"]:
                 # The island keeps the look and realm of whoever built the most of it.
@@ -891,6 +1003,7 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
                 island["crews"][agent] += weight * share
             island["models"].update({model: weight for model in project.get("models") or []})
             island["sessionSizes"].extend(project.get("sessionSizes") or [])
+            island["parts"].append(project)
             if project.get("rhythm"):
                 island["rhythm"].absorb(project["rhythm"])
             else:
@@ -898,7 +1011,7 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
 
     merged = []
     for key, island in islands.items():
-        crews = island.pop("crews"); models = island.pop("models"); tokens = island.pop("tokens"); island.pop("lead")
+        crews = island.pop("crews"); models = island.pop("models"); tokens = island.pop("tokens"); parts = island.pop("parts"); island.pop("lead")
         builders = contributions[key]
         if shared_only and len(builders) < 2:
             continue
@@ -916,6 +1029,8 @@ def merge_team(exports: list[tuple[str, dict[str, Any]]], team_name: str | None 
             "work": {name: dict(work_by[key][name]) for name, _ in builders.most_common()},
             "rhythm": island["rhythm"].buckets() if island["timed"] else None,
             "timed": None,
+            # Everyone's receipts for this island: counts add up, the longest stretch is the longest anyone ran.
+            "habits": world_habits(parts),
         })
     for island in merged:
         island.pop("timed")
@@ -977,6 +1092,7 @@ def demo_team() -> dict[str, Any]:
             project["tokens"] = {k: round(v * share) for k, v in project["tokens"].items()}
             project["tools"] = {k: max(1, round(v * share)) for k, v in project["tools"].items()}
             project["sessionSizes"] = project["sessionSizes"][index::3] or project["sessionSizes"][:1]
+            project["habits"] = {**project["habits"], **{k: round(project["habits"][k] * share) for k in ("interrupts", "please", "thanks", "nudges")}}
             kept.append(project)
         data["projects"] = kept
         hours = base["rhythm"]["hours"]
@@ -1073,6 +1189,9 @@ def print_summary(data: dict[str, Any], output: Path) -> None:
     print()
     print(f"  World: {output}")
     print("  Only aggregate metadata was saved; prompts and file contents were not persisted.")
+    if data.get("historyTip"):
+        print()
+        print(f"  Tip: {HISTORY_TIP} Pelago never changes your settings.")
 
 
 def main(argv: list[str] | None = None) -> int:
