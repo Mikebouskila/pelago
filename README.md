@@ -264,6 +264,7 @@ Pelago describes a footprint, not a score. A small island isn't a worse project,
 ```bash
 python3 scripts/pelago.py --since-days 30 --open     # your month
 python3 scripts/pelago.py --since-days 365 --open    # your year
+python3 scripts/pelago.py --year 2026 --open          # your Wrapped: only 2026, titled CLAUDE CODE WRAPPED 2026
 python3 scripts/pelago.py --json-output pelago.json  # keep the aggregates
 python3 scripts/pelago.py --input pelago.json        # rebuild from them
 python3 scripts/pelago.py --demo --open              # a sample world, reads nothing
@@ -274,6 +275,7 @@ python3 scripts/pelago.py --team pelago-team/ --team-name "Our team" --shared-on
 python3 scripts/pelago.py --demo-team --open                                # a sample team world
 
 python3 -m unittest discover -s tests -v             # run the tests
+python3 tools/capture_docs.py                        # remake the README media in docs/ (needs Chrome; ffmpeg for GIFs)
 ```
 
 The generator is `scripts/pelago.py` (standard library only). The page is `assets/world-template.html`, `world.css`, `island.js` (the procedural island generator), `relics.js` and `world.js`, inlined into one file at build time.

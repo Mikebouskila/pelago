@@ -57,6 +57,8 @@ if (TEAM) {
 function builderColor(name) { return TEAM?.members.find((member) => member.name === name)?.color || '#9fb3c8'; }
 function leadBuilder(project) { return Object.keys(project.builders || {})[0] || null; }
 function isShared(project) { return Object.values(project.builders || {}).filter((share) => share >= .15).length > 1; }
+// A Wrapped edition (--year) names the story and the card: "CLAUDE CODE WRAPPED 2026".
+const EDITION = DATA.edition?.label ? DATA.edition : null;
 const RHYTHM = DATA.rhythm || { hours: Array(24).fill(0), weekdays: Array(7).fill(0), activeDays: 0, longestStreak: 0 };
 const TOTAL_SESSIONS = PROJECTS.reduce((sum, project) => sum + project.sessions, 0);
 const TOTAL_TOKENS = PROJECTS.reduce((sum, project) => sum + (project.tokens?.total || 0), 0);
@@ -229,7 +231,7 @@ function cardCopy(selected, showNames = state.showNames) {
   }
   const custom = ($('#cardTitle')?.value || '').trim();
   return {
-    overline: DATA.demo ? (TEAM ? 'SAMPLE TEAM ARCHETYPE' : 'SAMPLE ARCHETYPE') : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    overline: EDITION?.label || (DATA.demo ? (TEAM ? 'SAMPLE TEAM ARCHETYPE' : 'SAMPLE ARCHETYPE') : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE'),
     accent: keeperFor(PERSONA.realm).accent,
     title: custom || PERSONA.title,
     line: PERSONA.line,
@@ -415,7 +417,7 @@ function renderCard(canvas, format = state.format, selected = state.exportSelect
   context.clearRect(0, 0, width, height);
   const pad = (wide ? 60 : 68) * scale;
   const copy = cardCopy(selected, showNames);
-  const year = new Date(NOW).getFullYear();
+  const year = EDITION?.year || new Date(NOW).getFullYear();
   const beat = options.reel ?? null;
   const arrive = (from, lift) => (beat === null ? 1 : slam(beat, from, undefined, lift));
   const after = (from) => beat === null || beat >= from;
@@ -627,7 +629,7 @@ const MOMENTS = {
   },
   archetype: () => ({
     accent: keeperFor(PERSONA.realm).accent, sprite: keeperFor(PERSONA.realm).sprite, title: PERSONA.title,
-    overline: DATA.demo ? 'SAMPLE ARCHETYPE' : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE',
+    overline: EDITION?.label || (DATA.demo ? 'SAMPLE ARCHETYPE' : TEAM ? 'OUR AI CODING ARCHETYPE' : 'MY AI CODING ARCHETYPE'),
     lines: [['body', PERSONA.line]], clues: (PERSONA.clues || []).map((clue) => [clue.label, clue.why.replace(/\byour\b/g, TEAM ? 'our' : 'my')]),
   }),
 };
@@ -680,7 +682,7 @@ function renderMomentCard(canvas, kind, format = state.format, moment = state.mo
   drawBrandMark(context, pad, safeTop - 8 * scale, 4.4 * scale);
   if (!wide) {
     context.textAlign = 'right'; context.fillStyle = '#9fbad4'; context.font = `800 ${15 * scale}px ${SANS}`;
-    context.fillText(`${TEAM ? 'OUR' : 'MY'} PELAGO · ${new Date(NOW).getFullYear()}`, width - pad, safeTop + 26 * scale);
+    context.fillText(`${TEAM ? 'OUR' : 'MY'} PELAGO · ${EDITION?.year || new Date(NOW).getFullYear()}`, width - pad, safeTop + 26 * scale);
   }
   // Stacked and centred on tall and square cards; words left and picture right on wide ones.
   const visual = wide ? { x: width * .56, y: height * .14, w: width * .44 - pad, h: height * .64 }
@@ -2676,7 +2678,7 @@ function buildSlides() {
 
   slides.push(at({ mode: 'wide', zoom: 1.08, shade: .2 }, () => {
     const slide = element('div', 'slide slide-intro');
-    slide.append(element('p', 'story-over', TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : DATA.demo ? "A SAMPLE BUILDER'S AI CODING HISTORY" : 'YOUR AI CODING HISTORY'));
+    slide.append(element('p', 'story-over', EDITION?.label || (TEAM ? `${TEAM.name.toUpperCase()}'S AI CODING HISTORY` : DATA.demo ? "A SAMPLE BUILDER'S AI CODING HISTORY" : 'YOUR AI CODING HISTORY')));
     const big = element('p', 'story-mega'); slide.append(big); countUp(big, TOTAL_SESSIONS);
     slide.append(element('h2', 'story-title', DATA.demo && !TEAM ? 'sessions with their agents.' : 'sessions with your agents.'));
     slide.append(element('p', 'story-copy', days ? `Across ${plural(days, 'day')} at sea${sinceLabel() ? ` since ${sinceLabel()}` : ''}, they quietly raised ${plural(PROJECTS.length, 'island')}.` : `Together they raised ${plural(PROJECTS.length, 'island')}.`));
